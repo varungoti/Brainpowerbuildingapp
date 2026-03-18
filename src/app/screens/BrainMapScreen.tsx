@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp, KYCData } from "../context/AppContext";
 import { getAgeTierConfig } from "../data/activities";
@@ -7,6 +7,7 @@ import {
   playBrainRegionActivate, playBrainPulse,
   playClick, playActivityComplete,
 } from "../utils/audioEffects";
+import { AnatomicalBrain } from "../components/AnatomicalBrain";
 
 // ─── 15 Brain Region Definitions (13 original + Pronunciation + Coordination)
 const BRAIN_REGIONS = [
@@ -131,11 +132,6 @@ interface Particle { id:string; cx:number; cy:number; angle:number; dist:number;
 
 // ─── 3D Cartoonish Brain Visualization ────────────────────────────────────────
 function BrainMapViz({ scores }: { scores: Record<string, number> }) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const totalScore = Object.values(scores).reduce((s, v) => s + v, 0);
   const maxTotal = BRAIN_REGIONS.length * MAX_SCORE;
   const overallPct = Math.min(100, (totalScore / maxTotal) * 100);
@@ -146,37 +142,12 @@ function BrainMapViz({ scores }: { scores: Record<string, number> }) {
     return () => clearTimeout(t);
   }, []);
 
-  const fireParticles = (svgX: number, svgY: number, color: string) => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const px = (svgX / 400) * rect.width;
-    const py = (svgY / 370) * rect.height;
-    const np: Particle[] = Array.from({ length: 14 }, (_, i) => ({
-      id: `${Date.now()}-${i}`, cx: px, cy: py,
-      angle: (i / 14) * 360, dist: 25 + Math.random() * 25, color,
-    }));
-    setParticles(p => [...p, ...np]);
-    setTimeout(() => setParticles(p => p.filter(pa => !np.find(n => n.id === pa.id))), 900);
-  };
-
-  const handleTap = (idx: number) => {
-    const next = selected === idx ? null : idx;
-    setSelected(next);
-    playBrainRegionActivate(idx);
-    if (next !== null) fireParticles(BRAIN_REGIONS[idx].cx, BRAIN_REGIONS[idx].cy, BRAIN_REGIONS[idx].color);
-  };
-
-  const selReg = selected !== null ? BRAIN_REGIONS[selected] : null;
-  const selScore = selReg ? (scores[selReg.key] ?? 0) : 0;
-  const selPct = selReg ? Math.min(100, (selScore / MAX_SCORE) * 100) : 0;
-
   // Compute top 3 strengths
   const sorted = [...BRAIN_REGIONS].sort((a, b) => (scores[b.key] ?? 0) - (scores[a.key] ?? 0));
   const topThree = sorted.slice(0, 3).filter(r => (scores[r.key] ?? 0) > 0);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-y-auto" style={{ scrollbarWidth: "none" }}>
       {/* Overall progress bar */}
       <div className="px-4 pt-2 pb-1">
         <div className="flex items-center justify-between mb-1">
@@ -205,272 +176,17 @@ function BrainMapViz({ scores }: { scores: Record<string, number> }) {
         </div>
       </div>
 
-      {/* Brain SVG + particles */}
-      <div ref={containerRef} className="relative flex-1 flex items-center justify-center px-1" style={{ minHeight: 0 }}>
-        {/* Particle layer */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <AnimatePresence>
-            {particles.map(p => {
-              const rad = (p.angle * Math.PI) / 180;
-              return (
-                <motion.div key={p.id}
-                  className="absolute rounded-full pointer-events-none"
-                  initial={{ left: p.cx - 4, top: p.cy - 4, opacity: 1, scale: 1 }}
-                  animate={{ left: p.cx - 4 + Math.cos(rad) * p.dist, top: p.cy - 4 + Math.sin(rad) * p.dist, opacity: 0, scale: 0 }}
-                  transition={{ duration: 0.75, ease: "easeOut" }}
-                  style={{ width: 8, height: 8, background: p.color, boxShadow: `0 0 8px ${p.color}`, position: "absolute" }}
-                />
-              );
-            })}
-          </AnimatePresence>
-        </div>
-
-        <svg ref={svgRef} viewBox="0 0 400 370" className="w-full" style={{ maxHeight: 310 }}>
-          <defs>
-            <filter id="bmGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="bmGlowSoft" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="10" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="bmInnerShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-              <feOffset dx="2" dy="3" result="offsetBlur"/>
-              <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
-            </filter>
-            {/* 3D-ish gradient for brain shape */}
-            <radialGradient id="brainFill" cx="40%" cy="35%" r="60%">
-              <stop offset="0%" stopColor="#2a2a5e" stopOpacity={0.95} />
-              <stop offset="50%" stopColor="#181840" stopOpacity={0.98} />
-              <stop offset="100%" stopColor="#08081a" stopOpacity={1} />
-            </radialGradient>
-            <radialGradient id="brainHighlight" cx="35%" cy="25%" r="40%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-            </radialGradient>
-            {/* Animated glow based on progress */}
-            <radialGradient id="brainAura" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#4361EE" stopOpacity={0.05 + overallPct * 0.002} />
-              <stop offset="100%" stopColor="#4361EE" stopOpacity="0" />
-            </radialGradient>
-            <style>{`
-              @keyframes neuralFlow { from{stroke-dashoffset:24} to{stroke-dashoffset:0} }
-              @keyframes brainPulse { 0%,100%{opacity:0.06} 50%{opacity:0.16} }
-              @keyframes gentleSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-            `}</style>
-          </defs>
-
-          {/* Background aura */}
-          <ellipse cx="200" cy="185" rx="195" ry="185" fill="url(#brainAura)"
-            style={{ animation: "brainPulse 4s ease-in-out infinite" }} />
-
-          {/* 3D Brain Shape — cartoon-style with visible lobes */}
-          {/* Main brain outline */}
-          <path d={`
-            M 200,18
-            C 260,12 330,35 358,72
-            C 382,105 386,148 380,188
-            C 374,228 356,265 332,295
-            C 308,322 275,342 248,350
-            C 230,355 215,358 200,358
-            C 185,358 170,355 152,350
-            C 125,342 92,322 68,295
-            C 44,265 26,228 20,188
-            C 14,148 18,105 42,72
-            C 70,35 140,12 200,18 Z
-          `} fill="url(#brainFill)" stroke="rgba(255,255,255,0.12)" strokeWidth="2" />
-
-          {/* 3D highlight */}
-          <path d={`
-            M 200,18
-            C 260,12 330,35 358,72
-            C 382,105 386,148 380,188
-            C 374,228 356,265 332,295
-            C 308,322 275,342 248,350
-            C 230,355 215,358 200,358
-            C 185,358 170,355 152,350
-            C 125,342 92,322 68,295
-            C 44,265 26,228 20,188
-            C 14,148 18,105 42,72
-            C 70,35 140,12 200,18 Z
-          `} fill="url(#brainHighlight)" />
-
-          {/* Brain sulci (folds) — decorative */}
-          <path d="M 200,18 C 202,120 199,250 200,358" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" strokeDasharray="6 4" />
-          <path d="M 130,55 C 145,130 120,220 95,310" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4 6" />
-          <path d="M 270,55 C 255,130 280,220 305,310" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4 6" />
-          <path d="M 50,140 C 130,155 270,155 350,140" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="5 5" />
-          <path d="M 55,230 C 130,245 270,245 345,230" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="4 6" />
-
-          {/* Lobe labels — very subtle */}
-          <text x="110" y="50" fill="rgba(255,255,255,0.08)" fontSize="7" fontWeight="600">FRONTAL</text>
-          <text x="260" y="50" fill="rgba(255,255,255,0.08)" fontSize="7" fontWeight="600">FRONTAL</text>
-          <text x="55" y="145" fill="rgba(255,255,255,0.06)" fontSize="6">PARIETAL</text>
-          <text x="310" y="145" fill="rgba(255,255,255,0.06)" fontSize="6">PARIETAL</text>
-          <text x="80" y="240" fill="rgba(255,255,255,0.06)" fontSize="6">TEMPORAL</text>
-          <text x="280" y="240" fill="rgba(255,255,255,0.06)" fontSize="6">TEMPORAL</text>
-          <text x="165" y="350" fill="rgba(255,255,255,0.06)" fontSize="6">OCCIPITAL</text>
-
-          {/* Neural pathway connections */}
-          {CONNECTIONS.map(([a, b], i) => {
-            const ra = BRAIN_REGIONS[a]; const rb = BRAIN_REGIONS[b];
-            const sa = (scores[ra.key] ?? 0) / MAX_SCORE;
-            const sb = (scores[rb.key] ?? 0) / MAX_SCORE;
-            const active = sa > 0 || sb > 0;
-            const bright = sa > 0 && sb > 0;
-            const strength = Math.max(sa, sb);
-            const col = bright ? `rgba(255,255,255,${0.2 + strength * 0.5})` : active ? ra.color : "rgba(255,255,255,0.04)";
-            return (
-              <line key={i}
-                x1={ra.cx} y1={ra.cy} x2={rb.cx} y2={rb.cy}
-                stroke={col} strokeWidth={bright ? 2 : active ? 1.2 : 0.6}
-                strokeDasharray={active ? "6 4" : "3 6"}
-                opacity={bright ? 0.7 : active ? 0.4 : 0.15}
-                style={active ? { animation: `neuralFlow ${1.5 + i * 0.1}s linear infinite` } : {}}
-              />
-            );
-          })}
-
-          {/* Region nodes — 3D bubble style */}
-          {BRAIN_REGIONS.map((region, idx) => {
-            const score = scores[region.key] ?? 0;
-            const pct = Math.min(100, (score / MAX_SCORE) * 100);
-            const isSel = selected === idx;
-            const isLit = pct > 0;
-            const ringR = region.r + 5;
-            const circ = 2 * Math.PI * ringR;
-            const dash = (pct / 100) * circ;
-
-            return (
-              <g key={region.id} onClick={() => handleTap(idx)} style={{ cursor: "pointer" }}>
-                {/* Ambient glow when active */}
-                {isLit && (
-                  <circle cx={region.cx} cy={region.cy} r={region.r + 12}
-                    fill={region.color} opacity={0.08 + pct * 0.002}
-                    filter="url(#bmGlowSoft)" />
-                )}
-                {/* Pulse ring */}
-                {isLit && (
-                  <motion.circle cx={region.cx} cy={region.cy} r={region.r + 4}
-                    fill="none" stroke={region.color}
-                    animate={{ r: [region.r + 5, region.r + 14, region.r + 5], opacity: [0.4, 0, 0.4] }}
-                    transition={{ duration: 2.5 + idx * 0.15, repeat: Infinity, ease: "easeInOut" }} />
-                )}
-                {/* Selected ring */}
-                {isSel && (
-                  <circle cx={region.cx} cy={region.cy} r={region.r + 10}
-                    fill="none" stroke={region.color} strokeWidth={1.5} opacity={0.5}
-                    strokeDasharray="5 3" />
-                )}
-
-                {/* Outer 3D shadow */}
-                <circle cx={region.cx + 1} cy={region.cy + 2} r={region.r}
-                  fill="rgba(0,0,0,0.4)" />
-
-                {/* Main bubble — 3D gradient */}
-                <circle cx={region.cx} cy={region.cy} r={region.r}
-                  fill={isSel ? region.color : isLit ? `${region.color}45` : `${region.color}18`}
-                  stroke={region.color}
-                  strokeWidth={isSel ? 2.5 : isLit ? 1.8 : 1}
-                  filter={isSel || pct > 60 ? "url(#bmGlow)" : "none"} />
-
-                {/* 3D highlight (top-left shine) */}
-                <ellipse cx={region.cx - region.r * 0.25} cy={region.cy - region.r * 0.25}
-                  rx={region.r * 0.45} ry={region.r * 0.35}
-                  fill="rgba(255,255,255,0.12)" />
-
-                {/* Progress arc */}
-                {pct > 0 && (
-                  <circle cx={region.cx} cy={region.cy} r={ringR}
-                    fill="none" stroke={region.color} strokeWidth={3}
-                    strokeLinecap="round"
-                    strokeDasharray={`${dash} ${circ}`}
-                    transform={`rotate(-90,${region.cx},${region.cy})`}
-                    opacity={0.92} />
-                )}
-
-                {/* Emoji */}
-                <text x={region.cx} y={region.cy + 1}
-                  textAnchor="middle" dominantBaseline="middle"
-                  fontSize={region.r * 0.85} style={{ userSelect: "none", pointerEvents: "none" }}>
-                  {region.emoji}
-                </text>
-
-                {/* Label */}
-                <text x={region.cx} y={region.cy + region.r + 11}
-                  textAnchor="middle"
-                  fill={isSel ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.45)"}
-                  fontSize={region.r >= 20 ? "8" : "7"} fontWeight="600"
-                  style={{ userSelect: "none", pointerEvents: "none" }}>
-                  {region.name}
-                </text>
-
-                {/* Score badge */}
-                {score > 0 && (
-                  <g>
-                    <circle cx={region.cx + region.r - 2} cy={region.cy - region.r + 2} r={7}
-                      fill={region.color} stroke="rgba(0,0,0,0.3)" strokeWidth={1} />
-                    <text x={region.cx + region.r - 2} y={region.cy - region.r + 5}
-                      textAnchor="middle" fill="white"
-                      fontSize="7" fontWeight="800"
-                      style={{ userSelect: "none", pointerEvents: "none" }}>
-                      {score}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-        </svg>
+      {/* Anatomical Brain Visualization */}
+      <div className="px-2 py-1">
+        <AnatomicalBrain scores={scores} />
       </div>
 
-      {/* Region detail card */}
-      <AnimatePresence>
-        {selReg && (
-          <motion.div
-            key={selReg.id}
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="flex-shrink-0 mx-3 mb-2 rounded-2xl p-3.5 relative overflow-hidden"
-            style={{ background: `${selReg.color}12`, border: `1px solid ${selReg.color}35` }}>
-            <div className="absolute right-0 top-0 w-24 h-24 rounded-full opacity-15"
-              style={{ background: `radial-gradient(circle,${selReg.color},transparent)`, transform: "translate(30%,-30%)" }} />
-            <div className="flex items-start gap-3 relative">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: `${selReg.color}25` }}>
-                {selReg.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-black text-white text-sm">{selReg.key}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${selReg.color}25`, color: selReg.color }}>
-                    {selScore} acts
-                  </span>
-                </div>
-                <div className="text-white/40 text-xs mb-1" style={{ fontSize: 9 }}>{selReg.lobe}</div>
-                <div className="text-white/60 text-xs leading-relaxed">{selReg.desc}</div>
-              </div>
-              <button onClick={() => setSelected(null)} className="text-white/30 text-lg leading-none flex-shrink-0">×</button>
-            </div>
-            <div className="mt-2.5 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <motion.div className="h-full rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${selPct}%` }}
-                transition={{ duration: 0.8 }}
-                style={{ background: selReg.color }} />
-            </div>
-            <div className="flex justify-between mt-0.5">
-              <span className="text-white/30" style={{ fontSize: 9 }}>0</span>
-              <span style={{ fontSize: 9, color: selReg.color }}>{Math.round(selPct)}% developed</span>
-              <span className="text-white/30" style={{ fontSize: 9 }}>20</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Legend hint */}
+      <div className="px-4 pb-3">
+        <div className="text-center text-white/25" style={{ fontSize: 8 }}>
+          Tap any brain region to see details · Colors fill as activities are completed
+        </div>
+      </div>
     </div>
   );
 }
