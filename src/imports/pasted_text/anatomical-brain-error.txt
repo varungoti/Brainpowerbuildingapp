@@ -1,0 +1,391 @@
+Access to fetch at 'https://errors.figma.com/api/sentry/api/56203/envelope/?sentry_key=d1b12a8fbe424e4b956eb33cadd5b30d&sentry_version=7&sentry_client=sentry.javascript.browser%2F8.40.0' from origin 'https://www.figma.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+vendor-core-908417f056d7cdc0.min.js.br:63 
+        
+        
+       POST https://errors.figma.com/api/sentry/api/56203/envelope/?sentry_key=d1b12a8fbe424e4b956eb33cadd5b30d&sentry_version=7&sentry_client=sentry.javascript.browser%2F8.40.0 net::ERR_FAILED 413 (Payload Too Large)
+(anonymous) @ vendor-core-908417f056d7cdc0.min.js.br:63
+(anonymous) @ vendor-core-908417f056d7cdc0.min.js.br:63
+add @ vendor-core-908417f056d7cdc0.min.js.br:63
+send @ vendor-core-908417f056d7cdc0.min.js.br:63
+d @ vendor-core-908417f056d7cdc0.min.js.br:63
+(anonymous) @ vendor-core-908417f056d7cdc0.min.js.br:63
+await in (anonymous) (async)
+l @ vendor-core-908417f056d7cdc0.min.js.br:54
+setTimeout (async)
+(anonymous) @ vendor-core-908417f056d7cdc0.min.js.br:63
+u @ vendor-core-908417f056d7cdc0.min.js.br:63
+s @ vendor-core-908417f056d7cdc0.min.js.br:63
+d @ vendor-core-908417f056d7cdc0.min.js.br:63
+await in d (async)
+(anonymous) @ vendor-core-908417f056d7cdc0.min.js.br:63
+await in (anonymous) (async)
+l @ vendor-core-908417f056d7cdc0.min.js.br:54
+BrainMapScreen.tsx:29 
+        
+        
+       GET https://ta-01kkzjgyzg0n78d547rjm8kdcy-1380-xn40rpefnvt2ntnxtasq6q5pc.makeproxy-m.figma.site/src/app/components/AnatomicalBrain.tsx net::ERR_ABORTED 500 (Internal Server Error)
+ta-01kkzjgyzg0n78d547rjm8kdcy-1380-xn40rpefnvt2ntnxtasq6q5pc.makeproxy-m.figma.site/src/app/components/AnatomicalBrain.tsx:1 
+        
+        
+       Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 [vite] Internal Server Error
+app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+    at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parse-error.ts:95:45)
+    at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/tokenizer/index.ts:1503:19)
+    at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/util.ts:149:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1358:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3340:28)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:697:19)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3185:20)
+    at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:477:17)
+    at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:414:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1438:16)
+    at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1412:10)
+    at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:229:10)
+    at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/index.ts:93:10)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:4309:20)
+    at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/index.ts:92:38)
+    at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/parser/index.ts:28:19)
+    at parser.next (<anonymous>)
+    at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/normalize-file.ts:49:24)
+    at normalizeFile.next (<anonymous>)
+    at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/index.ts:40:36)
+    at run.next (<anonymous>)
+    at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transform.ts:29:20)
+    at transform.next (<anonymous>)
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+    at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+    at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/gensync-utils/async.ts:90:7
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+error @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+handleMessage @ client:1000
+await in handleMessage (async)
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 4:44:21 AM [vite] Internal server error: app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+  Plugin: vite:react-babel
+  File: app/components/AnatomicalBrain.tsx:14:5
+  12 |  // SVG visible: "0 0 1000 700"
+  13 |  // Mapping: svgY = lorige arealY on h - 155
+  14 |  laral brain iage
+     |       ^
+  15 |  // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 |  // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+      at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parse-error.ts:95:45)
+      at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/tokenizer/index.ts:1503:19)
+      at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/util.ts:149:10)
+      at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1358:10)
+      at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:3340:28)
+      at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:697:19)
+      at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:3185:20)
+      at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:477:17)
+      at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:414:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1438:16)
+      at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1412:10)
+      at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:229:10)
+      at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:203:25)
+      at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/index.ts:93:10)
+      at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:4309:20)
+      at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/index.ts:92:38)
+      at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/parser/index.ts:28:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transformation/normalize-file.ts:49:24)
+      at normalizeFile.next (<anonymous>)
+      at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transformation/index.ts:40:36)
+      at run.next (<anonymous>)
+      at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+      at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+      at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/gensync-utils/async.ts:90:7
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+      at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+error @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:117
+(anonymous) @ client:132
+notifyListeners @ client:132
+handleMessage @ client:961
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 [vite] Internal Server Error
+app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+    at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parse-error.ts:95:45)
+    at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/tokenizer/index.ts:1503:19)
+    at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/util.ts:149:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1358:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3340:28)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:697:19)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3185:20)
+    at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:477:17)
+    at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:414:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1438:16)
+    at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1412:10)
+    at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:229:10)
+    at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/index.ts:93:10)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:4309:20)
+    at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/index.ts:92:38)
+    at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/parser/index.ts:28:19)
+    at parser.next (<anonymous>)
+    at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/normalize-file.ts:49:24)
+    at normalizeFile.next (<anonymous>)
+    at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/index.ts:40:36)
+    at run.next (<anonymous>)
+    at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transform.ts:29:20)
+    at transform.next (<anonymous>)
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+    at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+    at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/gensync-utils/async.ts:90:7
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+handleMessage @ client:1000
+await in handleMessage (async)
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 [vite] Internal Server Error
+app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+    at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parse-error.ts:95:45)
+    at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/tokenizer/index.ts:1503:19)
+    at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/util.ts:149:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1358:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3340:28)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:697:19)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3185:20)
+    at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:477:17)
+    at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:414:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1438:16)
+    at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1412:10)
+    at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:229:10)
+    at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/index.ts:93:10)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:4309:20)
+    at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/index.ts:92:38)
+    at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/parser/index.ts:28:19)
+    at parser.next (<anonymous>)
+    at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/normalize-file.ts:49:24)
+    at normalizeFile.next (<anonymous>)
+    at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/index.ts:40:36)
+    at run.next (<anonymous>)
+    at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transform.ts:29:20)
+    at transform.next (<anonymous>)
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+    at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+    at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/gensync-utils/async.ts:90:7
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+error @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+handleMessage @ client:1000
+await in handleMessage (async)
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 4:44:26 AM [vite] Internal server error: app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+  Plugin: vite:react-babel
+  File: app/components/AnatomicalBrain.tsx:14:5
+  12 |  // SVG visible: "0 0 1000 700"
+  13 |  // Mapping: svgY = lorige arealY on h - 155
+  14 |  laral brain iage
+     |       ^
+  15 |  // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 |  // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+      at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parse-error.ts:95:45)
+      at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/tokenizer/index.ts:1503:19)
+      at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/util.ts:149:10)
+      at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1358:10)
+      at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:3340:28)
+      at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:697:19)
+      at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:3185:20)
+      at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:477:17)
+      at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:414:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1438:16)
+      at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:1412:10)
+      at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:229:10)
+      at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/statement.ts:203:25)
+      at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/parser/index.ts:93:10)
+      at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/plugins/typescript/index.ts:4309:20)
+      at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/index.ts:92:38)
+      at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/parser/index.ts:28:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transformation/normalize-file.ts:49:24)
+      at normalizeFile.next (<anonymous>)
+      at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transformation/index.ts:40:36)
+      at run.next (<anonymous>)
+      at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+      at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+      at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/gensync-utils/async.ts:90:7
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+      at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+      at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+error @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:117
+(anonymous) @ client:132
+notifyListeners @ client:132
+handleMessage @ client:961
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+code_components_preview_iframe-38049e48d7f0a436.min.js.br:90 [vite] Internal Server Error
+app/components/AnatomicalBrain.tsx: Missing semicolon. (14:5)
+
+  12 | // SVG visible: "0 0 1000 700"
+  13 | // Mapping: svgY = lorige arealY on h - 155
+> 14 | laral brain iage
+     |      ^
+  15 | // ViewBox: 0 0 520 480,─── 15 Brain  mapped ppoed Cerebrl Gyri illustrtion ───────────────
+  16 | // Ea matchh elipse(cx,cy,rx,y) is in th SVG coordinte pace(ewBox 0 0 1000 700)
+  17 | // Color coslymatch the 3D cual rgion colos in the 3Dmodel proportions
+    at toParseError (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parse-error.ts:95:45)
+    at TypeScriptParserMixin.raise (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/tokenizer/index.ts:1503:19)
+    at TypeScriptParserMixin.semicolon (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/util.ts:149:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1358:10)
+    at TypeScriptParserMixin.parseExpressionStatement (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3340:28)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:697:19)
+    at TypeScriptParserMixin.parseStatementContent (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:3185:20)
+    at TypeScriptParserMixin.parseStatementLike (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:477:17)
+    at TypeScriptParserMixin.parseModuleItem (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:414:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1438:16)
+    at TypeScriptParserMixin.parseBlockBody (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:1412:10)
+    at TypeScriptParserMixin.parseProgram (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:229:10)
+    at TypeScriptParserMixin.parseTopLevel (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/parser/index.ts:93:10)
+    at TypeScriptParserMixin.parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/plugins/typescript/index.ts:4309:20)
+    at parse (node_modules/.pnpm/@babel+parser@7.28.4/node_modules/@babel/parser/src/index.ts:92:38)
+    at parser (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/parser/index.ts:28:19)
+    at parser.next (<anonymous>)
+    at normalizeFile (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/normalize-file.ts:49:24)
+    at normalizeFile.next (<anonymous>)
+    at run (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transformation/index.ts:40:36)
+    at run.next (<anonymous>)
+    at transform (node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/transform.ts:29:20)
+    at transform.next (<anonymous>)
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+    at cb (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28)
+    at node_modules/.pnpm/@babel+core@7.28.4/node_modules/@babel/core/src/gensync-utils/async.ts:90:7
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+    at step (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+    at node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+(anonymous) @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+r @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:17
+handleMessage @ client:1000
+await in handleMessage (async)
+(anonymous) @ client:490
+dequeue @ client:516
+(anonymous) @ client:504
+enqueue @ client:498
+(anonymous) @ client:490
+onMessage @ client:309
+(anonymous) @ client:439
+i @ code_components_preview_iframe-38049e48d7f0a436.min.js.br:90
+BrainMapScreen.tsx:29 
+        
+        
+       GET https://ta-01kkzjgyzg0n78d547rjm8kdcy-1380-xn40rpefnvt2ntnxtasq6q5pc.makeproxy-m.figma.site/src/app/components/AnatomicalBrain.tsx net::ERR_ABORTED 500 (Internal Server Error)
+ta-01kkzjgyzg0n78d547rjm8kdcy-1380-xn40rpefnvt2ntnxtasq6q5pc.makeproxy-m.figma.site/src/app/components/AnatomicalBrain.tsx:1 
+        
+        
+       Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+script.js:43 Loading extension
