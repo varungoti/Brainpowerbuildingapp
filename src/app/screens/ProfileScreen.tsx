@@ -1,0 +1,190 @@
+import { useState } from "react";
+import { useApp, AVATAR_EMOJIS, AVATAR_COLORS, getLevelFromBP } from "../context/AppContext";
+import { AGE_TIER_CONFIG, MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
+
+const INNOVATION_IDEAS = [
+  { emoji:"🤖", title:"AI Activity Adaptation",       desc:"On-device ML adapts difficulty based on rolling engagement ratings across all families (privacy-first).", color:"#4361EE" },
+  { emoji:"📄", title:"Weekly Intelligence Report",   desc:"Auto-generated PDF showing 13 intelligence coverage — shareable with teachers or pediatricians.", color:"#F72585" },
+  { emoji:"👨‍👩‍👧‍👦", title:"Sibling Collaboration Mode", desc:"Activities designed for 2+ children at different ages — builds interpersonal intelligence together.", color:"#06D6A0" },
+  { emoji:"🗣️", title:"Voice Instruction Mode",      desc:"Audio-guided activity narration so parents don't need to look at the screen while doing activities.", color:"#FFB703" },
+  { emoji:"🌏", title:"10-Language Support",          desc:"Full localisation: Hindi, Tamil, Mandarin, Korean, Spanish, Arabic, Bengali, Portuguese, French, Swahili.", color:"#7209B7" },
+  { emoji:"📸", title:"Creation Portfolio",           desc:"Camera module to photograph child's creations — auto-tagged with intelligence type and developmental stage.", color:"#E63946" },
+  { emoji:"🧑‍🏫", title:"Parent Coaching Mode",       desc:"'How to interact' guidance for each activity — not just what to do but HOW to deepen the learning.", color:"#0077B6" },
+  { emoji:"🌦️", title:"Seasonal Activity Library",   desc:"Monsoon, summer, winter activity sets — grounded in local seasons and cultural celebrations.", color:"#2DC653" },
+  { emoji:"🧩", title:"Sensory Modification Engine",  desc:"One-tap to adapt any activity for sensory sensitivities, ADHD, autism spectrum, or visual impairments.", color:"#FB5607" },
+  { emoji:"🤝", title:"Community Activity Ratings",  desc:"Anonymous global rating data improves activity recommendations for all children over time.", color:"#118AB2" },
+];
+
+export function ProfileScreen() {
+  const { user, children, activeChild, setActiveChild, navigate, logoutUser, materialInventory, setMaterialInventory } = useApp();
+  const [showMaterials, setShowMaterials] = useState(false);
+  const [showInnovation, setShowInnovation] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+
+  const toggle = (id: string) =>
+    setMaterialInventory(materialInventory.includes(id) ? materialInventory.filter(m=>m!==id) : [...materialInventory, id]);
+
+  return (
+    <div className="h-full overflow-y-auto" style={{ background:"#F0EFFF" }}>
+      {/* Header */}
+      <div className="rounded-b-3xl mb-4 px-4 pt-3 pb-5"
+        style={{ background:"linear-gradient(135deg,#14213D,#3A0CA3)" }}>
+        <div className="text-white/70 text-xs mb-1">Account</div>
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+            style={{ background:"linear-gradient(135deg,#4361EE,#7209B7)" }}>👤</div>
+          <div>
+            <div className="text-white font-black text-lg">{user?.name}</div>
+            <div className="text-white/50 text-xs">{user?.email}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 pb-8 space-y-4">
+        {/* Child profiles */}
+        <Section title="Child Profiles" icon="👶">
+          <div className="space-y-2">
+            {children.map(c => {
+              const tier = getAgeTierConfig(c.ageTier);
+              const lvl  = getLevelFromBP(c.brainPoints);
+              return (
+                <button key={c.id} onClick={() => setActiveChild(c.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border text-left transition-all active:scale-98"
+                  style={{ borderColor:c.id===activeChild?.id?"#4361EE":"#e5e7eb",
+                    boxShadow:c.id===activeChild?.id?"0 0 0 2px rgba(67,97,238,0.3)":"none" }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                    style={{ background:`${c.avatarColor}25` }}>{c.avatarEmoji}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-900 text-sm">{c.name}</span>
+                      {c.id===activeChild?.id && <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600">Active</span>}
+                    </div>
+                    <div className="text-gray-400 text-xs">{tier.label} · {lvl.name} · {c.brainPoints} BP</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-base">{tier.emoji}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-gray-100">
+                        <div className="h-full rounded-full" style={{ width:`${Math.min(c.totalActivities*8,100)}%`, background:lvl.color }}/>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-gray-300">›</span>
+                </button>
+              );
+            })}
+            <button onClick={() => navigate("add_child")}
+              className="w-full flex items-center gap-2 p-3 rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-gray-50">➕</div>
+              <span className="text-gray-500 text-sm font-semibold">Add Another Child</span>
+            </button>
+          </div>
+        </Section>
+
+        {/* Materials */}
+        <Section title={`Materials Inventory (${materialInventory.length} items)`} icon="🏠">
+          <button onClick={() => setShowMaterials(s=>!s)}
+            className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200">
+            <span className="text-gray-700 text-sm">{showMaterials?"Hide":"Update"} materials list</span>
+            <span className="text-gray-400">{showMaterials?"▲":"▼"}</span>
+          </button>
+          {showMaterials && (
+            <div className="mt-2 animate-slide-up">
+              <div className="flex gap-2 mb-2">
+                <button onClick={() => setMaterialInventory(MATERIAL_OPTIONS.map(m=>m.id))}
+                  className="text-xs px-3 py-1.5 rounded-full" style={{ background:"rgba(67,97,238,0.1)", color:"#4361EE" }}>Select All</button>
+                <button onClick={() => setMaterialInventory([])}
+                  className="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-500">Clear</button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {MATERIAL_OPTIONS.map(m => {
+                  const sel = materialInventory.includes(m.id);
+                  return (
+                    <button key={m.id} onClick={() => toggle(m.id)}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all"
+                      style={{ background:sel?"rgba(67,97,238,0.08)":"white", borderColor:sel?"#4361EE":"#e5e7eb" }}>
+                      <span>{m.emoji}</span>
+                      <span className="text-xs font-medium truncate" style={{ color:sel?"#4361EE":"#374151" }}>{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </Section>
+
+        {/* Innovation Lab */}
+        <Section title="💡 Innovation Lab" icon="">
+          <p className="text-gray-500 text-xs mb-3">Planned features and research-backed improvements coming to NeuroSpark:</p>
+          <button onClick={() => setShowInnovation(s=>!s)}
+            className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200 mb-2">
+            <span className="text-gray-700 text-sm">{showInnovation?"Hide":"Show"} 10 innovation ideas</span>
+            <span className="text-gray-400">{showInnovation?"▲":"▼"}</span>
+          </button>
+          {showInnovation && (
+            <div className="space-y-2 animate-slide-up">
+              {INNOVATION_IDEAS.map((idea, i) => (
+                <div key={i} className="bg-white rounded-2xl p-3.5 border border-gray-100 animate-slide-up"
+                  style={{ animationDelay:`${i*0.06}s` }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
+                      style={{ background:`${idea.color}18` }}>{idea.emoji}</div>
+                    <span className="font-bold text-gray-800 text-sm">{idea.title}</span>
+                  </div>
+                  <p className="text-gray-500 text-xs leading-relaxed">{idea.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* App links */}
+        <Section title="About" icon="ℹ️">
+          <div className="space-y-1">
+            {[
+              { icon:"📱", label:"View Blueprint Documentation", fn:() => navigate("blueprint") },
+              { icon:"🔬", label:"Research Framework",          fn:() => navigate("blueprint") },
+            ].map(item => (
+              <button key={item.label} onClick={item.fn}
+                className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border border-gray-100 text-left">
+                <span className="text-xl">{item.icon}</span>
+                <span className="text-gray-700 text-sm">{item.label}</span>
+                <span className="text-gray-300 ml-auto">›</span>
+              </button>
+            ))}
+          </div>
+        </Section>
+
+        {/* Sign out */}
+        {!confirmLogout ? (
+          <button onClick={() => setConfirmLogout(true)}
+            className="w-full py-3.5 rounded-2xl text-red-500 font-semibold border border-red-100 bg-white">
+            Sign Out
+          </button>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in">
+            <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmLogout(false)}
+                className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button>
+              <button onClick={logoutUser}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm">Yes, Sign Out</button>
+            </div>
+          </div>
+        )}
+
+        <p className="text-center text-gray-400 text-xs">NeuroSpark Blueprint v1.0 · March 2026 · Research & Planning Phase</p>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, icon, children }: { title:string; icon:string; children:React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-2.5">
+        {icon && <span className="text-base">{icon}</span>}
+        <span className="text-gray-800 font-bold text-sm">{title}</span>
+      </div>
+      {children}
+    </div>
+  );
+}

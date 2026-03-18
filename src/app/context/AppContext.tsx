@@ -1,0 +1,275 @@
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { Activity, getAgeTierFromDob } from "../data/activities";
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+export type AppView =
+  | "landing" | "auth"
+  | "onboard_welcome" | "onboard_child" | "onboard_materials" | "onboard_ready"
+  | "home" | "generate" | "pack_result" | "activity_detail"
+  | "history" | "stats" | "profile" | "add_child" | "blueprint"
+  | "paywall" | "year_plan" | "ai_counselor"
+  | "brain_map" | "know_your_child" | "milestones";
+
+export interface KYCData {
+  curiosity: number;
+  energy: number;
+  patience: number;
+  creativity: number;
+  social: number;
+  learningStyle: "visual" | "auditory" | "kinesthetic" | null;
+  energyLevel: number;
+  adaptability: number;
+  mood: number;
+  sensitivity: number;
+  notes: string;
+  updatedAt: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+export interface ChildProfile {
+  id: string;
+  name: string;
+  dob: string;
+  ageTier: number;
+  avatarEmoji: string;
+  avatarColor: string;
+  brainPoints: number;
+  level: number;
+  streak: number;
+  lastStreakDate: string;
+  badges: string[];
+  totalActivities: number;
+  intelligenceScores: Record<string, number>;
+}
+export interface ActivityLog {
+  id: string;
+  childId: string;
+  activityId: string;
+  activityName: string;
+  emoji: string;
+  date: string;
+  intelligences: string[];
+  method: string;
+  region: string;
+  regionEmoji: string;
+  duration: number;
+  completed: boolean;
+  engagementRating: number;
+  parentNotes: string;
+  brainPointsEarned: number;
+}
+
+// ─── Level system ──────────────────────────────────────────────────────────────
+export const LEVEL_CONFIG = [
+  { level:0, name:"Seedling",       emoji:"🌱", threshold:0,    color:"#06D6A0" },
+  { level:1, name:"Sprout",         emoji:"🌿", threshold:300,  color:"#2DC653" },
+  { level:2, name:"Sapling",        emoji:"🌳", threshold:700,  color:"#FFB703" },
+  { level:3, name:"Branch",         emoji:"🌲", threshold:1500, color:"#FB5607" },
+  { level:4, name:"Forest Explorer",emoji:"🏔️", threshold:3000, color:"#4361EE" },
+  { level:5, name:"Master Grower",  emoji:"🧠", threshold:6000, color:"#7209B7" },
+];
+export const BADGE_DEFS: Record<string, { label:string; emoji:string; desc:string }> = {
+  first_activity:  { label:"First Steps",    emoji:"🌟", desc:"Completed your first activity" },
+  week_streak:     { label:"7-Day Streak",   emoji:"🔥", desc:"7 consecutive days of activities" },
+  ten_activities:  { label:"Go-Getter",      emoji:"🚀", desc:"Completed 10 activities" },
+  all_regions:     { label:"World Explorer", emoji:"🌍", desc:"Tried all 5 cultural traditions" },
+  yoga_master:     { label:"Yoga Yogi",      emoji:"🧘", desc:"Completed 5 yoga activities" },
+  math_wizard:     { label:"Math Wizard",    emoji:"🔢", desc:"Completed 5 math activities" },
+  nature_explorer: { label:"Nature Kid",     emoji:"🌿", desc:"Completed 5 nature activities" },
+  creative_genius: { label:"Art Star",       emoji:"🎨", desc:"Completed 5 creative activities" },
+};
+export const AVATAR_EMOJIS = ["🦁","🐯","🐼","🦊","🐸","🦋","🐧","🦄","🐬","🦅","🦉","🐉"];
+export const AVATAR_COLORS = ["#4361EE","#F72585","#06D6A0","#FFB703","#7209B7","#E63946","#0077B6","#2DC653","#FB5607","#118AB2"];
+
+export function getLevelFromBP(bp: number) {
+  let lvl = LEVEL_CONFIG[0];
+  for (const l of LEVEL_CONFIG) { if (bp >= l.threshold) lvl = l; }
+  return lvl;
+}
+export function getNextLevelBP(bp: number) {
+  const cur = getLevelFromBP(bp);
+  const next = LEVEL_CONFIG[cur.level + 1];
+  return next ? next.threshold : cur.threshold;
+}
+
+// ─── Persistence ───────────────────────────────────────────────────────────────
+const LS_KEY = "neurospark_v2";
+interface Persisted {
+  user: User | null;
+  children: ChildProfile[];
+  activeChildId: string | null;
+  activityLogs: ActivityLog[];
+  materialInventory: string[];
+  credits: number;
+  kycData: Record<string, KYCData>;
+}
+const DEFAULTS: Persisted = {
+  user: null, children: [], activeChildId: null, activityLogs: [],
+  materialInventory: ["paper","pencils","cups","water","outdoor","blanket","spoons"],
+  credits: 0,
+  kycData: {},
+};
+function load(): Persisted {
+  try { const r = localStorage.getItem(LS_KEY); return r ? { ...DEFAULTS, ...JSON.parse(r) } : DEFAULTS; }
+  catch { return DEFAULTS; }
+}
+function save(s: Persisted) { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {} }
+
+// ─── Context interface ─────────────────────────────────────────────────────────
+interface Ctx extends Persisted {
+  view: AppView;
+  navigate: (to: AppView) => void;
+  goBack: () => void;
+  canGoBack: boolean;
+  activeChild: ChildProfile | null;
+  generatedPack: Activity[] | null;
+  setGeneratedPack: (p: Activity[] | null) => void;
+  viewingActivity: Activity | null;
+  setViewingActivity: (a: Activity | null) => void;
+  loginUser: (email: string, name: string) => void;
+  logoutUser: () => void;
+  addChild: (c: Omit<ChildProfile,"id"|"brainPoints"|"level"|"streak"|"lastStreakDate"|"badges"|"totalActivities"|"intelligenceScores"|"ageTier">) => string;
+  setActiveChild: (id: string) => void;
+  setMaterialInventory: (m: string[]) => void;
+  logActivity: (l: Omit<ActivityLog,"id"|"date"|"brainPointsEarned">) => number;
+  updateChildBadges: (childId: string) => void;
+  authMode: "login" | "signup";
+  setAuthMode: (m: "login" | "signup") => void;
+  addCredits: (n: number) => void;
+  consumeCredit: () => boolean;
+  hasCreditForToday: () => boolean;
+  saveKYCData: (childId: string, data: Omit<KYCData, "updatedAt">) => void;
+}
+const AppCtx = createContext<Ctx | null>(null);
+export function useApp() {
+  const c = useContext(AppCtx);
+  if (!c) throw new Error("useApp must be inside AppProvider");
+  return c;
+}
+
+// ─── Provider ──────────────────────────────────────────────────────────────────
+export function AppProvider({ children: ch }: { children: ReactNode }) {
+  const [p, setP] = useState<Persisted>(load);
+  const [view, setView] = useState<AppView>(() => p.user ? "home" : "landing");
+  const [hist, setHist] = useState<AppView[]>([]);
+  const [generatedPack, setGeneratedPack] = useState<Activity[] | null>(null);
+  const [viewingActivity, setViewingActivity] = useState<Activity | null>(null);
+  const [authMode, setAuthMode] = useState<"login"|"signup">("signup");
+
+  useEffect(() => { save(p); }, [p]);
+
+  const upd = (patch: Partial<Persisted>) => setP(prev => ({ ...prev, ...patch }));
+
+  const navigate = useCallback((to: AppView) => {
+    setHist(h => [...h, view]);
+    setView(to);
+  }, [view]);
+
+  const goBack = useCallback(() => {
+    setHist(h => {
+      if (!h.length) return h;
+      setView(h[h.length - 1]);
+      return h.slice(0, -1);
+    });
+  }, []);
+
+  const loginUser = (email: string, name: string) => {
+    const user: User = { id: Math.random().toString(36).slice(2), email, name, createdAt: new Date().toISOString() };
+    upd({ user });
+    setHist([]);
+    if (p.children.length === 0) setView("onboard_welcome");
+    else setView("home");
+  };
+
+  const logoutUser = () => {
+    upd({ user: null, children: [], activeChildId: null, activityLogs: [] });
+    setView("landing"); setHist([]);
+  };
+
+  const addChild = (c: Omit<ChildProfile,"id"|"brainPoints"|"level"|"streak"|"lastStreakDate"|"badges"|"totalActivities"|"intelligenceScores"|"ageTier">) => {
+    const id = Math.random().toString(36).slice(2);
+    const newChild: ChildProfile = {
+      ...c, id, ageTier: getAgeTierFromDob(c.dob), brainPoints: 0, level: 0, streak: 0,
+      lastStreakDate: "", badges: [], totalActivities: 0, intelligenceScores: {},
+    };
+    const newChildren = [...p.children, newChild];
+    upd({ children: newChildren, activeChildId: id });
+    return id;
+  };
+
+  const setActiveChild = (id: string) => upd({ activeChildId: id });
+  const setMaterialInventory = (m: string[]) => upd({ materialInventory: m });
+
+  const logActivity = (log: Omit<ActivityLog,"id"|"date"|"brainPointsEarned">) => {
+    const bp = log.completed ? 50 + (log.engagementRating - 1) * 12 : 10;
+    const entry: ActivityLog = { ...log, id: Math.random().toString(36).slice(2), date: new Date().toISOString(), brainPointsEarned: bp };
+    const today = new Date().toDateString();
+    const newChildren = p.children.map(c => {
+      if (c.id !== log.childId) return c;
+      const newBP = c.brainPoints + bp;
+      const newLevel = getLevelFromBP(newBP).level;
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+      const isConsec = c.lastStreakDate === yesterday.toDateString();
+      const isSameDay = c.lastStreakDate === today;
+      const newStreak = isSameDay ? c.streak : isConsec ? c.streak + 1 : 1;
+      const newIntel = { ...c.intelligenceScores };
+      log.intelligences.forEach(i => { newIntel[i] = (newIntel[i] ?? 0) + 1; });
+      const newBadges = [...c.badges];
+      const addBadge = (b: string) => { if (!newBadges.includes(b)) newBadges.push(b); };
+      if (!newBadges.includes("first_activity")) addBadge("first_activity");
+      if (newStreak >= 7) addBadge("week_streak");
+      if ((c.totalActivities + 1) >= 10) addBadge("ten_activities");
+      return { ...c, brainPoints: newBP, level: newLevel, streak: newStreak, lastStreakDate: today, badges: newBadges, totalActivities: c.totalActivities + (log.completed ? 1 : 0), intelligenceScores: newIntel };
+    });
+    upd({ activityLogs: [entry, ...p.activityLogs], children: newChildren });
+    return bp;
+  };
+
+  const updateChildBadges = (childId: string) => {
+    const logs = p.activityLogs.filter(l => l.childId === childId);
+    const regions = new Set(logs.map(l => l.region));
+    const methods = logs.map(l => l.method);
+    const newChildren = p.children.map(c => {
+      if (c.id !== childId) return c;
+      const newBadges = [...c.badges];
+      const addBadge = (b: string) => { if (!newBadges.includes(b)) newBadges.push(b); };
+      if (regions.size >= 5) addBadge("all_regions");
+      if (methods.filter(m => m === "Yoga & Pranayama").length >= 5) addBadge("yoga_master");
+      if (methods.filter(m => m.includes("Math") || m.includes("Abacus") || m.includes("Bar")).length >= 5) addBadge("math_wizard");
+      if (methods.filter(m => m.includes("Shinrin") || m.includes("Forest")).length >= 5) addBadge("nature_explorer");
+      if (methods.filter(m => m.includes("Reggio") || m.includes("Waldorf")).length >= 5) addBadge("creative_genius");
+      return { ...c, badges: newBadges };
+    });
+    upd({ children: newChildren });
+  };
+
+  const addCredits = (n: number) => upd({ credits: (p.credits ?? 0) + n });
+  const consumeCredit = (): boolean => {
+    if ((p.credits ?? 0) <= 0) return false;
+    upd({ credits: p.credits - 1 });
+    return true;
+  };
+  const hasCreditForToday = (): boolean => (p.credits ?? 0) > 0;
+
+  const saveKYCData = (childId: string, data: Omit<KYCData, "updatedAt">) => {
+    const entry: KYCData = { ...data, updatedAt: new Date().toISOString() };
+    upd({ kycData: { ...p.kycData, [childId]: entry } });
+  };
+
+  const activeChild = p.children.find(c => c.id === p.activeChildId) ?? null;
+
+  const value: Ctx = {
+    ...p, view, navigate, goBack, canGoBack: hist.length > 0, activeChild,
+    generatedPack, setGeneratedPack, viewingActivity, setViewingActivity,
+    loginUser, logoutUser, addChild, setActiveChild, setMaterialInventory,
+    logActivity, updateChildBadges, authMode, setAuthMode,
+    addCredits, consumeCredit, hasCreditForToday,
+    saveKYCData,
+  };
+  return <AppCtx.Provider value={value}>{ch}</AppCtx.Provider>;
+}
