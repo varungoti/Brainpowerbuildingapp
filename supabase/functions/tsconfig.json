@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "npm:hono": ["../../node_modules/hono"],
+      "npm:hono/*": ["../../node_modules/hono/*"],
+      "jsr:@supabase/supabase-js@2.49.8": ["../../node_modules/@supabase/supabase-js"]
+    }
+  },
+  "include": ["server/**/*"]
+}

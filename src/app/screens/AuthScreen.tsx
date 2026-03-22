@@ -1,5 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "../../utils/supabase/client";
 
 export function AuthScreen() {
   const { loginUser, navigate, authMode, setAuthMode } = useApp();
@@ -11,13 +12,58 @@ export function AuthScreen() {
   const [showPass, setShowPass] = useState(false);
 
   const valid = email.includes("@") && pass.length >= 6 && (authMode === "login" || name.trim().length >= 2);
+  const useRemoteAuth = isSupabaseAuthConfigured();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!valid) { setError("Please fill all fields correctly."); return; }
+    setError("");
     setLoading(true);
-    setTimeout(() => {
-      loginUser(email.trim(), authMode === "signup" ? name.trim() : email.split("@")[0]);
-    }, 800);
+
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      try {
+        if (authMode === "signup") {
+          const { data, error: e } = await client.auth.signUp({
+            email: email.trim(),
+            password: pass,
+            options: {
+              data: { full_name: name.trim() },
+              emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+            },
+          });
+          if (e) throw e;
+          if (data.session?.user && data.user) {
+            loginUser(email.trim(), name.trim(), { supabaseUid: data.user.id });
+          } else {
+            setError(
+              "Check your email to confirm your account, then sign in. (For local dev: disable email confirmation in Supabase → Authentication → Providers → Email.)",
+            );
+          }
+        } else {
+          const { data, error: e } = await client.auth.signInWithPassword({
+            email: email.trim(),
+            password: pass,
+          });
+          if (e) throw e;
+          const u = data.user;
+          const nm =
+            (typeof u.user_metadata?.full_name === "string" && u.user_metadata.full_name) ||
+            u.email?.split("@")[0] ||
+            "Parent";
+          loginUser(u.email!, nm, { supabaseUid: u.id });
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    await new Promise((r) => setTimeout(r, 600));
+    loginUser(email.trim(), authMode === "signup" ? name.trim() : email.split("@")[0]);
+    setLoading(false);
   };
 
   return (
@@ -117,8 +163,9 @@ export function AuthScreen() {
         </div>
 
         <p className="text-center text-white/20 mt-4" style={{ fontSize:10 }}>
-          By continuing, you agree that NeuroSpark stores your data locally on this device only.
-          We never sell or share personal information.
+          {useRemoteAuth
+            ? "Account is secured with Supabase. Child activity data still stays in this app on your device until you enable cloud backup."
+            : "By continuing, NeuroSpark stores your data locally on this device only. We never sell personal information."}
         </p>
       </div>
     </div>

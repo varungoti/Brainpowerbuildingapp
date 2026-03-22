@@ -1,5 +1,8 @@
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { FULL_SCREEN_VIEWS, getActiveNavTab, getScreenTitle, shouldHideHeader } from "./logic/viewConfig";
+import { useOnlineStatus } from "../utils/networkStatus";
 
 // Screens
 import { LandingScreen }     from "./screens/LandingScreen";
@@ -7,25 +10,19 @@ import { AuthScreen }        from "./screens/AuthScreen";
 import { OnboardingScreen }  from "./screens/OnboardingScreen";
 import { HomeScreen }        from "./screens/HomeScreen";
 import { GeneratorScreen }   from "./screens/GeneratorScreen";
-import { HistoryScreen }     from "./screens/HistoryScreen";
-import { StatsScreen }       from "./screens/StatsScreen";
-import { ProfileScreen }     from "./screens/ProfileScreen";
-import { AddChildScreen }    from "./screens/AddChildScreen";
-import { PaywallScreen }     from "./screens/PaywallScreen";
-import { YearPlanScreen }    from "./screens/YearPlanScreen";
-import { AICounselorScreen } from "./screens/AICounselorScreen";
-import { BrainMapScreen }    from "./screens/BrainMapScreen";
-import { MilestonesScreen }  from "./screens/MilestonesScreen";
 
-// Blueprint docs
-import { ResearchFramework }  from "./components/blueprint/ResearchFramework";
-import { IntelligenceMatrix } from "./components/blueprint/IntelligenceMatrix";
-import { DevelopmentalMatrix } from "./components/blueprint/DevelopmentalMatrix";
-import { AlgorithmSection }   from "./components/blueprint/AlgorithmSection";
-import { DatabaseSection }    from "./components/blueprint/DatabaseSection";
-import { MaterialsSection }   from "./components/blueprint/MaterialsSection";
-import { FeaturesSection }    from "./components/blueprint/FeaturesSection";
-import { RoadmapSection }     from "./components/blueprint/RoadmapSection";
+const HistoryScreen = lazy(() => import("./screens/HistoryScreen").then((m) => ({ default: m.HistoryScreen })));
+const StatsScreen = lazy(() => import("./screens/StatsScreen").then((m) => ({ default: m.StatsScreen })));
+const ProfileScreen = lazy(() => import("./screens/ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
+const AddChildScreen = lazy(() => import("./screens/AddChildScreen").then((m) => ({ default: m.AddChildScreen })));
+const PaywallScreen = lazy(() => import("./screens/PaywallScreen").then((m) => ({ default: m.PaywallScreen })));
+const YearPlanScreen = lazy(() => import("./screens/YearPlanScreen").then((m) => ({ default: m.YearPlanScreen })));
+const AICounselorScreen = lazy(() => import("./screens/AICounselorScreen").then((m) => ({ default: m.AICounselorScreen })));
+const BrainMapScreen = lazy(() => import("./screens/BrainMapScreen").then((m) => ({ default: m.BrainMapScreen })));
+const MilestonesScreen = lazy(() => import("./screens/MilestonesScreen").then((m) => ({ default: m.MilestonesScreen })));
+const LegalInfoScreen = lazy(() => import("./screens/LegalInfoScreen").then((m) => ({ default: m.LegalInfoScreen })));
+const ActivityDetailScreen = lazy(() => import("./screens/ActivityDetailScreen").then((m) => ({ default: m.ActivityDetailScreen })));
+const BlueprintDocsScreen = lazy(() => import("./screens/BlueprintDocsScreen").then((m) => ({ default: m.BlueprintDocsScreen })));
 
 // ─── Bottom Nav ────────────────────────────────────────────────────────────────
 const NAV_TABS = [
@@ -38,21 +35,22 @@ const NAV_TABS = [
 
 function BottomNav() {
   const { view, navigate, credits, hasCreditForToday } = useApp();
-  const activeTab = (
-    view === "pack_result" ? "generate" :
-    view === "paywall" ? "generate" :
-    NAV_TABS.find(t => t.id === view)?.id ?? null
-  );
+  const activeTab = getActiveNavTab(view);
   return (
-    <div className="flex-shrink-0 flex border-t border-gray-100 bg-white px-1 pb-1 pt-1">
+    <nav className="flex-shrink-0 flex border-t border-gray-100 bg-white px-1 pb-1 pt-1" aria-label="Primary navigation">
       {NAV_TABS.map(tab => {
         const active = activeTab === tab.id;
         const isGenerate = tab.id === "generate";
+        const genCredits = isGenerate && credits > 0 ? `, ${credits} day credits remaining` : "";
         return (
           <button key={tab.id}
+            type="button"
+            aria-label={`${tab.label}${genCredits}`}
+            aria-current={active ? "page" : undefined}
             onClick={() => {
               if (isGenerate) {
-                hasCreditForToday() ? navigate("generate") : navigate("paywall");
+                if (hasCreditForToday()) navigate("generate");
+                else navigate("paywall");
               } else {
                 navigate(tab.id as AppView);
               }
@@ -73,28 +71,21 @@ function BottomNav() {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
-// ─── App Header ────────────────────────────────────────────────────────────────
-const SCREEN_TITLES: Partial<Record<AppView, string>> = {
-  home:"NeuroSpark", generate:"Activity Generator", history:"Brain Journey",
-  stats:"Dev. Stats", profile:"Profile", add_child:"Add Child", blueprint:"Blueprint Docs",
-  paywall:"Unlock Activities", year_plan:"Year Roadmap", ai_counselor:"AI Counselor",
-  brain_map:"Brain Map",
-};
-
 function AppHeader() {
   const { view, goBack, canGoBack, activeChild } = useApp();
-  const title = SCREEN_TITLES[view] ?? "NeuroSpark";
+  const title = getScreenTitle(view);
   const needsBack = canGoBack && view !== "home";
-  if (view === "home" || view === "generate" || view === "pack_result" || view === "paywall" || view === "year_plan" || view === "ai_counselor" || view === "brain_map" || view === "milestones") return null;
+  if (shouldHideHeader(view)) return null;
   return (
     <div className="flex-shrink-0 flex items-center px-4 py-2.5 border-b border-gray-100 bg-white">
       {needsBack
-        ? <button onClick={goBack} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-            <span className="text-gray-600 font-bold" style={{ fontSize:18 }}>‹</span>
+        ? <button type="button" onClick={goBack} aria-label="Go back"
+            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+            <span className="text-gray-600 font-bold" aria-hidden style={{ fontSize:18 }}>‹</span>
           </button>
         : <div className="w-8 mr-3"/>
       }
@@ -109,25 +100,25 @@ function AppHeader() {
   );
 }
 
-// ─── Blueprint wrapper ────────────────────────────────────────────────────────
-function BlueprintDocs() {
-  const { goBack } = useApp();
+function ScreenLoadingFallback({ title }: { title: string }) {
   return (
-    <div className="h-full overflow-y-auto" style={{ background:"#F0EFFF" }}>
-      <div className="p-4 rounded-b-3xl mb-2" style={{ background:"linear-gradient(135deg,#1a1a2e,#302b63)" }}>
-        <button onClick={goBack} className="w-8 h-8 rounded-full glass flex items-center justify-center mb-2">
-          <span className="text-white">‹</span>
-        </button>
-        <div className="text-white font-black text-lg">Blueprint Documentation</div>
-        <div className="text-white/50 text-xs">Full research & architecture spec · v1.0</div>
+    <div className="h-full flex items-center justify-center px-6" style={{ background: "#F0EFFF" }}>
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center shadow-sm max-w-sm w-full">
+        <div className="text-4xl mb-3 animate-pulse">🧠</div>
+        <div className="text-gray-900 font-black text-lg mb-1">Loading {title}</div>
+        <div className="text-gray-500 text-sm">Preparing a smoother, lighter app experience…</div>
       </div>
-      <div className="space-y-4 p-4 pb-8">
-        {[ResearchFramework, IntelligenceMatrix, DevelopmentalMatrix, AlgorithmSection, DatabaseSection, MaterialsSection, FeaturesSection, RoadmapSection].map((C, i) => (
-          <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            <C />
-          </div>
-        ))}
-      </div>
+    </div>
+  );
+}
+
+function OfflineBanner() {
+  return (
+    <div
+      className="mx-3 mt-2 rounded-2xl border px-3 py-2 text-xs"
+      style={{ background: "rgba(251,191,36,0.14)", borderColor: "rgba(245,158,11,0.35)", color: "#92400E" }}
+    >
+      Offline mode: local profiles, history, and backups still work. AI Counselor, analytics, and checkout need an internet connection.
     </div>
   );
 }
@@ -145,47 +136,85 @@ function ScreenContent() {
     case "home":              return <HomeScreen />;
     case "generate":
     case "pack_result":       return <GeneratorScreen />;
+    case "activity_detail":   return <ActivityDetailScreen />;
     case "history":           return <HistoryScreen />;
     case "stats":             return <StatsScreen />;
     case "profile":           return <ProfileScreen />;
     case "add_child":         return <AddChildScreen />;
-    case "blueprint":         return <BlueprintDocs />;
+    case "blueprint":         return <BlueprintDocsScreen />;
     case "paywall":           return <PaywallScreen />;
     case "year_plan":         return <YearPlanScreen />;
     case "ai_counselor":      return <AICounselorScreen />;
     case "brain_map":
     case "know_your_child":   return <BrainMapScreen />;
     case "milestones":        return <MilestonesScreen />;
+    case "legal_info":        return <LegalInfoScreen />;
     default:                  return <HomeScreen />;
   }
 }
 
-const FULL_SCREEN_VIEWS: AppView[] = ["landing","auth","onboard_welcome","onboard_child","onboard_materials","onboard_ready"];
-
 function AppShell() {
   const { view, user } = useApp();
+  const mainRef = useRef<HTMLDivElement | null>(null);
+  const isOnline = useOnlineStatus();
   const isFullScreen = FULL_SCREEN_VIEWS.includes(view);
   const isAuthenticated = !!user;
+  const [isCompactViewport, setIsCompactViewport] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 480 || window.innerHeight < 760 : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateViewportMode = () => {
+      setIsCompactViewport(window.innerWidth < 480 || window.innerHeight < 760);
+    };
+    updateViewportMode();
+    window.addEventListener("resize", updateViewportMode);
+    return () => window.removeEventListener("resize", updateViewportMode);
+  }, []);
+
+  useEffect(() => {
+    mainRef.current?.focus();
+  }, [view]);
+
+  const shellStyle = isCompactViewport
+    ? {
+        width: "100vw",
+        height: "100dvh",
+        maxWidth: "100vw",
+        maxHeight: "100dvh",
+        borderRadius: 0,
+        boxShadow: "none",
+        background: "#F0EFFF",
+      }
+    : {
+        width: 393,
+        height: 852,
+        maxHeight: "98vh",
+        maxWidth: "calc(98vw)",
+        borderRadius: 50,
+        boxShadow: "0 0 0 10px #1a1a2e, 0 0 0 12px #2d2d3e, 0 0 80px rgba(67,97,238,0.4), inset 0 0 30px rgba(0,0,0,0.5)",
+        background: "#F0EFFF",
+      };
+  const screenTitle = getScreenTitle(view);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2"
+    <div className={`min-h-screen ${isCompactViewport ? "" : "flex items-center justify-center p-2"}`}
       style={{ background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)" }}>
 
       {/* Ambient orbs */}
-      <div className="absolute w-96 h-96 rounded-full opacity-10 pointer-events-none"
-        style={{ background:"radial-gradient(circle,#4361EE,transparent)", top:"10%", right:"10%" }}/>
-      <div className="absolute w-80 h-80 rounded-full opacity-10 pointer-events-none"
-        style={{ background:"radial-gradient(circle,#F72585,transparent)", bottom:"10%", left:"10%" }}/>
+      {!isCompactViewport && (
+        <>
+          <div className="absolute w-96 h-96 rounded-full opacity-10 pointer-events-none"
+            style={{ background:"radial-gradient(circle,#4361EE,transparent)", top:"10%", right:"10%" }}/>
+          <div className="absolute w-80 h-80 rounded-full opacity-10 pointer-events-none"
+            style={{ background:"radial-gradient(circle,#F72585,transparent)", bottom:"10%", left:"10%" }}/>
+        </>
+      )}
 
       {/* Phone frame */}
       <div className="relative flex flex-col overflow-hidden"
-        style={{
-          width: 393, height: 852,
-          maxHeight: "98vh", maxWidth: "calc(98vw)",
-          borderRadius: 50,
-          boxShadow: "0 0 0 10px #1a1a2e, 0 0 0 12px #2d2d3e, 0 0 80px rgba(67,97,238,0.4), inset 0 0 30px rgba(0,0,0,0.5)",
-          background: "#F0EFFF",
-        }}>
+        style={shellStyle}>
 
         {/* Status bar */}
         <div className="flex-shrink-0 flex items-center justify-between px-6 h-10 z-10"
@@ -200,12 +229,24 @@ function AppShell() {
           </div>
         </div>
 
+        {isAuthenticated && !isFullScreen && (
+          <a
+            href="#app-main"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:left-3 focus:top-12 focus:px-3 focus:py-2 focus:rounded-xl focus:bg-white focus:text-gray-900 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
+          >
+            Skip to main content
+          </a>
+        )}
+
         {/* Header */}
         {isAuthenticated && !isFullScreen && <AppHeader />}
+        {isAuthenticated && !isOnline && <OfflineBanner />}
 
         {/* Main content */}
-        <div className="flex-1 overflow-hidden relative">
-          <ScreenContent />
+        <div id="app-main" ref={mainRef} role="main" tabIndex={-1} className="flex-1 overflow-hidden relative outline-none">
+          <Suspense fallback={<ScreenLoadingFallback title={screenTitle} />}>
+            <ScreenContent />
+          </Suspense>
         </div>
 
         {/* Bottom nav */}
@@ -220,12 +261,14 @@ function AppShell() {
       </div>
 
       {/* External label */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <div className="glass rounded-full px-4 py-1.5 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/>
-          <span className="text-white/60 text-xs">NeuroSpark · v2.0 Premium · March 2026</span>
+      {!isCompactViewport && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+          <div className="glass rounded-full px-4 py-1.5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/>
+            <span className="text-white/60 text-xs">NeuroSpark · v2.0 Premium · March 2026</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

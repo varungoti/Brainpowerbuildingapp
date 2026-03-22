@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DATABASE_SCHEMA, CONTENT_TARGETS } from "./data";
 
 export function DatabaseSection() {

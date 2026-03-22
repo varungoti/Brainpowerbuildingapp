@@ -1,7 +1,9 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { ACTIVITIES, getAgeTierConfig } from "../data/activities";
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { captureProductEvent } from "@/utils/productAnalytics";
+import { useOnlineStatus } from "@/utils/networkStatus";
 
 const PLANS = [
   { id:"day1",   days:1,   price:100,   pricePerDay:100, label:"1 Day",   badge:null,           color:"#64748b" },
@@ -33,6 +35,7 @@ type PayStep = "plan" | "success";
 
 export function PaywallScreen() {
   const { activeChild, navigate, addCredits, activityLogs } = useApp();
+  const isOnline = useOnlineStatus();
   const [selected, setSelected]   = useState("day30");
   const [step, setStep]           = useState<PayStep>("plan");
   const [processing, setProcessing] = useState(false);
@@ -50,10 +53,25 @@ export function PaywallScreen() {
 
   const plan = PLANS.find(p => p.id === selected)!;
 
+  useEffect(() => {
+    if (step !== "plan") return;
+    captureProductEvent("paywall_view", { age_tier: tier });
+  }, [step, tier]);
+
   // ─── Real Razorpay payment ─────────────────────────────────────────────────
   const handleRazorpay = async () => {
+    if (!isOnline) {
+      setPayError("You're offline. Checkout and payment verification need an internet connection.");
+      return;
+    }
     setProcessing(true);
     setPayError(null);
+    captureProductEvent("paywall_checkout_start", {
+      age_tier: tier,
+      plan_id: plan.id,
+      days: plan.days,
+      amount_inr: plan.price,
+    });
     try {
       // 1. Load Razorpay SDK
       await loadRazorpaySDK();
@@ -81,7 +99,10 @@ export function PaywallScreen() {
           order_id:    orderData.orderId,
           prefill:     { name: "Parent" },
           theme:       { color: plan.color },
-          modal:       { ondismiss: () => reject(new Error("Payment cancelled")) },
+          modal:       { ondismiss: () => {
+            captureProductEvent("paywall_checkout_dismiss", { plan_id: plan.id, age_tier: tier });
+            reject(new Error("Payment cancelled"));
+          } },
           handler: async (response: any) => {
             try {
               // 4. Verify signature on server
@@ -95,6 +116,12 @@ export function PaywallScreen() {
               );
               const verData = await verRes.json();
               if (!verData.success) throw new Error(verData.error ?? "Payment verification failed");
+              captureProductEvent("paywall_purchase_success", {
+                age_tier: tier,
+                plan_id: plan.id,
+                days: plan.days,
+                amount_inr: plan.price,
+              });
               addCredits(plan.days);
               setStep("success");
               resolve();
@@ -106,11 +133,16 @@ export function PaywallScreen() {
         rzp.open();
       });
 
-    } catch (err: any) {
-      const msg = String(err?.message ?? err);
+    } catch (err: unknown) {
+      const msg = String(err instanceof Error ? err.message : err);
       if (!msg.includes("cancelled")) {
         console.error("Razorpay payment error:", err);
         setPayError(msg);
+        captureProductEvent("paywall_purchase_fail", {
+          age_tier: tier,
+          plan_id: plan.id,
+          fail_reason: msg.slice(0, 80),
+        });
       }
     } finally {
       setProcessing(false);
@@ -173,6 +205,12 @@ export function PaywallScreen() {
       </div>
 
       <div className="px-4 pb-8 space-y-5">
+        {!isOnline && (
+          <div className="rounded-2xl p-3" style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(245,158,11,0.3)" }}>
+            <div className="text-amber-300 font-semibold text-xs mb-1">Offline mode</div>
+            <div className="text-amber-100/90 text-xs">You can still review plan options, but payment starts only after you reconnect.</div>
+          </div>
+        )}
 
         {/* Missed yesterday */}
         {!hadYesterday && activeChild && (
@@ -226,7 +264,15 @@ export function PaywallScreen() {
           <div className="text-white font-bold text-sm mb-3">Choose Your Plan</div>
           <div className="space-y-2.5">
             {PLANS.map(p => (
-              <button key={p.id} onClick={() => setSelected(p.id)}
+              <button key={p.id} type="button" onClick={() => {
+                setSelected(p.id);
+                captureProductEvent("paywall_plan_select", {
+                  age_tier: tier,
+                  plan_id: p.id,
+                  days: p.days,
+                  amount_inr: p.price,
+                });
+              }}
                 className="w-full rounded-2xl p-4 text-left transition-all"
                 style={{
                   background: selected===p.id ? `${p.color}18` : "rgba(255,255,255,0.03)",
@@ -288,9 +334,9 @@ export function PaywallScreen() {
         )}
 
         {/* Razorpay CTA */}
-        <button onClick={handleRazorpay} disabled={processing}
+        <button onClick={handleRazorpay} disabled={processing || !isOnline}
           className="w-full py-4 rounded-2xl font-black text-white text-base relative overflow-hidden"
-          style={{ background: processing ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`, boxShadow: processing ? "none" : "0 8px 24px rgba(67,97,238,0.4)" }}>
+          style={{ background: (processing || !isOnline) ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`, boxShadow: (processing || !isOnline) ? "none" : "0 8px 24px rgba(67,97,238,0.4)" }}>
           {processing ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>

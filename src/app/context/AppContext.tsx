@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { Activity, getAgeTierFromDob } from "../data/activities";
+import { currentMonthKey, computeComposite, type OutcomeChecklistMonth } from "../data/outcomeChecklist";
+import { getSupabaseBrowserClient, signOutSupabase } from "../../utils/supabase/client";
+import { captureProductEvent } from "../../utils/productAnalytics";
+import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../utils/neurosparkBackup";
+import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
+export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type AppView =
@@ -8,7 +15,8 @@ export type AppView =
   | "home" | "generate" | "pack_result" | "activity_detail"
   | "history" | "stats" | "profile" | "add_child" | "blueprint"
   | "paywall" | "year_plan" | "ai_counselor"
-  | "brain_map" | "know_your_child" | "milestones";
+  | "brain_map" | "know_your_child" | "milestones"
+  | "legal_info";
 
 export interface KYCData {
   curiosity: number;
@@ -30,6 +38,8 @@ export interface User {
   email: string;
   name: string;
   createdAt: string;
+  /** Set when signed in via Supabase Auth */
+  supabaseUid?: string;
 }
 export interface ChildProfile {
   id: string;
@@ -99,7 +109,8 @@ export function getNextLevelBP(bp: number) {
 
 // ─── Persistence ───────────────────────────────────────────────────────────────
 const LS_KEY = "neurospark_v2";
-interface Persisted {
+/** Serializable app state (localStorage + backup files). */
+export interface AppPersistedState {
   user: User | null;
   children: ChildProfile[];
   activeChildId: string | null;
@@ -107,18 +118,37 @@ interface Persisted {
   materialInventory: string[];
   credits: number;
   kycData: Record<string, KYCData>;
+  outcomeChecklists: Record<string, OutcomeChecklistMonth[]>;
 }
+type Persisted = AppPersistedState;
 const DEFAULTS: Persisted = {
   user: null, children: [], activeChildId: null, activityLogs: [],
   materialInventory: ["paper","pencils","cups","water","outdoor","blanket","spoons"],
   credits: 0,
   kycData: {},
+  outcomeChecklists: {},
 };
 function load(): Persisted {
-  try { const r = localStorage.getItem(LS_KEY); return r ? { ...DEFAULTS, ...JSON.parse(r) } : DEFAULTS; }
-  catch { return DEFAULTS; }
+  try {
+    const r = localStorage.getItem(LS_KEY);
+    if (!r) return DEFAULTS;
+    const parsed = JSON.parse(r) as Partial<Persisted>;
+    return {
+      ...DEFAULTS,
+      ...parsed,
+      outcomeChecklists: parsed.outcomeChecklists ?? {},
+    };
+  } catch {
+    return DEFAULTS;
+  }
 }
-function save(s: Persisted) { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {} }
+function save(s: Persisted) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(s));
+  } catch {
+    /* quota / private mode */
+  }
+}
 
 // ─── Context interface ─────────────────────────────────────────────────────────
 interface Ctx extends Persisted {
@@ -131,7 +161,7 @@ interface Ctx extends Persisted {
   setGeneratedPack: (p: Activity[] | null) => void;
   viewingActivity: Activity | null;
   setViewingActivity: (a: Activity | null) => void;
-  loginUser: (email: string, name: string) => void;
+  loginUser: (email: string, name: string, options?: { supabaseUid?: string }) => void;
   logoutUser: () => void;
   addChild: (c: Omit<ChildProfile,"id"|"brainPoints"|"level"|"streak"|"lastStreakDate"|"badges"|"totalActivities"|"intelligenceScores"|"ageTier">) => string;
   setActiveChild: (id: string) => void;
@@ -144,6 +174,11 @@ interface Ctx extends Persisted {
   consumeCredit: () => boolean;
   hasCreditForToday: () => boolean;
   saveKYCData: (childId: string, data: Omit<KYCData, "updatedAt">) => void;
+  saveOutcomeChecklist: (childId: string, answers: Record<string, number>) => void;
+  /** JSON file for backup / moving devices (contains child names & notes — keep private). */
+  exportLocalDataBackup: () => string;
+  /** Replace all local app data from a backup file. */
+  importLocalDataBackup: (json: string) => { ok: true } | { ok: false; error: string };
 }
 const AppCtx = createContext<Ctx | null>(null);
 export function useApp() {
@@ -163,6 +198,48 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
 
   useEffect(() => { save(p); }, [p]);
 
+  // Supabase: session lifecycle (refresh is automatic via client config), remote sign-out, metadata updates
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+
+    const syncFromSession = (session: Session | null) => {
+      setP((prev) => syncPersistedSessionUser(prev, session));
+      setView((v) => getViewAfterSessionSync(v));
+    };
+
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED") return;
+
+      if (event === "SIGNED_OUT") {
+        setP((prev) => clearPersistedRemoteSession(prev));
+        setView("landing");
+        setHist([]);
+        setGeneratedPack(null);
+        setViewingActivity(null);
+        return;
+      }
+
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "USER_UPDATED") {
+        if (event === "INITIAL_SESSION" && !session?.user) return;
+        syncFromSession(session);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Nudge session check when returning to the tab (helps after sleep / backgrounding)
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+    const onVis = () => {
+      if (document.visibilityState === "visible") void client.auth.getSession();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
   const upd = (patch: Partial<Persisted>) => setP(prev => ({ ...prev, ...patch }));
 
   const navigate = useCallback((to: AppView) => {
@@ -178,17 +255,36 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     });
   }, []);
 
-  const loginUser = (email: string, name: string) => {
-    const user: User = { id: Math.random().toString(36).slice(2), email, name, createdAt: new Date().toISOString() };
-    upd({ user });
+  const loginUser = (email: string, name: string, options?: { supabaseUid?: string }) => {
+    const uid = options?.supabaseUid;
+    const user: User = {
+      id: uid ?? Math.random().toString(36).slice(2),
+      email,
+      name,
+      createdAt: new Date().toISOString(),
+      supabaseUid: uid,
+    };
     setHist([]);
-    if (p.children.length === 0) setView("onboard_welcome");
-    else setView("home");
+    setP((prev) => {
+      if (prev.children.length === 0) setView("onboard_welcome");
+      else setView("home");
+      return { ...prev, user };
+    });
   };
 
   const logoutUser = () => {
-    upd({ user: null, children: [], activeChildId: null, activityLogs: [] });
-    setView("landing"); setHist([]);
+    void (async () => {
+      try {
+        await signOutSupabase();
+      } catch (e) {
+        console.warn("[NeuroSpark] Supabase signOut failed", e);
+      }
+      upd({ user: null, children: [], activeChildId: null, activityLogs: [], outcomeChecklists: {}, kycData: {} });
+      setView("landing");
+      setHist([]);
+      setGeneratedPack(null);
+      setViewingActivity(null);
+    })();
   };
 
   const addChild = (c: Omit<ChildProfile,"id"|"brainPoints"|"level"|"streak"|"lastStreakDate"|"badges"|"totalActivities"|"intelligenceScores"|"ageTier">) => {
@@ -227,6 +323,13 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
       return { ...c, brainPoints: newBP, level: newLevel, streak: newStreak, lastStreakDate: today, badges: newBadges, totalActivities: c.totalActivities + (log.completed ? 1 : 0), intelligenceScores: newIntel };
     });
     upd({ activityLogs: [entry, ...p.activityLogs], children: newChildren });
+    if (log.completed) {
+      captureProductEvent("activity_complete", {
+        primary_intel: log.intelligences[0],
+        duration_min: log.duration,
+        region: log.region,
+      });
+    }
     return bp;
   };
 
@@ -250,8 +353,9 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
 
   const addCredits = (n: number) => upd({ credits: (p.credits ?? 0) + n });
   const consumeCredit = (): boolean => {
-    if ((p.credits ?? 0) <= 0) return false;
-    upd({ credits: p.credits - 1 });
+    const result = consumeCreditBalance(p.credits ?? 0);
+    if (!result.ok) return false;
+    upd({ credits: result.credits });
     return true;
   };
   const hasCreditForToday = (): boolean => (p.credits ?? 0) > 0;
@@ -259,6 +363,39 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   const saveKYCData = (childId: string, data: Omit<KYCData, "updatedAt">) => {
     const entry: KYCData = { ...data, updatedAt: new Date().toISOString() };
     upd({ kycData: { ...p.kycData, [childId]: entry } });
+  };
+
+  const exportLocalDataBackup = useCallback(() => buildNeurosparkBackupFile(p), [p]);
+
+  const importLocalDataBackup = useCallback((json: string): { ok: true } | { ok: false; error: string } => {
+    const parsed = parseNeurosparkBackupFile(json);
+    if (!parsed.ok) return parsed;
+    const next = parsed.payload;
+    setP(next);
+    setHist([]);
+    setGeneratedPack(null);
+    setViewingActivity(null);
+    setView(next.user ? "home" : "landing");
+    return { ok: true };
+  }, []);
+
+  const saveOutcomeChecklist = (childId: string, answers: Record<string, number>) => {
+    const monthKey = currentMonthKey();
+    const compositeScore = computeComposite(answers);
+    const entry: OutcomeChecklistMonth = {
+      monthKey,
+      answers: { ...answers },
+      submittedAt: new Date().toISOString(),
+      compositeScore,
+    };
+    const prev = p.outcomeChecklists[childId] ?? [];
+    const withoutThisMonth = prev.filter((x: OutcomeChecklistMonth) => x.monthKey !== monthKey);
+    upd({
+      outcomeChecklists: {
+        ...p.outcomeChecklists,
+        [childId]: [...withoutThisMonth, entry],
+      },
+    });
   };
 
   const activeChild = p.children.find(c => c.id === p.activeChildId) ?? null;
@@ -270,6 +407,9 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     logActivity, updateChildBadges, authMode, setAuthMode,
     addCredits, consumeCredit, hasCreditForToday,
     saveKYCData,
+    saveOutcomeChecklist,
+    exportLocalDataBackup,
+    importLocalDataBackup,
   };
   return <AppCtx.Provider value={value}>{ch}</AppCtx.Provider>;
 }

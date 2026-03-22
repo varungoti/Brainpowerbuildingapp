@@ -1,0 +1,16 @@
+# Project intelligence
+
+## Assistant workflow
+- **Run terminal commands on the user's behalf** (pnpm, build, typecheck, git, etc.) without asking the user to run them.
+- Only defer when the environment blocks automation (e.g. editor trust/network prompts, interactive auth, secrets).
+
+## Stack notes
+- Use **pnpm** for this repo (`packageManager` in package.json).
+- Windows + pnpm: `.npmrc` hoists `@rollup/*` so Vite/Rollup can resolve native bindings; `@rollup/rollup-win32-x64-msvc` is a devDependency.
+
+## Regression guardrails (non-negotiable)
+- **Do not remove or orphan** `AppView` routes in `AppContext` / `App.tsx` `ScreenContent` — every screen (Landing, Auth, Onboarding, Home, Generator, History, Stats, Profile, Add Child, Blueprint, Paywall, Year Plan, AI Counselor, Brain Map / KYC, Milestones, **Legal & Trust**) must remain reachable from existing navigation.
+- **Do not strip** bottom-nav tabs or major UI blocks without explicit product approval; prefer additive changes.
+- After substantive edits: `pnpm run verify` (typecheck + lint + test + build).
+- Before claiming full release confidence: `pnpm run verify:full`, plus `pnpm run age:report` and `pnpm run content:validate` when curriculum/media logic changes.
+- Treat prompt/media orchestration as **review-gated scaffolding only**; never introduce autonomous publishing or self-modifying behavior.

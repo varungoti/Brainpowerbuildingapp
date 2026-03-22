@@ -1,7 +1,7 @@
 import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from "../context/AppContext";
-import { AGE_TIER_CONFIG, INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
+import { INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { getYearPlan, getYearProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export function HomeScreen() {
   const { activeChild, children, setActiveChild, navigate, activityLogs, generatedPack, credits, hasCreditForToday } = useApp();
@@ -28,7 +28,6 @@ export function HomeScreen() {
     ? ((activeChild.brainPoints - lvlCfg.threshold) / (nextBP - lvlCfg.threshold)) * 100
     : 100;
   const todayLogs = activityLogs.filter(l => l.childId === activeChild.id && new Date(l.date).toDateString() === new Date().toDateString());
-  const topIntels = Object.entries(activeChild.intelligenceScores).sort((a,b) => b[1]-a[1]).slice(0,4);
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? "Good morning" : greetingHour < 17 ? "Good afternoon" : "Good evening";
 
@@ -366,7 +365,7 @@ export function HomeScreen() {
               { emoji:"⚡", label:"New Activity Pack",  color:"#4361EE", bg:"#EEF1FF", fn:() => hasCreditForToday() ? navigate("generate") : navigate("paywall") },
               { emoji:"🗓️", label:"Year Roadmap",       color:"#7209B7", bg:"#F5F0FF", fn:() => navigate("year_plan") },
               { emoji:"🧠", label:"AI Counselor",       color:"#F72585", bg:"#FFF0F6", fn:() => navigate("ai_counselor") },
-              { emoji:"📊", label:"Dev. Stats",         color:"#06D6A0", bg:"#EDFFF8", fn:() => navigate("stats") },
+              { emoji:"📊", label:"Stats & check-in", color:"#06D6A0", bg:"#EDFFF8", fn:() => navigate("stats") },
               { emoji:"📅", label:"Activity History",   color:"#FFB703", bg:"#FFFBE6", fn:() => navigate("history") },
               { emoji:"👤", label:"Profile & Settings", color:"#FB5607", bg:"#FFF4EF", fn:() => navigate("profile") },
             ].map((a, i) => (
@@ -396,7 +395,8 @@ export function HomeScreen() {
 
 function StatChip({ icon, value, label, color }: { icon:string; value:string; label:string; color:string }) {
   return (
-    <div className="flex-1 glass-dark rounded-2xl px-2.5 py-2 text-center">
+    <div className="flex-1 glass-dark rounded-2xl px-2.5 py-2 text-center border-t-2"
+      style={{ borderTopColor: color }}>
       <div className="text-base mb-0.5">{icon}</div>
       <div className="text-white font-black" style={{ fontSize:14 }}>{value}</div>
       <div className="text-white/50" style={{ fontSize:9 }}>{label}</div>

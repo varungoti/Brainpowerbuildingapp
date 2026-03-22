@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useApp, AVATAR_EMOJIS, AVATAR_COLORS } from "../context/AppContext";
-import { MATERIAL_OPTIONS, AGE_TIER_CONFIG, getAgeTierConfig } from "../data/activities";
+import { MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
 
 export function OnboardingScreen() {
   const { view } = useApp();
@@ -47,7 +47,7 @@ const YEARS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - 1 - i);
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function StepChild() {
-  const { addChild, navigate, setMaterialInventory } = useApp();
+  const { addChild, navigate } = useApp();
   const [name, setName]   = useState("");
   const [year, setYear]   = useState(CURRENT_YEAR - 4);
   const [month, setMonth] = useState(0);
@@ -56,10 +56,10 @@ function StepChild() {
   const [adding, setAdding] = useState(false);
 
   const dob = `${year}-${String(month + 1).padStart(2,"0")}-15`;
-  const { tier, desc } = (() => {
+  const desc = (() => {
     const age = CURRENT_YEAR - year - (month > new Date().getMonth() ? 1 : 0);
     const t = age < 1 ? 0 : age < 3 ? 1 : age < 5 ? 2 : age < 7 ? 3 : age < 9 ? 4 : 5;
-    return { tier: t, desc: getAgeTierConfig(t) };
+    return getAgeTierConfig(t);
   })();
 
   const handleAdd = () => {

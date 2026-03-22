@@ -3,10 +3,13 @@
 // Research-backed, age-tiered, 300-activity journey data
 // ============================================================
 
+import { ACTIVITIES } from "./activities";
+
 export interface WeekPlan {
   week: number;
   focus: string;
   activities: string[];
+  activityIds?: string[];
 }
 
 export interface MonthPlan {
@@ -830,5 +833,54 @@ export function getYearProgress(activitiesCompleted: number): {
     onTrack,
     projectedYearEnd: Math.min(365, projectedYearEnd),
     activitiesPerWeekNeeded: Math.max(1, activitiesPerWeekNeeded),
+  };
+}
+
+function tokenizeCurriculumText(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length >= 4);
+}
+
+export function getLinkedWeekActivityIds(tier: number, weekPlan: WeekPlan): string[] {
+  const tokens = new Set([
+    ...tokenizeCurriculumText(weekPlan.focus),
+    ...weekPlan.activities.flatMap((item) => tokenizeCurriculumText(item)),
+  ]);
+
+  return ACTIVITIES
+    .filter((activity) => activity.ageTiers.includes(tier))
+    .map((activity) => {
+      const haystack = [
+        activity.name,
+        activity.description,
+        activity.method,
+        ...(activity.mechanismTags ?? []),
+        ...(activity.goalPillars ?? []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      const score = [...tokens].reduce((sum, token) => (haystack.includes(token) ? sum + 1 : sum), 0);
+      return { id: activity.id, score };
+    })
+    .filter((match) => match.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((match) => match.id);
+}
+
+export function getExecutableYearPlan(tier: number): YearPlan {
+  const plan = getYearPlan(tier);
+  return {
+    ...plan,
+    months: plan.months.map((month) => ({
+      ...month,
+      weeklyPlans: month.weeklyPlans.map((weekPlan) => ({
+        ...weekPlan,
+        activityIds: getLinkedWeekActivityIds(tier, weekPlan),
+      })),
+    })),
   };
 }

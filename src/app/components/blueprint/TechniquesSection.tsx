@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { techniques } from "./data";
 
 export function TechniquesSection() {
@@ -29,7 +29,10 @@ export function TechniquesSection() {
       </div>
 
       {/* Culture header */}
-      <div className={`rounded-2xl border-2 p-4 ${culture.color}`}>
+      <div
+        className="rounded-2xl border-2 border-gray-200 p-4"
+        style={{ backgroundColor: culture.headerColor }}
+      >
         <div className="flex items-center gap-3">
           <span className="text-3xl">{culture.flag}</span>
           <div>
@@ -52,7 +55,10 @@ export function TechniquesSection() {
               onClick={() => setOpenMethod(openMethod === mi ? null : mi)}
             >
               <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className={`w-8 h-8 rounded-lg flex-shrink-0 ${culture.headerColor}`} />
+                <div
+                  className="w-8 h-8 rounded-lg flex-shrink-0"
+                  style={{ backgroundColor: culture.headerColor }}
+                />
                 <div className="min-w-0">
                   <span style={{ fontWeight: 600, fontSize: "0.95rem" }} className="text-gray-900 block">{method.name}</span>
                   <span style={{ fontSize: "0.78rem", color: "#6b7280" }}>Ages {method.ageRange}</span>

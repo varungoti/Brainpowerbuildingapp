@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useApp } from "../context/AppContext";
-import { MATERIAL_OPTIONS, MOOD_OPTIONS, AGE_TIER_CONFIG, INTEL_COLORS, Activity, runAGE, getAgeTierConfig } from "../data/activities";
+import { MATERIAL_OPTIONS, MOOD_OPTIONS, INTEL_COLORS, Activity, runAGE, getAgeTierConfig, buildLastCompletionMap, SKILL_TAG_UI, type AGEPersonalization } from "../data/activities";
+import { buildWhyPickedLines } from "../data/activityWhy";
+import { getOutcomeFocusPillars } from "../data/outcomeChecklist";
+import { captureProductEvent } from "@/utils/productAnalytics";
 
 // ─── Activity image map by primary intelligence ───────────────────────────────
 const INTEL_IMAGES: Record<string, string> = {
@@ -19,18 +22,46 @@ const INTEL_IMAGES: Record<string, string> = {
   "Digital-Technological":"https://images.unsplash.com/photo-1685358268305-c621b38e75d8?w=200&q=70",
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const confetti: (opts: any) => void = (window as any).confetti ?? (() => {
-  import("canvas-confetti").then(m => (window as any).confetti = m.default);
-});
 function fireConfetti() {
   import("canvas-confetti").then(m => m.default({ particleCount: 60, spread: 50, origin: { y: 0.6 }, colors: ["#4361EE","#F72585","#FFB703","#06D6A0"] }));
 }
 
 type Step = "config" | "generating" | "result";
 
+const GEN_PREFS_KEY = "neurospark_generator_prefs";
+
 export function GeneratorScreen() {
-  const { activeChild, materialInventory, activityLogs, setGeneratedPack, generatedPack, navigate, logActivity } = useApp();
+  const { activeChild, materialInventory, activityLogs, setGeneratedPack, generatedPack, logActivity, kycData, setViewingActivity, navigate, outcomeChecklists } = useApp();
+
+  const personalization: AGEPersonalization | null = useMemo(() => {
+    if (!activeChild) return null;
+    const k = kycData[activeChild.id];
+    if (!k) return null;
+    return {
+      learningStyle: k.learningStyle,
+      curiosity: k.curiosity,
+      energy: k.energy,
+      patience: k.patience,
+      creativity: k.creativity,
+      social: k.social,
+      energyLevel: k.energyLevel,
+      adaptability: k.adaptability,
+      mood: k.mood,
+      sensitivity: k.sensitivity,
+    };
+  }, [activeChild, kycData]);
+
+  const lastCompletionByActivity = useMemo(() => {
+    if (!activeChild) return null;
+    const m = buildLastCompletionMap(activityLogs, activeChild.id);
+    return Object.keys(m).length > 0 ? m : null;
+  }, [activityLogs, activeChild]);
+
+  const outcomeFocusPillars = useMemo(() => {
+    if (!activeChild) return [];
+    return getOutcomeFocusPillars(outcomeChecklists[activeChild.id] ?? []);
+  }, [activeChild, outcomeChecklists]);
+
   const [step, setStep]             = useState<Step>(generatedPack ? "result" : "config");
   const [mood, setMood]             = useState("focus");
   const [timeMin, setTimeMin]       = useState(45);
@@ -42,6 +73,24 @@ export function GeneratorScreen() {
   const [earnedBP, setEarnedBP]     = useState<{[id:string]:number}>({});
   const [showBPFloat, setShowBPFloat] = useState<{[id:string]:boolean}>({});
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [boostAILiteracy, setBoostAILiteracy] = useState(false);
+  const [boostDualTask, setBoostDualTask] = useState(false);
+
+  useEffect(() => {
+    try {
+      const r = localStorage.getItem(GEN_PREFS_KEY);
+      if (!r) return;
+      const j = JSON.parse(r) as { boostAILiteracy?: boolean; boostDualTask?: boolean };
+      if (typeof j.boostAILiteracy === "boolean") setBoostAILiteracy(j.boostAILiteracy);
+      if (typeof j.boostDualTask === "boolean") setBoostDualTask(j.boostDualTask);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(GEN_PREFS_KEY, JSON.stringify({ boostAILiteracy, boostDualTask }));
+    } catch { /* ignore */ }
+  }, [boostAILiteracy, boostDualTask]);
 
   const tier    = activeChild?.ageTier ?? 3;
   const tierCfg = getAgeTierConfig(tier);
@@ -50,11 +99,23 @@ export function GeneratorScreen() {
   const generate = () => {
     setStep("generating");
     setTimeout(() => {
-      const result = runAGE(tier, materialInventory, mood, timeMin, recentIds);
+      const result = runAGE(tier, materialInventory, mood, timeMin, recentIds, personalization, lastCompletionByActivity, {
+        boostAILiteracy,
+        boostDualTask,
+        focusPillars: outcomeFocusPillars,
+      });
       setPack(result);
       setGeneratedPack(result);
       setCompletedIds(new Set());
       setEarnedBP({});
+      captureProductEvent("pack_generate", {
+        age_tier: tier,
+        mood,
+        time_min: timeMin,
+        pack_size: result.length,
+        boost_ai_literacy: boostAILiteracy,
+        boost_dual_task: boostDualTask,
+      });
       setStep("result");
     }, 2200);
   };
@@ -80,7 +141,13 @@ export function GeneratorScreen() {
   const coveredIntel = [...new Set(pack.flatMap(a => a.intelligences))];
   const allDone   = pack.length > 0 && pack.every(a => completedIds.has(a.id));
 
-  if (step === "config") return <ConfigScreen mood={mood} setMood={setMood} timeMin={timeMin} setTimeMin={setTimeMin} tier={tier} onGenerate={generate} />;
+  if (step === "config") return (
+    <ConfigScreen
+      mood={mood} setMood={setMood} timeMin={timeMin} setTimeMin={setTimeMin} tier={tier} onGenerate={generate}
+      boostAILiteracy={boostAILiteracy} setBoostAILiteracy={setBoostAILiteracy}
+      boostDualTask={boostDualTask} setBoostDualTask={setBoostDualTask}
+    />
+  );
   if (step === "generating") return <GeneratingScreen tier={tier} />;
 
   return (
@@ -117,6 +184,27 @@ export function GeneratorScreen() {
             <div className="text-blue-400">▸ Tier {tier} · {tierCfg.desc} · Mood: {mood}</div>
             <div className="text-green-400">▸ {pack.length} activities selected · {totalDur}min budget used</div>
             <div className="text-yellow-400">▸ {coveredIntel.length} intelligence types covered</div>
+            {personalization && (
+              <div className="text-purple-400">
+                ▸ KYC personalization on · style:{personalization.learningStyle ?? "mixed"} · traits weighted
+              </div>
+            )}
+            {lastCompletionByActivity && (
+              <div className="text-cyan-400">
+                ▸ Spaced repetition · {Object.keys(lastCompletionByActivity).length} activities in history · 24h repeat deprioritized
+              </div>
+            )}
+            {(boostAILiteracy || boostDualTask) && (
+              <div className="text-orange-300">
+                ▸ Pack focus ·{" "}
+                {[boostAILiteracy && "AI literacy weight + swap-in if needed", boostDualTask && "dual-task scoring boost"].filter(Boolean).join(" · ")}
+              </div>
+            )}
+            {outcomeFocusPillars.length > 0 && (
+              <div className="text-emerald-300">
+                ▸ Outcome support · bias toward recent low pillars: {outcomeFocusPillars.join(", ")}
+              </div>
+            )}
           </div>
         </div>
 
@@ -133,7 +221,14 @@ export function GeneratorScreen() {
                   style={{ fontSize:18 }}>+{earnedBP[act.id]} BP ⚡</div>
               )}
               {/* Card header */}
-              <button className="w-full text-left p-4" onClick={() => setExpandedId(expanded ? null : act.id)}>
+              <button
+                className="w-full text-left p-4"
+                onClick={() => setExpandedId(expanded ? null : act.id)}
+                onDoubleClick={() => {
+                  setViewingActivity(act);
+                  navigate("activity_detail");
+                }}
+              >
                 <div className="flex items-start gap-3">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 relative"
                     style={{ background: done ? "rgba(6,214,160,0.15)" : "#F5F0FF" }}>
@@ -155,7 +250,18 @@ export function GeneratorScreen() {
                       <span className="ml-auto text-gray-300 text-xs">{expanded?"▲":"▼"}</span>
                     </div>
                     <div className="text-gray-900 font-bold text-sm" style={{ textDecoration:done?"line-through":"none" }}>{act.name}</div>
+                    <div className="text-violet-600 text-xs font-semibold mt-1">Tap to expand, or open the full detail view below</div>
                     <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {act.skillTags?.map(tag => {
+                        const meta = SKILL_TAG_UI[tag];
+                        if (!meta) return null;
+                        return (
+                          <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full font-semibold"
+                            style={{ background:"rgba(251,146,60,0.15)", color:"#c2410c" }}>
+                            {meta.emoji} {meta.label}
+                          </span>
+                        );
+                      })}
                       {act.intelligences.map(intel => (
                         <span key={intel} className="text-xs px-1.5 py-0.5 rounded-full"
                           style={{ background:(INTEL_COLORS[intel]??"#888")+"18", color:INTEL_COLORS[intel]??"#888" }}>
@@ -171,6 +277,24 @@ export function GeneratorScreen() {
               {expanded && (
                 <div className="px-4 pb-4 border-t border-gray-100 space-y-3">
                   <p className="text-gray-600 text-xs leading-relaxed pt-3">{act.description}</p>
+                  <div className="rounded-2xl p-3 border border-violet-100" style={{ background: "linear-gradient(135deg,#F5F3FF,#EDE9FE)" }}>
+                    <div className="text-violet-800 font-bold text-xs mb-2">💡 Why we picked this for {activeChild?.name ?? "your child"} today</div>
+                    <ul className="space-y-1.5">
+                      {buildWhyPickedLines(act, {
+                        childName: activeChild?.name ?? "your child",
+                        tier,
+                        mood,
+                        personalization,
+                        lastCompletionByActivity,
+                        recentActivityIds: recentIds,
+                      }).map((line, wi) => (
+                        <li key={wi} className="text-violet-900 text-xs leading-relaxed flex gap-2">
+                          <span className="text-violet-400 flex-shrink-0">•</span>
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                   <div className="bg-gray-50 rounded-2xl p-3">
                     <div className="text-gray-500 font-bold text-xs mb-2">📋 STEPS</div>
                     {act.instructions.map((s, i) => (
@@ -195,6 +319,17 @@ export function GeneratorScreen() {
                     <div className="text-amber-700 font-bold text-xs mb-1">🔬 Why This Works</div>
                     <p className="text-amber-800 text-xs leading-relaxed">{act.parentTip}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewingActivity(act);
+                      navigate("activity_detail");
+                    }}
+                    className="w-full py-2.5 rounded-2xl border border-violet-200 text-violet-700 font-bold text-sm"
+                    style={{ background: "rgba(139,92,246,0.06)" }}
+                  >
+                    Open full detail
+                  </button>
                   {!done && !isCompleting && (
                     <button onClick={() => setCompleting(act.id)}
                       className="w-full py-3 rounded-2xl font-bold text-white animate-pulse-glow"
@@ -242,9 +377,11 @@ export function GeneratorScreen() {
   );
 }
 
-function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate }: {
+function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate, boostAILiteracy, setBoostAILiteracy, boostDualTask, setBoostDualTask }: {
   mood:string; setMood:(m:string)=>void; timeMin:number; setTimeMin:(t:number)=>void;
   tier:number; onGenerate:()=>void;
+  boostAILiteracy: boolean; setBoostAILiteracy: (v: boolean) => void;
+  boostDualTask: boolean; setBoostDualTask: (v: boolean) => void;
 }) {
   const { materialInventory, setMaterialInventory, activeChild } = useApp();
   const tierCfg = getAgeTierConfig(tier);
@@ -292,9 +429,39 @@ function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate }: 
           </div>
         </div>
 
+        {/* Pack focus — AI literacy & dual-task (master plan) */}
+        <div>
+          <Label text="3. Pack focus (optional)" />
+          <p className="text-gray-500 text-xs mb-2 leading-relaxed">
+            Tune the Activity Generation Engine for <strong>human + tool habits</strong> or <strong>movement + thinking</strong>. All activities stay screen-free unless you choose otherwise elsewhere.
+          </p>
+          <div className="space-y-2">
+            <button type="button" onClick={() => setBoostAILiteracy(!boostAILiteracy)}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all border-2"
+              style={{ background: boostAILiteracy ? "rgba(67,97,238,0.08)" : "white", borderColor: boostAILiteracy ? "#4361EE" : "#e5e7eb" }}>
+              <span className="text-2xl">🧑‍🏫</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-gray-800 text-xs">Include AI literacy</div>
+                <div className="text-gray-500" style={{ fontSize:10 }}>Boost unplugged verification &amp; clear-instruction games; we try to place at least one in the pack when materials allow.</div>
+              </div>
+              <span className="text-lg">{boostAILiteracy ? "✅" : "⬜"}</span>
+            </button>
+            <button type="button" onClick={() => setBoostDualTask(!boostDualTask)}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all border-2"
+              style={{ background: boostDualTask ? "rgba(6,214,160,0.08)" : "white", borderColor: boostDualTask ? "#06D6A0" : "#e5e7eb" }}>
+              <span className="text-2xl">🔄</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-gray-800 text-xs">Prefer dual-task</div>
+                <div className="text-gray-500" style={{ fontSize:10 }}>Favor activities that pair body/rhythm with thinking (motor–cognition coupling).</div>
+              </div>
+              <span className="text-lg">{boostDualTask ? "✅" : "⬜"}</span>
+            </button>
+          </div>
+        </div>
+
         {/* Materials */}
         <div>
-          <Label text={`3. Materials at home (${materialInventory.length} selected)`} />
+          <Label text={`4. Materials at home (${materialInventory.length} selected)`} />
           <div className="flex gap-2 mb-2">
             <button onClick={() => setMaterialInventory(MATERIAL_OPTIONS.map(m=>m.id))}
               className="text-xs px-3 py-1.5 rounded-full" style={{ background:"rgba(67,97,238,0.1)", color:"#4361EE" }}>
@@ -330,7 +497,7 @@ function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate }: 
   );
 }
 
-function GeneratingScreen({ tier }: { tier: number }) {
+function GeneratingScreen({ tier: _tier }: { tier: number }) {
   const [dots, setDots] = useState(0);
   const phases = ["Analysing developmental stage...","Scoring 25 activities...","Applying diversity rules...","Selecting optimal pack...","Adding parent tips..."];
   const [phaseIdx, setPhaseIdx] = useState(0);

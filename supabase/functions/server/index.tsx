@@ -1,3 +1,4 @@
+/// <reference path="./deno.d.ts" />
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
@@ -14,6 +15,42 @@ app.use("/*", cors({
 }));
 
 app.get("/make-server-76b0ba9a/health", (c) => c.json({ status: "ok" }));
+
+/** Coarse product events from the web app (no PII). Keys must match `src/utils/productAnalytics.ts`. */
+const ALLOWED_ANALYTICS_EVENTS = new Set([
+  "paywall_view",
+  "paywall_plan_select",
+  "paywall_checkout_start",
+  "paywall_checkout_dismiss",
+  "paywall_purchase_success",
+  "paywall_purchase_fail",
+  "pack_generate",
+  "activity_complete",
+]);
+
+// ─── Product analytics (daily rollups in kv) ───────────────────────────────────
+app.post("/make-server-76b0ba9a/analytics/event", async (c) => {
+  try {
+    const body = await c.req.json();
+    const event = body?.event;
+    if (!event || typeof event !== "string" || !ALLOWED_ANALYTICS_EVENTS.has(event)) {
+      return c.json({ ok: false, error: "invalid_event" }, 400);
+    }
+    const day =
+      typeof body.ts === "string" && body.ts.length >= 10
+        ? body.ts.slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+    const key = `analytics:counts:${day}`;
+    const prev = (await kv.get(key)) as Record<string, number> | null;
+    const counts: Record<string, number> = { ...(prev ?? {}) };
+    counts[event] = (counts[event] ?? 0) + 1;
+    await kv.set(key, counts);
+    return c.body(null, 204);
+  } catch (e) {
+    console.log("analytics/event error:", e);
+    return c.json({ ok: false }, 500);
+  }
+});
 
 // ─── Community Ratings ─────────────────────────────────────────────────────────
 app.post("/make-server-76b0ba9a/rate-activity", async (c) => {
@@ -703,7 +740,93 @@ const DEMO_RESPONSES: Record<string, object> = {
       "Stallard, P. (2002). Think Good, Feel Good: A Cognitive Behaviour Therapy Workbook for Children. Wiley.",
       "White, S.W., et al. (2009). Anxiety in children with autism spectrum disorders. Clinical Psychology Review, 29(3), 216–229."
     ]
-  }
+  },
+  ai_literacy: {
+    category: "ai_literacy",
+    summary: "Children today encounter chatbots, voice assistants, and homework helpers early. Developmental research emphasizes **calibration** (knowing what a tool can and cannot do) and **verification habits** (checking important claims) as human-complementary skills — not fear of technology. Studies on source evaluation and epistemic cognition show that simple family scripts (e.g., “two questions before we believe something big”) improve critical thinking when practiced repeatedly in low-stakes moments. Screen-time guidelines (AAP) remain relevant: co-use, content quality, and sleep hygiene matter. Pair limits with **proactive** offline games that rehearse clear instructions, spotting missing context, and asking a trusted human — the same habits that transfer when tools get more powerful.",
+    solutions: [
+      {
+        title: "Two-Question Pause (Family Rule)",
+        approach: "Habit / Epistemic",
+        science: "Structured questioning before accepting a surprising ‘fact’ builds metacognitive brakes; analog habits transfer to digital contexts better than one-off lectures.",
+        steps: [
+          "Introduce a calm rule: ‘Two quick questions before we treat something as true.’",
+          "Brainstorm questions together: Who said it? How could we check? Who is an expert we trust?",
+          "Role-play: you give a silly ‘fact’; your child asks two questions.",
+          "Apply after shows, games, or voice-assistant answers — not as punishment, as a team habit.",
+          "Celebrate good questions more than ‘being right.’",
+          "Keep sessions under 5 minutes for younger children; extend for ages 8+.",
+        ],
+        duration: "2–4 weeks to feel automatic",
+        successSigns: ["Child pauses before repeating claims", "Asks ‘how do we know?’ in everyday chat", "Less argument when you model the same rule"],
+        difficulty: "easy",
+      },
+      {
+        title: "Robot Chef — Literal vs Smart Instructions",
+        approach: "Unplugged / Communication",
+        science: "Following instructions exactly reveals ambiguity — the same gap that causes AI ‘hallucinations’ or wrong outputs when prompts are vague.",
+        steps: [
+          "Pick a simple snack you can make together.",
+          "Round 1: follow your child’s written steps exactly (no fixing) — note funny gaps.",
+          "Laugh together; revise the list to remove ambiguity.",
+          "Round 2: add one clarifying question per step before acting.",
+          "Close: ‘Clear words help humans AND tools understand us.’",
+        ],
+        duration: "One 20–30 min session; repeat monthly",
+        successSigns: ["More specific verbs and order in instructions", "Child notices missing steps unprompted"],
+        difficulty: "medium",
+      },
+      {
+        title: "Co-Use & Boundaries for Assistive Tools",
+        approach: "Environmental / Media",
+        science: "Joint media engagement predicts better learning and safety behaviors than solo use alone; consistent routines reduce conflict.",
+        steps: [
+          "Choose 1–2 approved uses for assistants (e.g., spelling, timer, music) vs off-limits (e.g., homework answers without showing work).",
+          "Use tools side-by-side at first; narrate your thinking.",
+          "Move assistants out of bedrooms at night; protect sleep (blue light + engagement delay sleep onset).",
+          "Weekly 10-min check-in: what did you ask the tool this week? What surprised you?",
+          "If homework is involved: ‘Show your thinking first, then we decide if a hint helps.’",
+        ],
+        duration: "Ongoing; first agreement in one sitting",
+        successSigns: ["Fewer secretive sessions", "Child describes tool limits in their own words", "Sleep routine stabilizes"],
+        difficulty: "medium",
+      },
+    ],
+    redFlags: [
+      "Child uses AI/chat to seek harmful, sexual, or self-harm content — use device safeguards and professional support immediately",
+      "Complete school refusal tied only to tool use — involve school and a clinician",
+      "Severe anxiety or compulsive checking about ‘being wrong’ — CBT-oriented help may be needed",
+      "Cyberbullying or grooming concerns — report per platform guidance and involve trusted adults",
+    ],
+    nutritionNote: "Not nutrition-specific; keep regular meals and hydration — stress and sleep disruption around screen conflict can affect appetite.",
+    activityRecommendations: ["Use in-app AI literacy activities (e.g. Slow News Detective, Two-Question Rule, Robot Chef) weekly", "Pair with a21 breath practice when conversations feel heated"],
+    references: [
+      "American Academy of Pediatrics. (2016). Media and young minds. Pediatrics, 138(5), e20162591.",
+      "Bråten, I., et al. (2011). Measuring strategic processing when students read multiple texts. Metacognition and Learning, 6(2), 111–130.",
+      "Britt, M.A., et al. (2018). Reading for learning: Cognitive processes in comprehension, sourcing, and integration. Educational Psychologist, 53(4), 250–262.",
+      "Chen, B., et al. (2020). Young children's learning from touchscreens: A review. Frontiers in Psychology, 11, 1606.",
+      "Cho, B.-Y., et al. (2018). Middle school students' epistemic cognition in domain-specific internet searching. Educational Psychologist, 53(4), 263–278.",
+      "Common Sense Media. (ongoing). Research on children, teens, and media use. commonsensemedia.org.",
+      "EU Kids Online. (2020). EU Kids Online 2020: Survey results from 19 countries.",
+      "Hobbs, R. (2010). Digital and media literacy: A plan of action. Aspen Institute Communications and Society Program.",
+      "Ito, M., et al. (2013). Connected Learning: An Agenda for Research and Design. Digital Media and Learning Research Hub.",
+      "Kirschner, P.A., & De Bruyckere, P. (2017). The myths of digital natives and multitasking. Teaching and Teacher Education, 67, 135–142.",
+      "Livingstone, S., et al. (2017). Global Kids Online: Comparative report. UNICEF Office of Research.",
+      "Mason, L., et al. (2014). Web page processing: Effects of text structure and emotional content. Journal of Educational Psychology, 106(2), 470–488.",
+      "McGrew, S., et al. (2018). Challenges in seeing: Skills and tasks in assessing credibility. Harvard Kennedy School Misinformation Review.",
+      "Meyer, A., et al. (2021). Children and digital technology: Attitudes, skills, and practices. New Media & Society, 23(5), 1234–1253.",
+      "Ofcom. (2023). Children and parents: Media use and attitudes report (UK).",
+      "Penuel, W.R., et al. (2012). Mobile devices for teaching and learning. Educational Technology, 52(3), 17–22.",
+      "Piaget, J. (1972). Intellectual evolution from adolescence to adulthood. Human Development, 15(1), 1–12.",
+      "Rideout, V. (2017). The Common Sense census: Media use by kids age zero to eight. Common Sense Media.",
+      "Straker, L., et al. (2018). Evidence-based guidelines for wise use of electronic games by children. Ergonomics, 61(5), 683–694.",
+      "UNICEF. (2017). Children in a digital world. The State of the World's Children.",
+      "Vanden Abeele, M.M.P. (2021). Digital wellbeing as a dynamic construct. Communication Theory, 31(3), 932–959.",
+      "Wineburg, S., & McGrew, S. (2019). Lateral reading: Reading less and learning more when evaluating digital information. Stanford History Education Group Working Paper.",
+      "Wartella, E., et al. (2016). Children and electronic media. Future of Children, 26(2), 1–10.",
+      "Zhao, Y., et al. (2021). The digital lives of children: Insights across countries. Journal of Computer Assisted Learning, 37(4), 849–863.",
+    ],
+  },
 };
 
 app.post("/make-server-76b0ba9a/ai-counselor", async (c) => {
@@ -722,6 +845,7 @@ app.post("/make-server-76b0ba9a/ai-counselor", async (c) => {
     const systemPrompt = `You are NeuroSpark's world-class child development AI advisor — a synthesis of pediatric neuroscience, developmental psychology, behavioral therapy, nutritional science, cultural child-rearing wisdom, and mindfulness research. You have deep knowledge of Harvard Child Development, Johns Hopkins Pediatrics, WHO guidelines, AAP recommendations, and global parenting traditions from India, Japan, China, Korea, Scandinavia, and Western educational science.
 
 When a parent shares a concern about their child (age ${childAge}, developmental tier ${tier}):
+0. If category is "ai_literacy", prioritize: verification habits, co-use, age-appropriate boundaries, epistemic cognition, and human judgment alongside tools — not fear-mongering; cite media-literacy and developmental evidence
 1. Analyze the concern thoroughly from a neurological, behavioral, emotional, and environmental perspective
 2. Consider the child's specific developmental stage
 3. Provide a rich research context (200-250 words)

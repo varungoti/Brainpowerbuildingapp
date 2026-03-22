@@ -1401,3 +1401,102 @@ export const CONTENT_TARGETS = {
     { region: "Cross-cultural/Blended", count: 25, percent: 16 },
   ],
 };
+
+// ============================================================
+// SECTION 10: SAMPLE DATA FOR BLUEPRINT UI
+// ============================================================
+
+export const sampleDay = {
+  child: "Maya (4 yrs)",
+  tier: "Tier 2",
+  totalMinutes: 45,
+  activities: [
+    {
+      number: 1,
+      name: "Cup-Stacking Place Value",
+      duration: "10 min",
+      culture: "Indian",
+      badge: "bg-violet-100 text-violet-700",
+      primaryIntelligence: "Logical-Mathematical",
+      secondaryIntelligence: "Linguistic",
+      description: "Stack cups in groups of 10 to build place-value intuition.",
+      mindsetMoment: "Mistakes help our brain grow stronger.",
+      materials: ["Plastic cups", "Marker"],
+      isStretch: false,
+    },
+    {
+      number: 2,
+      name: "Animal Pose Story",
+      duration: "12 min",
+      culture: "Indian",
+      badge: "bg-emerald-100 text-emerald-700",
+      primaryIntelligence: "Bodily-Kinesthetic",
+      secondaryIntelligence: "Linguistic",
+      description: "Act out animal poses while telling a short story.",
+      mindsetMoment: "Your body and mind work together.",
+      materials: ["Mat or blanket"],
+      isStretch: false,
+    },
+    {
+      number: 3,
+      name: "Pattern Block Sort",
+      duration: "8 min",
+      culture: "Western",
+      badge: "bg-blue-100 text-blue-700",
+      primaryIntelligence: "Spatial-Visual",
+      secondaryIntelligence: "Logical-Mathematical",
+      description: "Sort and match shapes by color and pattern.",
+      mindsetMoment: "Patterns are everywhere—you're finding them!",
+      materials: ["Blocks or household objects"],
+      isStretch: false,
+    },
+    {
+      number: 4,
+      name: "Rhythm Clap Echo",
+      duration: "5 min",
+      culture: "Indian",
+      badge: "bg-pink-100 text-pink-700",
+      primaryIntelligence: "Musical-Rhythmic",
+      secondaryIntelligence: "Bodily-Kinesthetic",
+      description: "Echo clap patterns to build rhythm and attention.",
+      mindsetMoment: "Listening carefully is a superpower.",
+      materials: [],
+      isStretch: false,
+    },
+    {
+      number: 5,
+      name: "Memory Card Match",
+      duration: "10 min",
+      culture: "Japanese",
+      badge: "bg-amber-100 text-amber-700",
+      primaryIntelligence: "Logical-Mathematical",
+      secondaryIntelligence: "Spatial-Visual",
+      description: "Flip and match pairs to train working memory.",
+      mindsetMoment: "Each try makes your memory stronger.",
+      materials: ["Cards or paper"],
+      isStretch: true,
+    },
+  ],
+};
+
+export const techniques = RESEARCH_REGIONS.map((r) => ({
+  culture: r.region,
+  flag: r.emoji,
+  headerColor: r.bg,
+  methods: r.methods.map((m) => ({
+    name: m.name,
+    ageRange: m.ages,
+    science: m.researchBasis,
+    citation: m.origin,
+    keyPoints: m.activities?.slice(0, 3) ?? [],
+    materials: m.householdApplication ? [m.householdApplication] : [],
+    intelligences: m.intelligences,
+  })),
+}));
+
+export const neuroscience = [
+  { principle: "Neuroplasticity", icon: "🧠", description: "The brain rewires itself based on experience. Repeated practice strengthens neural pathways.", implication: "Daily varied activities maximize plasticity windows." },
+  { principle: "BDNF Release", icon: "💪", description: "Physical movement releases Brain-Derived Neurotrophic Factor, which improves learning and memory.", implication: "Include at least one bodily-kinesthetic activity per day." },
+  { principle: "Spaced Repetition", icon: "📅", description: "Reviewing skills at intervals (1, 3, 7 days) dramatically improves long-term retention.", implication: "Flag skills for re-appearance; avoid over-repeating favorites." },
+  { principle: "Executive Function", icon: "🎯", description: "Prefrontal cortex develops through planning, inhibition, and working memory tasks.", implication: "Activities that require sequencing and self-control build EF." },
+];

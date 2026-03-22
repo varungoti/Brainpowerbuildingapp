@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useApp, AVATAR_EMOJIS, AVATAR_COLORS, getLevelFromBP } from "../context/AppContext";
-import { AGE_TIER_CONFIG, MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
+import React, { useRef, useState } from "react";
+import { useApp, getLevelFromBP } from "../context/AppContext";
+import { MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
+import { usePwaInstallPrompt } from "@/utils/pwaInstall";
 
 const INNOVATION_IDEAS = [
   { emoji:"🤖", title:"AI Activity Adaptation",       desc:"On-device ML adapts difficulty based on rolling engagement ratings across all families (privacy-first).", color:"#4361EE" },
@@ -16,10 +17,26 @@ const INNOVATION_IDEAS = [
 ];
 
 export function ProfileScreen() {
-  const { user, children, activeChild, setActiveChild, navigate, logoutUser, materialInventory, setMaterialInventory } = useApp();
+  const {
+    user,
+    children,
+    activeChild,
+    setActiveChild,
+    navigate,
+    logoutUser,
+    materialInventory,
+    setMaterialInventory,
+    exportLocalDataBackup,
+    importLocalDataBackup,
+  } = useApp();
   const [showMaterials, setShowMaterials] = useState(false);
   const [showInnovation, setShowInnovation] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [pendingImportJson, setPendingImportJson] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { canInstall, isInstalled, promptInstall } = usePwaInstallPrompt();
 
   const toggle = (id: string) =>
     setMaterialInventory(materialInventory.includes(id) ? materialInventory.filter(m=>m!==id) : [...materialInventory, id]);
@@ -78,6 +95,140 @@ export function ProfileScreen() {
             </button>
           </div>
         </Section>
+
+        {/* Backup / new device (local file — cloud sync still planned) */}
+        <Section title="Backup & new device" icon="💾">
+          <p className="text-gray-500 text-xs mb-2 leading-relaxed">
+            Download a JSON backup before switching phones or browsers. The file includes child names and any notes —{" "}
+            <strong>keep it private</strong>. Restoring <strong>replaces</strong> all data on this device.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowBackup((s) => !s)}
+            className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200 mb-2"
+          >
+            <span className="text-gray-700 text-sm">{showBackup ? "Hide" : "Show"} backup tools</span>
+            <span className="text-gray-400">{showBackup ? "▲" : "▼"}</span>
+          </button>
+          {showBackup && (
+            <div className="space-y-2 animate-slide-up">
+              <button
+                type="button"
+                onClick={() => {
+                  const json = exportLocalDataBackup();
+                  const blob = new Blob([json], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  const d = new Date().toISOString().slice(0, 10);
+                  a.href = url;
+                  a.download = `neurospark-backup-${d}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  setImportError(null);
+                }}
+                className="w-full py-3 rounded-2xl text-white font-bold text-sm"
+                style={{ background: "linear-gradient(135deg,#4361EE,#7209B7)" }}
+              >
+                Download backup (.json)
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  setImportError(null);
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const text = typeof reader.result === "string" ? reader.result : "";
+                    if (!text.trim()) {
+                      setImportError("Empty file.");
+                      return;
+                    }
+                    setPendingImportJson(text);
+                  };
+                  reader.onerror = () => setImportError("Could not read file.");
+                  reader.readAsText(file, "UTF-8");
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 rounded-2xl bg-white border-2 border-dashed border-gray-300 text-gray-700 font-semibold text-sm"
+              >
+                Choose backup to restore…
+              </button>
+              {importError && (
+                <p className="text-red-600 text-xs text-center bg-red-50 rounded-xl px-3 py-2">{importError}</p>
+              )}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Install app" icon="📲">
+          <div className="bg-white rounded-2xl border border-gray-100 p-3.5">
+            <div className="text-gray-800 font-bold text-sm mb-1">
+              {isInstalled ? "Installed on this device" : "Install NeuroSpark for faster access"}
+            </div>
+            <p className="text-gray-500 text-xs leading-relaxed mb-3">
+              Installed mode feels more app-like and helps the new offline shell work better for local-first use.
+            </p>
+            {canInstall ? (
+              <button
+                type="button"
+                onClick={() => { void promptInstall(); }}
+                className="w-full py-3 rounded-2xl text-white font-bold text-sm"
+                style={{ background: "linear-gradient(135deg,#4361EE,#7209B7)" }}
+              >
+                Install NeuroSpark
+              </button>
+            ) : (
+              <div className="text-xs rounded-xl px-3 py-2" style={{ background: "#F5F3FF", color: "#6D28D9" }}>
+                {isInstalled ? "This device already has the app installed." : "If your browser supports install prompts, the button appears here. You can also use your browser menu → Install app."}
+              </div>
+            )}
+          </div>
+        </Section>
+
+        {pendingImportJson !== null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
+            <div className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-xl">
+              <p className="text-gray-800 font-bold text-sm mb-2">Replace all data?</p>
+              <p className="text-gray-500 text-xs mb-4 leading-relaxed">
+                This device&apos;s NeuroSpark data will be overwritten by the backup. This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold"
+                  onClick={() => setPendingImportJson(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold"
+                  onClick={() => {
+                    const json = pendingImportJson;
+                    setPendingImportJson(null);
+                    if (json === null) return;
+                    const r = importLocalDataBackup(json);
+                    if (!r.ok) setImportError(r.error);
+                    else {
+                      setShowBackup(true);
+                      setImportError(null);
+                    }
+                  }}
+                >
+                  Replace
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Materials */}
         <Section title={`Materials Inventory (${materialInventory.length} items)`} icon="🏠">
@@ -140,6 +291,9 @@ export function ProfileScreen() {
         <Section title="About" icon="ℹ️">
           <div className="space-y-1">
             {[
+              { icon:"📊", label:"Stats & monthly check-in",    fn:() => navigate("stats") },
+              { icon:"📜", label:"Activity history",            fn:() => navigate("history") },
+              { icon:"⚖️", label:"Legal, privacy & AI notice",   fn:() => navigate("legal_info") },
               { icon:"📱", label:"View Blueprint Documentation", fn:() => navigate("blueprint") },
               { icon:"🔬", label:"Research Framework",          fn:() => navigate("blueprint") },
             ].map(item => (

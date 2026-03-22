@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { intelligenceTypes } from "./data";
+import React, { useState } from "react";
+import { INTELLIGENCE_TYPES } from "./data";
 
 export function IntelligenceSection() {
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <div className="space-y-5">
@@ -29,22 +29,25 @@ export function IntelligenceSection() {
 
       {/* Intelligence grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {intelligenceTypes.map((intel) => (
+        {INTELLIGENCE_TYPES.map((intel) => (
           <div
             key={intel.id}
             className={`rounded-xl border cursor-pointer transition-all overflow-hidden ${selected === intel.id ? "border-gray-400 shadow-md" : "border-gray-200 hover:border-gray-300 hover:shadow-sm"}`}
             onClick={() => setSelected(selected === intel.id ? null : intel.id)}
           >
             <div className="flex items-center gap-3 p-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${intel.color}`}>
-                {intel.icon}
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                style={{ backgroundColor: intel.bg }}
+              >
+                {intel.emoji}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span style={{ fontWeight: 600, fontSize: "0.9rem" }} className="text-gray-900">{intel.name}</span>
-                  <span style={{ fontSize: "0.72rem" }} className="text-gray-500 flex-shrink-0">Peak {intel.window}</span>
+                  <span style={{ fontSize: "0.72rem" }} className="text-gray-500 flex-shrink-0">Peak {intel.developmentPeak}</span>
                 </div>
-                <p style={{ fontSize: "0.78rem", color: "#9ca3af" }} className="truncate">{intel.brain}</p>
+                <p style={{ fontSize: "0.78rem", color: "#9ca3af" }} className="truncate">{intel.brainRegion}</p>
               </div>
               <span className="text-gray-400" style={{ fontSize: "0.8rem" }}>{selected === intel.id ? "▲" : "▼"}</span>
             </div>
@@ -55,17 +58,23 @@ export function IntelligenceSection() {
                   <div>
                     <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280" }} className="uppercase tracking-wider mb-2">Key Techniques</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {intel.techniques.map((t) => (
-                        <span key={t} className={`text-xs px-2.5 py-1 rounded-full font-medium ${intel.color}`}>{t}</span>
+                      {intel.methods.map((t) => (
+                        <span
+                          key={t}
+                          className="text-xs px-2.5 py-1 rounded-full font-medium text-gray-800 border border-gray-200"
+                          style={{ backgroundColor: intel.bg }}
+                        >
+                          {t}
+                        </span>
                       ))}
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-2.5">
                     <p style={{ fontSize: "0.78rem", color: "#6b7280" }}>
-                      <span style={{ fontWeight: 600 }}>Brain region: </span>{intel.brain}
+                      <span style={{ fontWeight: 600 }}>Brain region: </span>{intel.brainRegion}
                     </p>
                     <p style={{ fontSize: "0.78rem", color: "#6b7280" }} className="mt-0.5">
-                      <span style={{ fontWeight: 600 }}>Optimal window: </span>{intel.window}
+                      <span style={{ fontWeight: 600 }}>Optimal window: </span>{intel.developmentPeak}
                     </p>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { AGE_TIER_CONFIG, getAgeTierConfig } from "../data/activities";
-import { getYearPlan, getYearProgress, MONTH_NAMES, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
+import { getAgeTierConfig } from "../data/activities";
+import { getExecutableYearPlan, getYearProgress, MONTH_NAMES, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 
 export function YearPlanScreen() {
   const { activeChild, activityLogs } = useApp();
@@ -21,7 +21,7 @@ export function YearPlanScreen() {
 
   const tier = activeChild.ageTier;
   const tierCfg = getAgeTierConfig(tier);
-  const plan = getYearPlan(tier);
+  const plan = getExecutableYearPlan(tier);
   const completedActivities = activityLogs.filter(l => l.childId === activeChild.id && l.completed).length;
   const progress = getYearProgress(completedActivities);
   const currentMonthPlan = plan.months.find(m => m.month === selectedMonth)!;
@@ -171,7 +171,7 @@ export function YearPlanScreen() {
                 </div>
 
                 {/* Stats bar */}
-                <div className="grid grid-cols-3 divide-x" style={{ background: "rgba(0,0,0,0.2)", divideColor: "rgba(255,255,255,0.1)" }}>
+                <div className="grid grid-cols-3 divide-x" style={{ background: "rgba(0,0,0,0.2)", borderColor: "rgba(255,255,255,0.1)" }}>
                   <div className="py-3 text-center">
                     <div className="text-white font-black text-base">{currentMonthPlan.weeklyTarget}×</div>
                     <div className="text-white/60" style={{ fontSize: 9 }}>Weekly Target</div>
@@ -236,7 +236,10 @@ export function YearPlanScreen() {
                           </div>
                           <div>
                             <div className="font-semibold text-gray-800" style={{ fontSize: 12 }}>Week {wk.week}</div>
-                            <div className="text-gray-500" style={{ fontSize: 10 }}>{wk.focus}</div>
+                            <div className="text-gray-500" style={{ fontSize: 10 }}>
+                              {wk.focus}
+                              {wk.activityIds?.length ? ` · ${wk.activityIds.length} linked activities` : ""}
+                            </div>
                           </div>
                         </div>
                         <span className="text-gray-400 text-sm">{showWeekly === wk.week ? "▲" : "▼"}</span>

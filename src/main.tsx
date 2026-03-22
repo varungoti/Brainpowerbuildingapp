@@ -1,7 +1,10 @@
+import { createRoot } from "react-dom/client";
+import { initClientMonitoring } from "./utils/monitoring";
+import { registerPwaServiceWorker } from "./utils/pwa";
+import App from "./app/App";
+import "./styles/index.css";
 
-  import { createRoot } from "react-dom/client";
-  import App from "./app/App.tsx";
-  import "./styles/index.css";
-
-  createRoot(document.getElementById("root")!).render(<App />);
+initClientMonitoring();
+registerPwaServiceWorker();
+createRoot(document.getElementById("root")!).render(<App />);
   

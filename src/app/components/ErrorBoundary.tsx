@@ -1,4 +1,5 @@
-import { Component, ReactNode, ErrorInfo } from "react";
+import React, { Component, ReactNode, ErrorInfo } from "react";
+import { reportClientError } from "../../utils/monitoring";
 
 interface Props { children: ReactNode; }
 interface State { hasError: boolean; message: string; }
@@ -12,11 +13,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[NeuroSpark ErrorBoundary]", error, info);
+    reportClientError(error, { componentStack: info.componentStack ?? undefined });
   }
 
   handleReset = () => {
     // Clear persisted state that might be corrupt then reload
-    try { localStorage.removeItem("neurospark_v2"); } catch {}
+    try { localStorage.removeItem("neurospark_v2"); } catch { /* ignore */ }
     this.setState({ hasError: false, message: "" });
     window.location.reload();
   };

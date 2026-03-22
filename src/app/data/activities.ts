@@ -2,6 +2,21 @@
 // NEUROSPARK — CENTRAL ACTIVITY DATABASE + AGE ENGINE
 // ============================================================
 
+import { MILESTONES } from "./milestones";
+import type { OutcomePillar } from "./outcomeChecklist";
+
+export interface ActivityDurationVariants {
+  quick: number;
+  standard: number;
+  stretch: number;
+}
+
+export interface ActivityProgression {
+  programId: string;
+  stage: number;
+  nextActivityIds: string[];
+}
+
 export interface Activity {
   id: string;
   name: string;
@@ -19,9 +34,18 @@ export interface Activity {
   parentTip: string;
   extensionIdeas?: string[];
   moodTags?: string[]; // high, calm, focus, low
+  /** Pedagogy tags, e.g. `ai-literacy`, `dual-task` — used by AGE + parent copy */
+  skillTags?: string[];
+  mechanismTags?: string[];
+  contraindications?: string[];
+  durationVariants?: ActivityDurationVariants;
+  goalPillars?: OutcomePillar[];
+  milestoneIds?: string[];
+  reviewStatus?: "draft" | "reviewed";
+  progression?: ActivityProgression;
 }
 
-export const ACTIVITIES: Activity[] = [
+const RAW_ACTIVITIES: Activity[] = [
   { id:"a01", name:"Rice Sensory Bin", emoji:"🌾", regionEmoji:"🇮🇹", region:"Western",
     description:"Fill a bowl with rice, hide 3–5 safe objects, and let baby discover through touch and sound — building neural pathways for texture discrimination.",
     instructions:["Fill a large bowl with uncooked rice","Hide 3–5 safe objects (spoon, cloth, cup)","Let child explore freely — scooping, hiding, discovering","Name each object they find","Describe textures: 'smooth', 'bumpy', 'cold'"],
@@ -77,6 +101,7 @@ export const ACTIVITIES: Activity[] = [
     intelligences:["Logical-Mathematical","Musical-Rhythmic","Bodily-Kinesthetic"], method:"Sthanapath", ageTiers:[2,3], difficulty:2,
     parentTip:"Rhythmic-kinesthetic number encoding activates the phonological loop AND motor cortex simultaneously — dual encoding theory shows 2× retention.",
     moodTags:["high","focus"],
+    skillTags:["dual-task"],
   },
   { id:"a08", name:"Symmetry Fold Drawing", emoji:"🎨", regionEmoji:"🇮🇳", region:"Indian",
     description:"Fold paper, draw half a shape, unfold to reveal perfect symmetry — activating both hemispheres and strengthening corpus callosum.",
@@ -149,6 +174,7 @@ export const ACTIVITIES: Activity[] = [
     intelligences:["Logical-Mathematical","Executive Function","Linguistic"], method:"Computational Thinking", ageTiers:[4,5], difficulty:4,
     parentTip:"Computational thinking is the ability to break problems into executable steps. This activity builds debugging mindset — a core 21st-century meta-skill.",
     moodTags:["focus","high"],
+    skillTags:["dual-task","ai-literacy"],
   },
   { id:"a17", name:"Barefoot Texture Walk", emoji:"👣", regionEmoji:"🇯🇵", region:"Japanese",
     description:"Walk barefoot over 5 different natural surfaces outdoors — grounding reduces cortisol 16% and improves sensory integration.",
@@ -157,6 +183,7 @@ export const ACTIVITIES: Activity[] = [
     intelligences:["Naturalist","Bodily-Kinesthetic","Intrapersonal"], method:"Shinrin-yoku", ageTiers:[1,2,3,4,5], difficulty:1,
     parentTip:"Barefoot outdoor contact (grounding/earthing) reduces cortisol by 16% and improves sensory integration. Works for all ages including very young children.",
     moodTags:["high","low","calm"],
+    skillTags:["dual-task"],
   },
   { id:"a18", name:"5-Senses Scavenger Hunt", emoji:"🌿", regionEmoji:"🇯🇵", region:"Japanese",
     description:"Find nature items using each of the 5 senses — improves directed attention by 20% and emotional regulation through nature exposure.",
@@ -181,6 +208,7 @@ export const ACTIVITIES: Activity[] = [
     intelligences:["Bodily-Kinesthetic","Linguistic","Intrapersonal","Creative"], method:"Yoga & Pranayama", ageTiers:[1,2,3,4,5], difficulty:1,
     parentTip:"Harvard Medical School: 10–15 min yoga daily improves children's attention span by 32%. The story framing makes it intrinsically motivating for all ages.",
     moodTags:["high","calm","low"],
+    skillTags:["dual-task"],
   },
   { id:"a21", name:"Breath Counting Meditation", emoji:"🧘", regionEmoji:"🇮🇳", region:"Indian",
     description:"Count breaths to 10, restart on losing count — trains prefrontal inhibitory control, the executive skill most predictive of life outcomes.",
@@ -221,6 +249,42 @@ export const ACTIVITIES: Activity[] = [
     intelligences:["Linguistic","Creative","Spatial-Visual","Emotional"], method:"Reggio Emilia", ageTiers:[2,3,4,5], difficulty:2,
     parentTip:"Story structure (exposition-conflict-resolution) is the fundamental cognitive scaffold for reading comprehension and social cognition (Theory of Mind).",
     moodTags:["calm","high"],
+  },
+  { id:"a26", name:"Slow News Detective", emoji:"📰", regionEmoji:"🌍", region:"Western",
+    description:"You invent 3 silly headlines and 1 plausible one — your child sorts fact-style vs joke, then you discuss how you'd check a real headline (ask a grown-up, look at 2 sources). No apps required.",
+    instructions:["Write 4 short headlines on paper — 3 clearly silly, 1 believable","Read them slowly; child points: 'silly' or 'maybe real'","For the believable one, ask: 'How would we double-check?'","Together name 2 safe steps: parent search, library book, teacher","Reinforce: smart humans always verify before sharing"],
+    duration:15, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Digital-Technological","Linguistic","Executive Function"], method:"Media Literacy (unplugged)", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Calibration and verification are human-complementary skills in an AI-heavy world. Keep it playful — you're building habits, not cynicism.",
+    moodTags:["focus","calm"],
+    skillTags:["ai-literacy"],
+  },
+  { id:"a27", name:"Robot Chef Instructions", emoji:"🥪", regionEmoji:"🇮🇳", region:"Indian",
+    description:"Child writes exact steps to make a simple snack. You follow like a literal robot first (funny mistakes!), then repeat with 'smart human' clarifying questions — shows why precise language matters for people and tools.",
+    instructions:["Pick a snack you can make together (e.g. buttered toast)","Round 1: parent follows child's steps EXACTLY — no fixing","Laugh at gaps; child revises the list","Round 2: parent asks one clarifying question per step","Compare: which instructions worked better?"],
+    duration:20, materials:["Paper","Pencils / Crayons","Spoons"],
+    intelligences:["Linguistic","Logical-Mathematical","Bodily-Kinesthetic"], method:"Human–Tool Communication", ageTiers:[2,3,4,5], difficulty:2,
+    parentTip:"This mirrors how we prompt AI: specific steps beat vague wishes. Emphasize teamwork with tools, not fear of them.",
+    moodTags:["high","focus"],
+    skillTags:["ai-literacy"],
+  },
+  { id:"a28", name:"What Would a Robot Miss?", emoji:"🖼️", regionEmoji:"🇰🇷", region:"Korean",
+    description:"Use your child's drawing or photo of a family moment. Ask what a stranger (or pretend 'robot brain') might get wrong without context — practice empathy, detail, and limits of remote guesses.",
+    instructions:["Show yesterday's drawing or take a new silly photo together","Ask: 'If someone only saw this picture, what might they guess wrong?'","List 3 feelings or facts the picture doesn't show","Close: 'That's why we ask people, not only tools, about feelings'"],
+    duration:12, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Creative","Intrapersonal","Linguistic"], method:"Perspective Taking", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Grounds 'AI era' skills in emotional truth: tools lack lived context; humans supply meaning and care.",
+    moodTags:["calm","focus"],
+    skillTags:["ai-literacy"],
+  },
+  { id:"a29", name:"Two-Question Rule", emoji:"❓", regionEmoji:"🇯🇵", region:"Japanese",
+    description:"Introduce a family rule: after any surprising 'fact' (from a show, friend, or voice assistant), pause for two check questions — Who said it? How could we verify? Role-play examples.",
+    instructions:["Explain: 'Two questions before we believe something big'","Brainstorm check questions: Who? Where did they learn it? Can we look in a book?","Role-play: you say a wild 'fact'; child asks two questions","Pick one topic to verify together with a book or trusted adult"],
+    duration:15, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Executive Function","Linguistic","Interpersonal"], method:"Inquiry Habits", ageTiers:[4,5], difficulty:3,
+    parentTip:"You're installing a lightweight epistemic immune system — curiosity + verification without scare tactics.",
+    moodTags:["focus","calm"],
+    skillTags:["ai-literacy"],
   },
 ];
 
@@ -269,6 +333,140 @@ export const MOOD_OPTIONS = [
   { id:"low",   label:"Tired",      emoji:"😴", boost:"Naturalist"         },
 ];
 
+/** Human judgment + verification habits (unplugged / family rules) */
+export const SKILL_TAG_AI_LITERACY = "ai-literacy";
+/** Movement + thinking in the same activity window */
+export const SKILL_TAG_DUAL_TASK = "dual-task";
+
+export const SKILL_TAG_UI: Record<string, { label: string; emoji: string; shortHint: string }> = {
+  [SKILL_TAG_AI_LITERACY]: { label: "AI literacy", emoji: "🧑‍🏫", shortHint: "Human + tool smarts" },
+  [SKILL_TAG_DUAL_TASK]: { label: "Dual-task", emoji: "🔄", shortHint: "Body + brain" },
+};
+
+const INTEL_TO_PILLARS: Record<string, OutcomePillar[]> = {
+  "Executive Function": ["Executive"],
+  "Emotional": ["Emotional", "Motor-Social"],
+  "Interpersonal": ["Motor-Social", "Emotional"],
+  "Intrapersonal": ["Emotional"],
+  "Logical-Mathematical": ["Cognitive", "Language-Logic"],
+  "Linguistic": ["Language-Logic"],
+  "Pronunciation": ["Language-Logic"],
+  "Spatial-Visual": ["Cognitive", "Motor-Social"],
+  "Bodily-Kinesthetic": ["Motor-Social"],
+  "Coordination": ["Motor-Social"],
+  "Naturalist": ["Cognitive", "Motor-Social"],
+  "Creative": ["Cognitive", "Emotional"],
+  "Musical-Rhythmic": ["Language-Logic", "Emotional"],
+  "Digital-Technological": ["Cognitive", "Executive"],
+  "Existential": ["Cognitive", "Emotional"],
+};
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function inferMechanismTags(act: Activity): string[] {
+  const tags = new Set<string>();
+  if (act.skillTags?.includes(SKILL_TAG_AI_LITERACY)) tags.add("verification-habits");
+  if (act.skillTags?.includes(SKILL_TAG_DUAL_TASK)) tags.add("dual-task-integration");
+  if (act.moodTags?.includes("calm")) tags.add("stress-regulation");
+  if (act.intelligences.includes("Executive Function")) tags.add("executive-function");
+  if (act.intelligences.includes("Linguistic") || act.intelligences.includes("Pronunciation")) tags.add("language-enrichment");
+  if (act.intelligences.includes("Logical-Mathematical")) tags.add("pattern-reasoning");
+  if (act.intelligences.includes("Bodily-Kinesthetic") || act.intelligences.includes("Coordination")) tags.add("motor-cognition");
+  if (act.intelligences.includes("Emotional") || act.intelligences.includes("Interpersonal")) tags.add("co-regulation");
+  if (act.intelligences.includes("Creative")) tags.add("symbolic-play");
+  if (act.method.toLowerCase().includes("spaced")) tags.add("retrieval-practice");
+  if (act.method.toLowerCase().includes("montessori")) tags.add("hands-on-autonomy");
+  return [...tags];
+}
+
+function inferContraindications(act: Activity): string[] {
+  const notes: string[] = [];
+  if (act.materials.some((m) => /buttons|stones|beans/i.test(m))) {
+    notes.push("Requires close supervision with small objects.");
+  }
+  if (act.intelligences.includes("Bodily-Kinesthetic") || act.skillTags?.includes(SKILL_TAG_DUAL_TASK)) {
+    notes.push("Clear floor space and adapt if your child is overtired or unsteady.");
+  }
+  if (act.moodTags?.includes("high")) {
+    notes.push("Shorten or simplify if your child is dysregulated rather than playful-high energy.");
+  }
+  return uniqueStrings(notes);
+}
+
+function inferGoalPillars(act: Activity): OutcomePillar[] {
+  return [
+    ...new Set(
+      act.intelligences.flatMap((intel) => INTEL_TO_PILLARS[intel] ?? ["Cognitive"]),
+    ),
+  ];
+}
+
+function inferDurationVariants(duration: number): ActivityDurationVariants {
+  return {
+    quick: Math.max(5, duration - 5),
+    standard: duration,
+    stretch: duration + 5,
+  };
+}
+
+const TIER_TO_MONTHS: Record<number, [number, number]> = {
+  0: [3, 12],
+  1: [12, 24],
+  2: [24, 48],
+  3: [48, 72],
+  4: [84, 96],
+  5: [108, 120],
+};
+
+function inferMilestoneIds(act: Activity): string[] {
+  const matched = new Set<string>();
+  for (const tier of act.ageTiers) {
+    const ageRange = TIER_TO_MONTHS[tier];
+    if (!ageRange) continue;
+    for (const milestone of MILESTONES) {
+      const sameAgeBand = milestone.ageMonths >= ageRange[0] && milestone.ageMonths <= ageRange[1];
+      const sameBrainFamily = milestone.brainRegions.some((region) => act.intelligences.includes(region));
+      if (sameAgeBand && sameBrainFamily) matched.add(milestone.id);
+      if (matched.size >= 4) return [...matched];
+    }
+  }
+  return [...matched];
+}
+
+function inferProgression(act: Activity): ActivityProgression {
+  const primary = act.skillTags?.includes(SKILL_TAG_AI_LITERACY)
+    ? "ai-literacy"
+    : act.skillTags?.includes(SKILL_TAG_DUAL_TASK)
+      ? "dual-task"
+      : act.intelligences[0]?.toLowerCase().replace(/[^a-z0-9]+/g, "-") ?? "general";
+  const stage = Math.max(1, Math.min(5, act.difficulty));
+  return {
+    programId: `${primary}-tier-${act.ageTiers[0] ?? 1}`,
+    stage,
+    nextActivityIds: RAW_ACTIVITIES
+      .filter((candidate) => candidate.id !== act.id && candidate.ageTiers.some((tier) => act.ageTiers.includes(tier)) && candidate.difficulty >= act.difficulty)
+      .slice(0, 3)
+      .map((candidate) => candidate.id),
+  };
+}
+
+function enrichActivity(act: Activity): Activity {
+  return {
+    ...act,
+    mechanismTags: act.mechanismTags ?? inferMechanismTags(act),
+    contraindications: act.contraindications ?? inferContraindications(act),
+    durationVariants: act.durationVariants ?? inferDurationVariants(act.duration),
+    goalPillars: act.goalPillars ?? inferGoalPillars(act),
+    milestoneIds: act.milestoneIds ?? inferMilestoneIds(act),
+    reviewStatus: act.reviewStatus ?? "reviewed",
+    progression: act.progression ?? inferProgression(act),
+  };
+}
+
+export const ACTIVITIES: Activity[] = RAW_ACTIVITIES.map(enrichActivity);
+
 export const INTEL_COLORS: Record<string, string> = {
   "Linguistic":             "#4361EE",
   "Logical-Mathematical":   "#3A0CA3",
@@ -287,6 +485,164 @@ export const INTEL_COLORS: Record<string, string> = {
   "Coordination":           "#FFD166",
 };
 
+// ─── KYC / personalization (Know Your Child → generator) ───────────────────────
+/** Mirrors KYC fields needed for scoring; keep in sync with AppContext `KYCData` (minus notes/updatedAt). */
+export interface AGEPersonalization {
+  learningStyle: "visual" | "auditory" | "kinesthetic" | null;
+  curiosity: number;
+  energy: number;
+  patience: number;
+  creativity: number;
+  social: number;
+  energyLevel: number;
+  adaptability: number;
+  mood: number;
+  sensitivity: number;
+}
+
+/** Map slider 1–10 to ~0–1 for weighting (midpoint 5.5). */
+function normTrait(v: number): number {
+  return Math.max(0, Math.min(1, (v - 5.5) / 4.5));
+}
+
+function intelBonus(intelligences: string[], key: string, weight: number): number {
+  return intelligences.includes(key) ? weight : 0;
+}
+
+/**
+ * Extra score from child profile. Capped so mood/materials/tier remain primary.
+ * Tuned for diversity: boosts are moderate; pack assembly still enforces spread rules.
+ */
+export function personalizationScoreBonus(act: Activity, p: AGEPersonalization): number {
+  const I = act.intelligences;
+  let b = 0;
+
+  if (p.learningStyle === "visual") {
+    b += intelBonus(I, "Spatial-Visual", 12);
+    b += intelBonus(I, "Creative", 8);
+  } else if (p.learningStyle === "auditory") {
+    b += intelBonus(I, "Linguistic", 12);
+    b += intelBonus(I, "Musical-Rhythmic", 10);
+  } else if (p.learningStyle === "kinesthetic") {
+    b += intelBonus(I, "Bodily-Kinesthetic", 14);
+  }
+
+  const cr = normTrait(p.creativity);
+  b += cr * (intelBonus(I, "Creative", 10) + intelBonus(I, "Spatial-Visual", 6));
+
+  const so = normTrait(p.social);
+  b += so * (intelBonus(I, "Interpersonal", 10) + intelBonus(I, "Emotional", 8));
+
+  const cq = normTrait(p.curiosity);
+  b += cq * (intelBonus(I, "Naturalist", 8) + intelBonus(I, "Logical-Mathematical", 7) + intelBonus(I, "Existential", 5));
+
+  const en = normTrait((p.energy + p.energyLevel) / 2);
+  b += en * intelBonus(I, "Bodily-Kinesthetic", 10);
+
+  if (p.patience <= 4 && act.duration <= 12) b += 11;
+  if (p.patience >= 8 && act.duration >= 18) b += 6;
+
+  if (p.sensitivity >= 7) {
+    if (act.moodTags?.includes("calm") || act.moodTags?.includes("low")) b += 9;
+    if (act.difficulty <= 2) b += 4;
+  }
+
+  if (p.adaptability >= 8) b += 3;
+
+  return Math.min(b, 28);
+}
+
+// ─── Spaced repetition (completion history) ────────────────────────────────────
+/** Minimal log shape for `buildLastCompletionMap` (matches `ActivityLog` subset). */
+export interface ActivityCompletionLog {
+  childId: string;
+  activityId: string;
+  completed: boolean;
+  date: string;
+}
+
+/** Latest completion timestamp (ms) per activityId for one child. Only `completed: true` logs. */
+export function buildLastCompletionMap(
+  logs: ActivityCompletionLog[],
+  childId: string,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const l of logs) {
+    if (l.childId !== childId || !l.completed) continue;
+    const t = new Date(l.date).getTime();
+    if (Number.isNaN(t)) continue;
+    const prev = out[l.activityId];
+    if (prev === undefined || t > prev) out[l.activityId] = t;
+  }
+  return out;
+}
+
+/**
+ * Aligns with blueprint intent: penalize same-day repeat; reward 3–7d spacing.
+ * Empty `lastByActivity` → all activities treated as never completed (neutral).
+ */
+export function spacedRepetitionScoreBonus(
+  activityId: string,
+  lastByActivity: Record<string, number>,
+  nowMs: number = Date.now(),
+): number {
+  const last = lastByActivity[activityId];
+  if (last === undefined) return 5; // mild novelty — not too large vs mood/tier
+
+  const hours = (nowMs - last) / (1000 * 60 * 60);
+  if (hours < 24) return -42; // strong deprioritize (blueprint: exclude last 24h)
+  const days = hours / 24;
+  if (days < 2) return -8;
+  if (days < 3) return 0;
+  if (days < 7) return 16; // sweet spot for revisit
+  if (days < 14) return 10;
+  return 14; // longer gap — still welcome
+}
+
+// ─── Pack validation (mirrors greedy assembly rules) ─────────────────────────
+function validatePackComposition(pack: Activity[], timeMinutes: number): boolean {
+  const maxDur = timeMinutes + 15;
+  let totalDur = 0;
+  const usedRegions = new Map<string, number>();
+  const coveredIntel = new Set<string>();
+  for (let pi = 0; pi < pack.length; pi++) {
+    const act = pack[pi];
+    totalDur += act.duration;
+    if (totalDur > maxDur) return false;
+    const rc = usedRegions.get(act.region) ?? 0;
+    if (rc >= 2) return false;
+    usedRegions.set(act.region, rc + 1);
+    const newIntel = act.intelligences.filter(i => !coveredIntel.has(i)).length;
+    if (newIntel === 0 && pi >= 2) return false;
+    act.intelligences.forEach(i => coveredIntel.add(i));
+  }
+  return true;
+}
+
+/** If boost is on and pack lacks AI literacy, try swapping one slot with an eligible tagged activity. */
+function tryEnsureAILiteracyInPack(pack: Activity[], eligible: Activity[], timeMinutes: number): Activity[] {
+  const hasAILit = (a: Activity) => a.skillTags?.includes(SKILL_TAG_AI_LITERACY);
+  if (pack.some(hasAILit) || pack.length === 0) return pack;
+  const candidates = eligible.filter(hasAILit);
+  for (const cand of candidates) {
+    for (let i = 0; i < pack.length; i++) {
+      const trial = pack.slice();
+      trial[i] = cand;
+      if (validatePackComposition(trial, timeMinutes)) return trial;
+    }
+  }
+  return pack;
+}
+
+export interface AGEGeneratorOptions {
+  /** Prefer / guarantee (via swap) at least one `ai-literacy` activity when materials allow */
+  boostAILiteracy?: boolean;
+  /** Score boost for `dual-task` tagged activities */
+  boostDualTask?: boolean;
+  /** Outcome pillars to emphasize gently based on recent parent check-ins */
+  focusPillars?: OutcomePillar[];
+}
+
 // ─── AGE Algorithm ─────────────────────────────────────────────────────────────
 export function runAGE(
   tier: number,
@@ -294,6 +650,9 @@ export function runAGE(
   mood: string,
   timeMinutes: number,
   recentActivityIds: string[] = [],
+  personalization: AGEPersonalization | null = null,
+  lastCompletionByActivity: Record<string, number> | null = null,
+  options: AGEGeneratorOptions | null = null,
 ): Activity[] {
   const matDbNames = MATERIAL_OPTIONS
     .filter(m => selectedMaterials.includes(m.id))
@@ -316,8 +675,18 @@ export function runAGE(
     if (act.intelligences.includes(moodBoost)) score += 12;
     const idealDiff = Math.min(tier + 1, 5);
     score -= Math.abs(act.difficulty - idealDiff) * 5;
-    if (!recentActivityIds.includes(act.id)) score += 10;
+    // Light anti-repeat from recent pack history (session-adjacent); spaced rep handles calendar timing
+    if (!recentActivityIds.includes(act.id)) score += 6;
     score += act.materials.length * 2;
+    if (personalization) score += personalizationScoreBonus(act, personalization);
+    if (lastCompletionByActivity && Object.keys(lastCompletionByActivity).length > 0) {
+      score += spacedRepetitionScoreBonus(act.id, lastCompletionByActivity);
+    }
+    if (options?.boostAILiteracy && act.skillTags?.includes(SKILL_TAG_AI_LITERACY)) score += 18;
+    if (options?.boostDualTask && act.skillTags?.includes(SKILL_TAG_DUAL_TASK)) score += 12;
+    if (options?.focusPillars?.length && act.goalPillars?.some((pillar) => options.focusPillars?.includes(pillar))) {
+      score += 10;
+    }
     score += Math.random() * 18;
     return { act, score };
   });
@@ -340,6 +709,10 @@ export function runAGE(
     act.intelligences.forEach(i => coveredIntel.add(i));
     usedRegions.set(act.region, regionCount + 1);
     totalDur += act.duration;
+  }
+
+  if (options?.boostAILiteracy) {
+    return tryEnsureAILiteracyInPack(pack, eligible, timeMinutes);
   }
   return pack;
 }

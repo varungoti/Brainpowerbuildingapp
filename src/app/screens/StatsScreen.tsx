@@ -1,11 +1,13 @@
+import React from "react";
 import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from "../context/AppContext";
-import { INTEL_COLORS, AGE_TIER_CONFIG, getAgeTierConfig } from "../data/activities";
+import { INTEL_COLORS, getAgeTierConfig } from "../data/activities";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from "recharts";
+import { OutcomeChecklistCard } from "../components/OutcomeChecklistCard";
 
 const ALL_INTELS = ["Linguistic","Logical-Mathematical","Spatial-Visual","Musical-Rhythmic","Bodily-Kinesthetic","Interpersonal","Intrapersonal","Naturalist","Emotional","Creative","Executive Function","Existential","Digital-Technological"];
 
 export function StatsScreen() {
-  const { activeChild, activityLogs } = useApp();
+  const { activeChild, activityLogs, outcomeChecklists, saveOutcomeChecklist } = useApp();
   if (!activeChild) return <EmptyState />;
 
   const childLogs = activityLogs.filter(l => l.childId === activeChild.id && l.completed);
@@ -102,6 +104,12 @@ export function StatsScreen() {
           ))}
         </div>
 
+        <OutcomeChecklistCard
+          childName={activeChild.name}
+          months={outcomeChecklists[activeChild.id]}
+          onSave={(answers) => saveOutcomeChecklist(activeChild.id, answers)}
+        />
+
         {/* Intelligence Radar */}
         <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-2">
           <div className="font-bold text-gray-800 text-sm mb-3">🧠 Intelligence Radar (13 Types)</div>
@@ -110,7 +118,7 @@ export function StatsScreen() {
               <RadarChart data={radarData} margin={{ top:8,right:16,bottom:8,left:16 }}>
                 <PolarGrid stroke="#e5e7eb" />
                 <PolarAngleAxis dataKey="intel" tick={{ fill:"#9CA3AF", fontSize:9 }} />
-                <Tooltip formatter={(v: unknown, _n: unknown, p: { payload: {fullName:string} }) => [`${Math.round((v as number)/20)} activities`, p.payload.fullName]} />
+                <Tooltip formatter={(v: unknown, _n: unknown, p: { payload?: { fullName: string } }) => [`${Math.round((v as number) / 20)} activities`, p.payload?.fullName ?? ""]} />
                 <Radar dataKey="score" stroke="#7209B7" fill="#7209B7" fillOpacity={0.25} strokeWidth={2} />
               </RadarChart>
             </ResponsiveContainer>

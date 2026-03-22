@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { APP_FEATURES } from "./data";
 
 const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {

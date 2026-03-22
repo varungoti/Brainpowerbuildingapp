@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { RESEARCH_REGIONS } from "./data";
 
 export function ResearchFramework() {

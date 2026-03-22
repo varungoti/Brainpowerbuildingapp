@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp } from "../context/AppContext";
 import {
-  MILESTONES, CATEGORY_INFO, getMilestonesForAge,
+  CATEGORY_INFO, getMilestonesForAge,
   isMilestoneOverdue, getConcernLevel,
   type Milestone, type MilestoneCategory,
 } from "../data/milestones";

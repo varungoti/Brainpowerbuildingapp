@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp, KYCData } from "../context/AppContext";
 import { getAgeTierConfig } from "../data/activities";
 import { getYearPlan, getYearProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 import {
-  playBrainRegionActivate, playBrainPulse,
+  playBrainPulse,
   playClick, playActivityComplete,
 } from "../utils/audioEffects";
 import { AnatomicalBrain } from "../components/AnatomicalBrain";
@@ -117,18 +117,7 @@ const BRAIN_REGIONS = [
     connTo:[4,8,7,2] },
 ] as const;
 
-// Neural pathway connections
-const CONNECTIONS: [number, number][] = [
-  [0,1],[0,2],[0,3],[0,5],[0,13],
-  [1,6],[1,13],[2,4],[2,14],[3,4],[3,13],
-  [4,14],[5,7],[5,9],
-  [6,8],[6,13],[7,10],[7,14],
-  [8,11],[8,14],[9,11],[9,12],[10,12],
-];
-
 const MAX_SCORE = 20;
-
-interface Particle { id:string; cx:number; cy:number; angle:number; dist:number; color:string; }
 
 // ─── 3D Cartoonish Brain Visualization ────────────────────────────────────────
 function BrainMapViz({ scores }: { scores: Record<string, number> }) {

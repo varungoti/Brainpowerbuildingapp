@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useApp, AVATAR_EMOJIS, AVATAR_COLORS } from "../context/AppContext";
-import { AGE_TIER_CONFIG, getAgeTierConfig } from "../data/activities";
+import { getAgeTierConfig } from "../data/activities";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 11 }, (_, i) => CURRENT_YEAR - i); // include current year for babies

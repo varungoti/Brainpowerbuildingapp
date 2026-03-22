@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { AGE_TIERS } from "./data";
 
 export function DevelopmentalMatrix() {

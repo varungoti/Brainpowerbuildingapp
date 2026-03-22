@@ -1,12 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { useOnlineStatus } from "@/utils/networkStatus";
 
 const CATEGORIES = [
   { id: "eating",   emoji: "🥗", label: "Picky Eating",      color: "#06D6A0" },
   { id: "sleep",    emoji: "😴", label: "Sleep Issues",       color: "#7209B7" },
   { id: "behavior", emoji: "😤", label: "Behavior",           color: "#F72585" },
   { id: "screen",   emoji: "📱", label: "Screen Time",        color: "#4361EE" },
+  { id: "ai_literacy", emoji: "🧑‍🏫", label: "AI & tools at home", color: "#0077B6" },
   { id: "social",   emoji: "🤝", label: "Social Difficulty",  color: "#FFB703" },
   { id: "learning", emoji: "📚", label: "Learning Concerns",  color: "#FB5607" },
   { id: "anxiety",  emoji: "😰", label: "Anxiety/Emotions",   color: "#E63946" },
@@ -40,6 +42,7 @@ const DIFFICULTY_CONFIG = {
 
 export function AICounselorScreen() {
   const { activeChild } = useApp();
+  const isOnline = useOnlineStatus();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [concern, setConcern] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,6 +58,10 @@ export function AICounselorScreen() {
   const tier = activeChild?.ageTier ?? 3;
 
   const handleAsk = async () => {
+    if (!isOnline) {
+      setError("You're offline. AI research needs an internet connection, but your local activity history is still available.");
+      return;
+    }
     if (!selectedCategory || !concern.trim()) return;
     setLoading(true);
     setError(null);
@@ -116,6 +123,12 @@ export function AICounselorScreen() {
             Describe your child's behavioral, habitual, or eating concern. Our AI will research deeply — drawing from 20–25 academic references — and provide 3 step-by-step evidence-based solutions.
           </div>
         </div>
+        {!isOnline && (
+          <div className="mt-3 p-3 rounded-2xl" style={{ background: "rgba(251,191,36,0.14)", border: "1px solid rgba(245,158,11,0.35)" }}>
+            <div className="text-amber-200 font-semibold text-xs mb-1">Offline right now</div>
+            <div className="text-amber-100/90 text-xs">You can read prior guidance already on screen, but new AI research requests will wait until you reconnect.</div>
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-8 space-y-4">
@@ -155,6 +168,7 @@ export function AICounselorScreen() {
                   selectedCategory === "eating" ? `E.g. "My 4-year-old refuses to eat anything except plain rice and nuggets. She gags at the sight of vegetables and the same food she ate yesterday..."` :
                   selectedCategory === "sleep" ? `E.g. "My 3-year-old won't sleep alone. He wakes up 3-4 times a night crying and insists on sleeping with us..."` :
                   selectedCategory === "behavior" ? `E.g. "My 5-year-old has extreme tantrums when transitioning between activities. He hits and screams for 20-30 minutes..."` :
+                  selectedCategory === "ai_literacy" ? `E.g. "My 7-year-old copies homework answers from a chatbot without reading the question. I want scripts to teach 'two-check questions' before trusting any answer..."` :
                   "Describe what you've noticed, when it happens, how long it's been going on, and what you've already tried..."
                 }
                 className="w-full p-4 rounded-2xl text-gray-700 text-sm leading-relaxed outline-none resize-none"
@@ -185,8 +199,8 @@ export function AICounselorScreen() {
               disabled={!selectedCategory || concern.trim().length < 20 || loading}
               className="w-full py-4 rounded-2xl font-black text-white text-base transition-all"
               style={{
-                background: (!selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
-                boxShadow: (!selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
+                background: (!isOnline || !selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
+                boxShadow: (!isOnline || !selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
               }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

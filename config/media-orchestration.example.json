@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "mode": "manual-review-required",
+  "providers": {
+    "image": {
+      "provider": "replace-with-your-provider",
+      "model": "replace-with-your-model",
+      "enabled": false
+    },
+    "audio": {
+      "provider": "replace-with-your-provider",
+      "model": "replace-with-your-model",
+      "enabled": false
+    },
+    "video": {
+      "provider": "replace-with-your-provider",
+      "model": "replace-with-your-model",
+      "enabled": false
+    }
+  },
+  "gates": {
+    "requireReviewedActivity": true,
+    "requireEvidenceAnchors": true,
+    "requireSafetyConstraints": true,
+    "requireParentApprovalBeforePublish": true
+  }
+}

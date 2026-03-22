@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { MATERIALS_CATEGORIES } from "./data";
 
 export function MaterialsSection() {

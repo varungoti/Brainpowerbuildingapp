@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 // ─── Full Activity Database (sample set for simulation) ───────────────────────
 interface Activity {
