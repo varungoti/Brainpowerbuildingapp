@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { getAgeTierConfig } from "../data/activities";
 import { getExecutableYearPlan, getYearProgress, MONTH_NAMES, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
+import brainBase from "../../assets/brain-progress-base.png";
 
 export function YearPlanScreen() {
   const { activeChild, activityLogs } = useApp();
@@ -38,6 +39,17 @@ export function YearPlanScreen() {
         style={{ background: `linear-gradient(135deg,${tierCfg.color},#1a1a2e)` }}>
         <div className="absolute right-0 top-0 w-40 h-40 rounded-full opacity-15"
           style={{ background: "radial-gradient(circle,white,transparent)", transform: "translate(30%,-30%)" }} />
+        <div
+          className="absolute -right-3 bottom-0 w-40 h-32 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: `url(${brainBase})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "contain",
+            transform: "translateY(12%) rotate(-4deg)",
+            filter: "drop-shadow(0 14px 24px rgba(0,0,0,0.25))",
+          }}
+        />
 
         <div className="text-white/70 text-xs mb-1">2026 Year Plan</div>
         <div className="text-white font-black text-lg mb-0.5">{activeChild.name}'s Year of Brilliance</div>
@@ -46,6 +58,20 @@ export function YearPlanScreen() {
         {/* Progress arc */}
         <div className="flex items-center gap-5">
           <div className="relative w-32 h-32 flex-shrink-0">
+            <div
+              className="absolute inset-2 rounded-full opacity-95"
+              style={{
+                backgroundImage: `url(${brainBase})`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundSize: "contain",
+                filter: "drop-shadow(0 10px 18px rgba(0,0,0,0.18))",
+              }}
+            />
+            <div
+              className="absolute inset-3 rounded-full"
+              style={{ background: "radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 58%, transparent 72%)" }}
+            />
             <svg className="absolute inset-0 -rotate-90" width="128" height="128" viewBox="0 0 128 128">
               <circle cx="64" cy="64" r="54" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="10" />
               <circle cx="64" cy="64" r="54" fill="none" stroke="white" strokeWidth="10"
@@ -79,6 +105,21 @@ export function YearPlanScreen() {
                 <span className="text-white font-bold text-xs">{progress.percent}% complete</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
+            <div className="text-white/55" style={{ fontSize: 9 }}>Brain journey</div>
+            <div className="text-white font-black text-xs">{progress.percent}% visualized</div>
+          </div>
+          <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
+            <div className="text-white/55" style={{ fontSize: 9 }}>Current phase</div>
+            <div className="text-white font-black text-xs">{MONTH_NAMES_FULL[selectedMonth - 1]}</div>
+          </div>
+          <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
+            <div className="text-white/55" style={{ fontSize: 9 }}>Next push</div>
+            <div className="text-white font-black text-xs">{progress.activitiesPerWeekNeeded}/week</div>
           </div>
         </div>
       </div>

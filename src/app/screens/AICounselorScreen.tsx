@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
 import { useOnlineStatus } from "@/utils/networkStatus";
 
 const CATEGORIES = [
@@ -43,6 +43,7 @@ const DIFFICULTY_CONFIG = {
 export function AICounselorScreen() {
   const { activeChild } = useApp();
   const isOnline = useOnlineStatus();
+  const hasServerConfig = isSupabaseConfigured();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [concern, setConcern] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,6 +63,10 @@ export function AICounselorScreen() {
       setError("You're offline. AI research needs an internet connection, but your local activity history is still available.");
       return;
     }
+    if (!hasServerConfig) {
+      setError("AI Counselor is not configured in this environment yet. Add your Supabase project URL/ref and anon key to enable server-backed guidance.");
+      return;
+    }
     if (!selectedCategory || !concern.trim()) return;
     setLoading(true);
     setError(null);
@@ -69,7 +74,7 @@ export function AICounselorScreen() {
     setExpandedSolution(0);
     try {
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-76b0ba9a/ai-counselor`,
+        `${functionsBaseUrl}/ai-counselor`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${publicAnonKey}` },
@@ -127,6 +132,12 @@ export function AICounselorScreen() {
           <div className="mt-3 p-3 rounded-2xl" style={{ background: "rgba(251,191,36,0.14)", border: "1px solid rgba(245,158,11,0.35)" }}>
             <div className="text-amber-200 font-semibold text-xs mb-1">Offline right now</div>
             <div className="text-amber-100/90 text-xs">You can read prior guidance already on screen, but new AI research requests will wait until you reconnect.</div>
+          </div>
+        )}
+        {!hasServerConfig && (
+          <div className="mt-3 p-3 rounded-2xl" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)" }}>
+            <div className="text-white font-semibold text-xs mb-1">Server guidance not configured</div>
+            <div className="text-white/80 text-xs">This build keeps the feature visible, but requests stay disabled until Supabase env vars are provided.</div>
           </div>
         )}
       </div>
@@ -199,8 +210,8 @@ export function AICounselorScreen() {
               disabled={!selectedCategory || concern.trim().length < 20 || loading}
               className="w-full py-4 rounded-2xl font-black text-white text-base transition-all"
               style={{
-                background: (!isOnline || !selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
-                boxShadow: (!isOnline || !selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
+                background: (!isOnline || !hasServerConfig || !selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
+                boxShadow: (!isOnline || !hasServerConfig || !selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
               }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

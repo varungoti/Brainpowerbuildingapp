@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp } from "../context/AppContext";
+import brainBase from "../../assets/brain-progress-base.png";
 import {
   CATEGORY_INFO, getMilestonesForAge,
   isMilestoneOverdue, getConcernLevel,
@@ -233,11 +234,11 @@ export function MilestonesScreen() {
 
   const childAge = activeChild ? getChildAgeMonths(activeChild.dob) : 24;
 
+  const relevantMilestones = useMemo(() => getMilestonesForAge(childAge), [childAge]);
   const milestones = useMemo(() => {
-    const relevant = getMilestonesForAge(childAge);
-    if (filter === "all") return relevant;
-    return relevant.filter(m => m.category === filter);
-  }, [childAge, filter]);
+    if (filter === "all") return relevantMilestones;
+    return relevantMilestones.filter(m => m.category === filter);
+  }, [filter, relevantMilestones]);
 
   const toggleMilestone = (id: string) => {
     setCheckedIds(prev => {
@@ -248,9 +249,24 @@ export function MilestonesScreen() {
     });
   };
 
-  const overdueCount = milestones.filter(m => !checkedIds.has(m.id) && isMilestoneOverdue(m, childAge)).length;
-  const completedCount = milestones.filter(m => checkedIds.has(m.id)).length;
-  const pct = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0;
+  const overdueCount = relevantMilestones.filter(m => !checkedIds.has(m.id) && isMilestoneOverdue(m, childAge)).length;
+  const completedCount = relevantMilestones.filter(m => checkedIds.has(m.id)).length;
+  const pct = relevantMilestones.length > 0 ? Math.round((completedCount / relevantMilestones.length) * 100) : 0;
+  const categoryProgress = (Object.keys(CATEGORY_INFO) as MilestoneCategory[]).map((category) => {
+    const categoryMilestones = relevantMilestones.filter((milestone) => milestone.category === category);
+    const done = categoryMilestones.filter((milestone) => checkedIds.has(milestone.id)).length;
+    const percent = categoryMilestones.length > 0 ? Math.round((done / categoryMilestones.length) * 100) : 0;
+    return {
+      category,
+      info: CATEGORY_INFO[category],
+      total: categoryMilestones.length,
+      done,
+      percent,
+    };
+  }).filter((entry) => entry.total > 0);
+  const strongestCategories = [...categoryProgress]
+    .sort((a, b) => b.percent - a.percent || b.done - a.done)
+    .slice(0, 3);
 
   const categories: (MilestoneCategory | "all")[] = ["all", ...Object.keys(CATEGORY_INFO) as MilestoneCategory[]];
 
@@ -300,6 +316,88 @@ export function MilestonesScreen() {
               style={{ background: "linear-gradient(90deg,#06D6A0,#4361EE)" }} />
           </div>
           <span className="text-white/60 text-xs font-bold">{pct}%</span>
+        </div>
+
+        <div
+          className="mb-2 rounded-3xl overflow-hidden"
+          style={{ background: "linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <div className="flex items-center gap-3 p-3">
+            <div className="relative w-28 h-24 flex-shrink-0 rounded-2xl overflow-hidden" style={{ background: "radial-gradient(circle at 30% 30%,rgba(67,97,238,0.35),transparent 55%), #0d1228" }}>
+              <img
+                src={brainBase}
+                alt="Colorful brain development map"
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+              {strongestCategories.map((entry, idx) => (
+                <div
+                  key={entry.category}
+                  className="absolute rounded-full"
+                  style={{
+                    width: 26 + idx * 7,
+                    height: 26 + idx * 7,
+                    right: 10 + idx * 15,
+                    top: 10 + idx * 17,
+                    background: `${entry.info.color}40`,
+                    border: `1px solid ${entry.info.color}66`,
+                    boxShadow: `0 0 18px ${entry.info.color}55`,
+                    backdropFilter: "blur(2px)",
+                  }}
+                />
+              ))}
+              <div className="absolute inset-x-3 bottom-2 h-1.5 rounded-full overflow-hidden bg-black/30">
+                <motion.div
+                  className="h-full rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  style={{ background: "linear-gradient(90deg,#F72585,#4361EE,#06D6A0)" }}
+                />
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="text-white font-black text-sm">Brain Development Progress</div>
+              <div className="text-white/45 text-xs leading-relaxed mt-0.5">
+                Milestones light up the brain journey visually so parents can see colorful progress, not just a checklist.
+              </div>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white/10 text-white/80">
+                  {completedCount}/{relevantMilestones.length} completed
+                </span>
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white/10 text-white/80">
+                  {categoryProgress.filter((entry) => entry.done > 0).length}/{categoryProgress.length} domains active
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {categoryProgress.length > 0 && (
+            <div className="px-3 pb-3">
+              <div className="grid grid-cols-2 gap-2">
+                {categoryProgress.slice(0, 4).map((entry) => (
+                  <div
+                    key={entry.category}
+                    className="rounded-2xl p-2.5"
+                    style={{ background: `${entry.info.color}12`, border: `1px solid ${entry.info.color}25` }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold" style={{ color: entry.info.color }}>
+                        {entry.info.emoji} {entry.info.label}
+                      </span>
+                      <span className="text-white/55 text-xs">{entry.percent}%</span>
+                    </div>
+                    <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${entry.percent}%`, background: entry.info.color }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Category filter */}

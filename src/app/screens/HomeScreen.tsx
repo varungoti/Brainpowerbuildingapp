@@ -2,6 +2,7 @@ import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from
 import { INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { getYearPlan, getYearProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 import React, { useState } from "react";
+import brainBase from "../../assets/brain-progress-base.png";
 
 export function HomeScreen() {
   const { activeChild, children, setActiveChild, navigate, activityLogs, generatedPack, credits, hasCreditForToday } = useApp();
@@ -183,7 +184,7 @@ export function HomeScreen() {
         {/* ── Year Plan Progress Widget ──────────────────────────────── */}
         <button onClick={() => navigate("year_plan")}
           className="w-full rounded-2xl p-4 text-left"
-          style={{ background:"white", border:"1px solid #e5e7eb" }}>
+          style={{ background:"white", border:"1px solid #e5e7eb", boxShadow:"0 10px 28px rgba(67,97,238,0.08)" }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
@@ -196,6 +197,39 @@ export function HomeScreen() {
             <div className="text-right">
               <div className="font-black text-gray-900" style={{ fontSize:18 }}>{completedActivities}</div>
               <div className="text-gray-400" style={{ fontSize:9 }}>of 300</div>
+            </div>
+          </div>
+          <div className="mb-3 rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#EEF1FF,#F7F3FF)", border:"1px solid rgba(67,97,238,0.08)" }}>
+            <div className="flex items-center gap-3 p-3">
+              <div className="relative w-24 h-20 flex-shrink-0 rounded-2xl overflow-hidden" style={{ background:"radial-gradient(circle at 30% 30%,rgba(67,97,238,0.18),transparent 55%), #121938" }}>
+                <img
+                  src={brainBase}
+                  alt="Colorful brain development progress"
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+                <div className="absolute inset-x-2 bottom-2 h-1.5 rounded-full overflow-hidden bg-black/20">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000"
+                    style={{ width:`${yearProg.percent}%`, background:"linear-gradient(90deg,#F72585,#4361EE,#06D6A0)" }}
+                  />
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-gray-800 text-xs">Brain Development Journey</div>
+                <div className="text-gray-500 leading-relaxed mt-0.5" style={{ fontSize:10 }}>
+                  The year plan now maps daily activities into a visible, colorful development journey.
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="px-2 py-1 rounded-full font-bold text-gray-700" style={{ fontSize:9, background:"#FFFFFF" }}>
+                    {yearProg.percent}% journey complete
+                  </span>
+                  {thisMonthPlan && (
+                    <span className="px-2 py-1 rounded-full font-bold" style={{ fontSize:9, background:thisMonthPlan.color + "15", color:thisMonthPlan.color }}>
+                      {thisMonthPlan.emoji} {thisMonthPlan.theme}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-2">

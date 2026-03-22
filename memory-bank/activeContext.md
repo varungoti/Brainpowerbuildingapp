@@ -1,10 +1,11 @@
 # Active Context
 
 ## Current task
-Level 4 production-readiness and differentiation push across the local repository, excluding external integrations, credentials, legal sign-off, or irreversible off-repo operations.
+Level 2 enhancement completed: integrate the provided colorful brain image across the brain map, milestone tracker, home progress card, and year-plan progress surfaces.
 
 ## Current focus
-- Final launch-readiness documentation and memory-bank sync after completing the production hardening waves.
+- Preserve the production-readiness foundation while improving the brain-progress storytelling in the core child-development surfaces.
+- Keep the visual system coherent between Home, Brain Map, Milestones, and Year Plan.
 
 ## Known boundaries
 - No secrets, contracts, licenses, or external account setup.
@@ -14,3 +15,4 @@ Level 4 production-readiness and differentiation push across the local repositor
 ## Immediate next steps
 - Keep docs and memory bank aligned with the shipped repo state.
 - Preserve the new verification and content-quality workflow for future sessions.
+- If requested next, extend the same brain-image language into year-plan or onboarding surfaces for a more consistent visual system.

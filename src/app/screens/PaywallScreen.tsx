@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { ACTIVITIES, getAgeTierConfig } from "../data/activities";
-import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
 import { captureProductEvent } from "@/utils/productAnalytics";
 import { useOnlineStatus } from "@/utils/networkStatus";
 
@@ -36,6 +36,7 @@ type PayStep = "plan" | "success";
 export function PaywallScreen() {
   const { activeChild, navigate, addCredits, activityLogs } = useApp();
   const isOnline = useOnlineStatus();
+  const hasServerConfig = isSupabaseConfigured();
   const [selected, setSelected]   = useState("day30");
   const [step, setStep]           = useState<PayStep>("plan");
   const [processing, setProcessing] = useState(false);
@@ -64,6 +65,10 @@ export function PaywallScreen() {
       setPayError("You're offline. Checkout and payment verification need an internet connection.");
       return;
     }
+    if (!hasServerConfig) {
+      setPayError("Checkout is not configured in this environment yet. Add the Supabase project URL/ref and anon key before testing payments.");
+      return;
+    }
     setProcessing(true);
     setPayError(null);
     captureProductEvent("paywall_checkout_start", {
@@ -78,7 +83,7 @@ export function PaywallScreen() {
 
       // 2. Create order on server
       const orderRes = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-76b0ba9a/razorpay/create-order`,
+        `${functionsBaseUrl}/razorpay/create-order`,
         {
           method: "POST",
           headers: { "Authorization": `Bearer ${publicAnonKey}`, "Content-Type": "application/json" },
@@ -107,7 +112,7 @@ export function PaywallScreen() {
             try {
               // 4. Verify signature on server
               const verRes = await fetch(
-                `https://${projectId}.supabase.co/functions/v1/make-server-76b0ba9a/razorpay/verify-payment`,
+                `${functionsBaseUrl}/razorpay/verify-payment`,
                 {
                   method: "POST",
                   headers: { "Authorization": `Bearer ${publicAnonKey}`, "Content-Type": "application/json" },
@@ -209,6 +214,12 @@ export function PaywallScreen() {
           <div className="rounded-2xl p-3" style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(245,158,11,0.3)" }}>
             <div className="text-amber-300 font-semibold text-xs mb-1">Offline mode</div>
             <div className="text-amber-100/90 text-xs">You can still review plan options, but payment starts only after you reconnect.</div>
+          </div>
+        )}
+        {!hasServerConfig && (
+          <div className="rounded-2xl p-3" style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)" }}>
+            <div className="text-white font-semibold text-xs mb-1">Checkout not configured</div>
+            <div className="text-white/75 text-xs">This local build can render the paywall, but payment requests stay disabled until Supabase config is present.</div>
           </div>
         )}
 
@@ -334,9 +345,9 @@ export function PaywallScreen() {
         )}
 
         {/* Razorpay CTA */}
-        <button onClick={handleRazorpay} disabled={processing || !isOnline}
+        <button onClick={handleRazorpay} disabled={processing || !isOnline || !hasServerConfig}
           className="w-full py-4 rounded-2xl font-black text-white text-base relative overflow-hidden"
-          style={{ background: (processing || !isOnline) ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`, boxShadow: (processing || !isOnline) ? "none" : "0 8px 24px rgba(67,97,238,0.4)" }}>
+          style={{ background: (processing || !isOnline || !hasServerConfig) ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`, boxShadow: (processing || !isOnline || !hasServerConfig) ? "none" : "0 8px 24px rgba(67,97,238,0.4)" }}>
           {processing ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>

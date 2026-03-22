@@ -15,6 +15,8 @@
 - Richer activity metadata, adaptive outcome-pillar focus, and AGE simulation script
 - Prompt/media orchestration scaffolding and content validation tooling
 - Release, threat-model, performance-budget, moat, and offline docs
+- Provided colorful brain image is now integrated into the brain map visualization and milestone tracker summary card
+- The same colorful brain-progress language now extends into the home year-plan card and year-plan hero/progress surfaces
 
 ## Remaining major areas
 - External deployment, secrets, real payment/provider configuration, and legal sign-off remain out of scope.

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import brainBase from "../../assets/brain-progress-base.png";
 
 // ─── Background ────────────────────────────────────────────────────────────
 const BG = "#0b0e1d";
@@ -116,13 +117,22 @@ export function AnatomicalBrain({ scores }: Props) {
         className="relative w-full overflow-hidden"
         style={{ aspectRatio: "1.45", backgroundColor: BG }}
       >
-        {/* Abstract brain-like gradient background (no external image dependency) */}
+        {/* Framed background */}
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-90"
           style={{
-            background: `radial-gradient(ellipse 70% 60% at 50% 50%, #1a2744 0%, transparent 70%),
-              radial-gradient(ellipse 50% 40% at 30% 40%, #2d1b4e 0%, transparent 50%),
-              radial-gradient(ellipse 50% 40% at 70% 40%, #1e3a5f 0%, transparent 50%)`,
+            background: `radial-gradient(ellipse 70% 60% at 50% 50%, rgba(38,57,103,0.95) 0%, transparent 72%),
+              radial-gradient(ellipse 45% 35% at 30% 42%, rgba(114,9,183,0.42) 0%, transparent 55%),
+              radial-gradient(ellipse 48% 38% at 70% 38%, rgba(67,97,238,0.36) 0%, transparent 55%)`,
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[48%] pointer-events-none"
+          style={{
+            width: "84%",
+            height: "78%",
+            background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 72%)",
+            filter: "blur(12px)",
           }}
         />
 
@@ -132,6 +142,11 @@ export function AnatomicalBrain({ scores }: Props) {
           className="absolute inset-0 w-full h-full"
         >
           <defs>
+            <radialGradient id="brainTint" cx="50%" cy="45%" r="65%">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.22)" />
+              <stop offset="55%" stopColor="rgba(103,80,164,0.1)" />
+              <stop offset="100%" stopColor="rgba(8,10,24,0.25)" />
+            </radialGradient>
             <filter id="abGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="10" result="b" />
               <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
@@ -143,11 +158,42 @@ export function AnatomicalBrain({ scores }: Props) {
             <filter id="labelShadow" x="-30%" y="-30%" width="160%" height="160%">
               <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.7)" />
             </filter>
+            <clipPath id="brainClip">
+              <ellipse cx="206" cy="170" rx="168" ry="128" />
+            </clipPath>
             <style>{`
               @keyframes abDash { from { stroke-dashoffset: 4 } to { stroke-dashoffset: 0 } }
               @keyframes abPulse { 0%, 100% { opacity: 0.8 } 50% { opacity: 0.48 } }
             `}</style>
           </defs>
+
+          <ellipse
+            cx="206"
+            cy="178"
+            rx="176"
+            ry="134"
+            fill="rgba(255,255,255,0.03)"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="1.5"
+          />
+          <image
+            href={brainBase}
+            x="18"
+            y="28"
+            width="368"
+            height="304"
+            preserveAspectRatio="xMidYMid meet"
+            clipPath="url(#brainClip)"
+            opacity="0.98"
+          />
+          <ellipse
+            cx="206"
+            cy="178"
+            rx="162"
+            ry="121"
+            fill="url(#brainTint)"
+            opacity="0.14"
+          />
 
           {/* Neural connection lines */}
           {CONNECTIONS.map(([a, b], i) => {
@@ -385,7 +431,7 @@ export function AnatomicalBrain({ scores }: Props) {
 
       <div className="text-center mt-1 mb-1">
         <span className="text-white/20" style={{ fontSize: 9 }}>
-          {selected !== null ? "Tap region again to deselect" : "Hover or tap a brain region to explore"}
+          {selected !== null ? "Tap region again to deselect" : "Tap a mapped region to explore brain development progress"}
         </span>
       </div>
 
