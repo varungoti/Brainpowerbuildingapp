@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { getAgeTierConfig } from "../data/activities";
-import { getExecutableYearPlan, getYearProgress, MONTH_NAMES, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
+import {
+  getDevelopmentalMilestonesForMonth,
+  getExecutableYearPlan,
+  getExecutableYearPlanProgress,
+  MONTH_NAMES,
+  MONTH_NAMES_FULL,
+  getCurrentMonth,
+} from "../data/yearPlan";
 import brainBase from "../../assets/brain-progress-base.png";
+import { BRAIN_REGIONS, getBrainRegionPercent } from "../data/brainRegions";
 
 export function YearPlanScreen() {
   const { activeChild, activityLogs } = useApp();
@@ -24,12 +32,27 @@ export function YearPlanScreen() {
   const tierCfg = getAgeTierConfig(tier);
   const plan = getExecutableYearPlan(tier);
   const completedActivities = activityLogs.filter(l => l.childId === activeChild.id && l.completed).length;
-  const progress = getYearProgress(completedActivities);
+  const completedActivityIds = activityLogs
+    .filter((l) => l.childId === activeChild.id && l.completed)
+    .map((l) => l.activityId);
+  const progress = getExecutableYearPlanProgress(tier, completedActivityIds);
   const currentMonthPlan = plan.months.find(m => m.month === selectedMonth)!;
   const currentRealMonth = getCurrentMonth();
+  const currentMonthDevelopmentalMilestones = getDevelopmentalMilestonesForMonth(tier, currentMonthPlan);
+  const currentMonthProgress = progress.monthlyProgress.find((month) => month.month === selectedMonth);
+  const focusRegions = BRAIN_REGIONS.filter((region) => currentMonthPlan.intelligenceFocus.includes(region.key));
+  const focusRegionProgress = focusRegions.map((region) => ({
+    ...region,
+    score: activeChild.intelligenceScores[region.key] ?? 0,
+    percent: getBrainRegionPercent(activeChild.intelligenceScores[region.key] ?? 0),
+  }));
+  const activeFocusCount = focusRegionProgress.filter((region) => region.score > 0).length;
+  const avgFocusCoverage = focusRegionProgress.length
+    ? Math.round(focusRegionProgress.reduce((sum, region) => sum + region.percent, 0) / focusRegionProgress.length)
+    : 0;
 
   const circumference = 2 * Math.PI * 54;
-  const strokeDash = (progress.percent / 100) * circumference;
+  const strokeDash = (progress.curriculumCoverage / 100) * circumference;
 
   return (
     <div className="h-full overflow-y-auto" style={{ background: "#F0EFFF" }}>
@@ -51,7 +74,7 @@ export function YearPlanScreen() {
           }}
         />
 
-        <div className="text-white/70 text-xs mb-1">2026 Year Plan</div>
+        <div className="text-white/70 text-xs mb-1">{progress.planYear} Year Plan</div>
         <div className="text-white font-black text-lg mb-0.5">{activeChild.name}'s Year of Brilliance</div>
         <div className="text-white/60 text-xs mb-5">{tierCfg.label} · {plan.tagline}</div>
 
@@ -79,8 +102,8 @@ export function YearPlanScreen() {
                 style={{ transition: "stroke-dasharray 1.5s ease", filter: "drop-shadow(0 0 8px rgba(255,255,255,0.5))" }} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-white font-black" style={{ fontSize: 22 }}>{completedActivities}</div>
-              <div className="text-white/50 text-center leading-tight" style={{ fontSize: 9 }}>of 300<br />activities</div>
+              <div className="text-white font-black" style={{ fontSize: 22 }}>{progress.curriculumCoverage}%</div>
+              <div className="text-white/50 text-center leading-tight" style={{ fontSize: 9 }}>curriculum<br />coverage</div>
             </div>
           </div>
 
@@ -98,11 +121,11 @@ export function YearPlanScreen() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-white/50 text-xs">Weekly target:</span>
-                <span className="text-white font-bold text-xs">{progress.activitiesPerWeekNeeded}/week to reach 300</span>
+                <span className="text-white font-bold text-xs">{progress.activitiesPerWeekNeeded}/week to reach {progress.activitiesNeeded}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-white/50 text-xs">Progress:</span>
-                <span className="text-white font-bold text-xs">{progress.percent}% complete</span>
+                <span className="text-white/50 text-xs">Linked coverage:</span>
+                <span className="text-white font-bold text-xs">{progress.completedLinkedActivities}/{progress.totalLinkedActivities} linked activities</span>
               </div>
             </div>
           </div>
@@ -111,15 +134,15 @@ export function YearPlanScreen() {
         <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <div className="text-white/55" style={{ fontSize: 9 }}>Brain journey</div>
-            <div className="text-white font-black text-xs">{progress.percent}% visualized</div>
+            <div className="text-white font-black text-xs">{activeFocusCount}/{focusRegions.length || 1} focus regions active</div>
           </div>
           <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <div className="text-white/55" style={{ fontSize: 9 }}>Current phase</div>
             <div className="text-white font-black text-xs">{MONTH_NAMES_FULL[selectedMonth - 1]}</div>
           </div>
           <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
-            <div className="text-white/55" style={{ fontSize: 9 }}>Next push</div>
-            <div className="text-white font-black text-xs">{progress.activitiesPerWeekNeeded}/week</div>
+            <div className="text-white/55" style={{ fontSize: 9 }}>Focus readiness</div>
+            <div className="text-white font-black text-xs">{avgFocusCoverage}%</div>
           </div>
         </div>
       </div>
@@ -128,7 +151,7 @@ export function YearPlanScreen() {
       <div className="mx-4 mb-4 rounded-2xl p-4" style={{ background: "linear-gradient(135deg,#4361EE15,#7209B715)", border: "1px solid rgba(67,97,238,0.2)" }}>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-lg">🎯</span>
-          <span className="font-bold text-gray-800 text-sm">By December 2026, {activeChild.name} will...</span>
+          <span className="font-bold text-gray-800 text-sm">By December {progress.planYear}, {activeChild.name} will...</span>
         </div>
         <div className="text-gray-600 text-xs leading-relaxed">{plan.yearEndVision}</div>
       </div>
@@ -218,25 +241,38 @@ export function YearPlanScreen() {
                     <div className="text-white/60" style={{ fontSize: 9 }}>Weekly Target</div>
                   </div>
                   <div className="py-3 text-center" style={{ borderLeft: "1px solid rgba(255,255,255,0.1)", borderRight: "1px solid rgba(255,255,255,0.1)" }}>
-                    <div className="text-white font-black text-base">{currentMonthPlan.intelligenceFocus.length}</div>
-                    <div className="text-white/60" style={{ fontSize: 9 }}>Intel. Types</div>
+                    <div className="text-white font-black text-base">{currentMonthProgress?.percent ?? 0}%</div>
+                    <div className="text-white/60" style={{ fontSize: 9 }}>Curriculum</div>
                   </div>
                   <div className="py-3 text-center">
-                    <div className="text-white font-black text-base">{currentMonthPlan.milestones.length}</div>
-                    <div className="text-white/60" style={{ fontSize: 9 }}>Milestones</div>
+                    <div className="text-white font-black text-base">{currentMonthDevelopmentalMilestones.length}</div>
+                    <div className="text-white/60" style={{ fontSize: 9 }}>Dev links</div>
                   </div>
                 </div>
               </div>
 
               {/* Intelligence focus */}
               <div className="bg-white rounded-2xl p-4" style={{ border: "1px solid #e5e7eb" }}>
-                <div className="font-bold text-gray-800 text-sm mb-3">🧠 Intelligence Focus</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {currentMonthPlan.intelligenceFocus.map(intel => (
-                    <span key={intel} className="px-2.5 py-1 rounded-full text-white font-semibold"
-                      style={{ fontSize: 11, background: currentMonthPlan.color }}>
-                      {intel}
-                    </span>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="font-bold text-gray-800 text-sm">🧠 Brain Region Focus</div>
+                  <div className="text-gray-400 text-xs">{activeFocusCount}/{focusRegionProgress.length} active</div>
+                </div>
+                <div className="space-y-2.5">
+                  {focusRegionProgress.map((region) => (
+                    <div key={region.id}>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-xs font-semibold" style={{ color: region.color }}>
+                          {region.emoji} {region.key}
+                        </span>
+                        <span className="text-gray-400 text-xs">{region.percent}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000"
+                          style={{ width: `${region.percent}%`, background: region.color }}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
                 <div className="mt-3 p-2.5 rounded-xl" style={{ background: "#FFF9E6", border: "1px solid #FFE066" }}>
@@ -259,7 +295,40 @@ export function YearPlanScreen() {
                     </div>
                   ))}
                 </div>
+                {currentMonthProgress && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-gray-500 text-xs">Linked activity completion</span>
+                      <span className="text-gray-500 text-xs">
+                        {currentMonthProgress.completedLinkedActivities}/{currentMonthProgress.totalLinkedActivities}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000"
+                        style={{ width: `${currentMonthProgress.percent}%`, background: currentMonthPlan.color }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {currentMonthDevelopmentalMilestones.length > 0 && (
+                <div className="bg-white rounded-2xl p-4" style={{ border: "1px solid #e5e7eb" }}>
+                  <div className="font-bold text-gray-800 text-sm mb-3">🧒 Linked Developmental Milestones</div>
+                  <div className="space-y-2">
+                    {currentMonthDevelopmentalMilestones.map((milestone) => (
+                      <div key={milestone.id} className="rounded-xl p-3" style={{ background: "#F9FAFB" }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span>{milestone.emoji}</span>
+                          <span className="text-gray-800 text-xs font-semibold">{milestone.title}</span>
+                        </div>
+                        <div className="text-gray-500 text-xs leading-relaxed">{milestone.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Weekly plans */}
               <div className="bg-white rounded-2xl p-4" style={{ border: "1px solid #e5e7eb" }}>
@@ -313,9 +382,9 @@ export function YearPlanScreen() {
 
       {activeTab === "projections" && (
         <div className="px-4 pb-6 space-y-3">
-          {/* 300-activity outcome */}
+          {/* Activity-goal outcome */}
           <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg,#4361EE,#7209B7)", boxShadow: "0 8px 24px rgba(67,97,238,0.3)" }}>
-            <div className="text-white font-black text-sm mb-1">If {activeChild.name} completes 300 activities...</div>
+            <div className="text-white font-black text-sm mb-1">If {activeChild.name} completes {plan.activitiesNeeded} activities...</div>
             <div className="text-white/80 text-xs leading-relaxed">{plan.yearEndVision}</div>
           </div>
 
@@ -332,7 +401,7 @@ export function YearPlanScreen() {
 
           {/* Intelligence projections */}
           <div className="bg-white rounded-2xl p-4" style={{ border: "1px solid #e5e7eb" }}>
-            <div className="font-bold text-gray-800 text-sm mb-4">Intelligence Outcomes at 300 Activities</div>
+            <div className="font-bold text-gray-800 text-sm mb-4">Intelligence Outcomes at {plan.activitiesNeeded} Activities</div>
             <div className="space-y-3">
               {plan.projections.map(proj => (
                 <div key={proj.intel}>
@@ -355,26 +424,26 @@ export function YearPlanScreen() {
 
           {/* Projection graph simplified */}
           <div className="bg-white rounded-2xl p-4" style={{ border: "1px solid #e5e7eb" }}>
-            <div className="font-bold text-gray-800 text-sm mb-3">Your Journey to 300</div>
+            <div className="font-bold text-gray-800 text-sm mb-3">Your Journey to {plan.activitiesNeeded}</div>
             <div className="relative h-32">
               {/* Grid lines */}
-              {[0, 100, 200, 300].map(n => (
-                <div key={n} className="absolute w-full flex items-center" style={{ bottom: `${(n / 300) * 100}%` }}>
+              {[0, Math.round(plan.activitiesNeeded / 3), Math.round((plan.activitiesNeeded * 2) / 3), plan.activitiesNeeded].map(n => (
+                <div key={n} className="absolute w-full flex items-center" style={{ bottom: `${(n / plan.activitiesNeeded) * 100}%` }}>
                   <span className="text-gray-300 absolute left-0" style={{ fontSize: 9 }}>{n}</span>
                   <div className="absolute left-5 right-0 h-px" style={{ background: "#F3F4F6" }} />
                 </div>
               ))}
               {/* Completed bar */}
               <div className="absolute left-5 bottom-0 w-6 rounded-t-lg transition-all duration-1000"
-                style={{ height: `${(completedActivities / 300) * 100}%`, background: "linear-gradient(to top,#4361EE,#7209B7)" }} />
+                style={{ height: `${(completedActivities / plan.activitiesNeeded) * 100}%`, background: "linear-gradient(to top,#4361EE,#7209B7)" }} />
               {/* Target line */}
               <div className="absolute left-5 right-0 border-t-2 border-dashed border-emerald-400" style={{ bottom: "100%" }}>
-                <span className="absolute right-0 -top-3 text-emerald-500 font-bold" style={{ fontSize: 9 }}>300 Goal</span>
+                <span className="absolute right-0 -top-3 text-emerald-500 font-bold" style={{ fontSize: 9 }}>{plan.activitiesNeeded} Goal</span>
               </div>
               {/* Projected bar */}
               {progress.projectedYearEnd > completedActivities && (
                 <div className="absolute left-14 bottom-0 w-6 rounded-t-lg"
-                  style={{ height: `${(progress.projectedYearEnd / 300) * 100}%`, background: "rgba(67,97,238,0.2)", border: "2px dashed #4361EE" }} />
+                  style={{ height: `${(progress.projectedYearEnd / plan.activitiesNeeded) * 100}%`, background: "rgba(67,97,238,0.2)", border: "2px dashed #4361EE" }} />
               )}
             </div>
             <div className="flex gap-3 mt-2">

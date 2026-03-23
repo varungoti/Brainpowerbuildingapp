@@ -33,6 +33,12 @@ jobs:
       - name: Test
         run: pnpm run test
 
+      - name: Validate content metadata
+        run: pnpm run content:validate
+
+      - name: AGE quality report
+        run: pnpm run age:report
+
       - name: Build
         run: pnpm run build
 

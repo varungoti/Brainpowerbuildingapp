@@ -14,8 +14,10 @@ const minimalState = (): AppPersistedState => ({
   activityLogs: [],
   materialInventory: ["paper"],
   credits: 0,
+  lastPackGeneratedOn: null,
   kycData: {},
   outcomeChecklists: {},
+  milestoneChecks: {},
 });
 
 describe("neurosparkBackup", () => {

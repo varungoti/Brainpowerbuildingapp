@@ -74,6 +74,14 @@ export interface ActivityLog {
   brainPointsEarned: number;
 }
 
+export interface GeneratorIntent {
+  source: "milestone_concern";
+  title: string;
+  note: string;
+  suggestedMood?: string;
+  priorityIntelligences: string[];
+}
+
 // ─── Level system ──────────────────────────────────────────────────────────────
 export const LEVEL_CONFIG = [
   { level:0, name:"Seedling",       emoji:"🌱", threshold:0,    color:"#06D6A0" },
@@ -117,26 +125,57 @@ export interface AppPersistedState {
   activityLogs: ActivityLog[];
   materialInventory: string[];
   credits: number;
+  lastPackGeneratedOn: string | null;
   kycData: Record<string, KYCData>;
   outcomeChecklists: Record<string, OutcomeChecklistMonth[]>;
+  milestoneChecks: Record<string, string[]>;
 }
 type Persisted = AppPersistedState;
 const DEFAULTS: Persisted = {
   user: null, children: [], activeChildId: null, activityLogs: [],
   materialInventory: ["paper","pencils","cups","water","outdoor","blanket","spoons"],
   credits: 0,
+  lastPackGeneratedOn: null,
   kycData: {},
   outcomeChecklists: {},
+  milestoneChecks: {},
 };
+function loadLegacyMilestoneChecks(
+  childIds: string[],
+  existing: Record<string, string[]> = {},
+): Record<string, string[]> {
+  const next = { ...existing };
+  for (const childId of childIds) {
+    if (next[childId]) continue;
+    try {
+      const raw = localStorage.getItem(`milestones_${childId}`);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        next[childId] = parsed.filter((id): id is string => typeof id === "string");
+      }
+    } catch {
+      // Ignore malformed legacy milestone storage.
+    }
+  }
+  return next;
+}
 function load(): Persisted {
   try {
     const r = localStorage.getItem(LS_KEY);
     if (!r) return DEFAULTS;
     const parsed = JSON.parse(r) as Partial<Persisted>;
+    const childIds = Array.isArray(parsed.children)
+      ? parsed.children
+          .map((child) => (typeof child?.id === "string" ? child.id : null))
+          .filter((id): id is string => id !== null)
+      : [];
     return {
       ...DEFAULTS,
       ...parsed,
+      lastPackGeneratedOn: typeof parsed.lastPackGeneratedOn === "string" ? parsed.lastPackGeneratedOn : null,
       outcomeChecklists: parsed.outcomeChecklists ?? {},
+      milestoneChecks: loadLegacyMilestoneChecks(childIds, parsed.milestoneChecks ?? {}),
     };
   } catch {
     return DEFAULTS;
@@ -173,8 +212,13 @@ interface Ctx extends Persisted {
   addCredits: (n: number) => void;
   consumeCredit: () => boolean;
   hasCreditForToday: () => boolean;
+  lastPackGeneratedOn: string | null;
   saveKYCData: (childId: string, data: Omit<KYCData, "updatedAt">) => void;
   saveOutcomeChecklist: (childId: string, answers: Record<string, number>) => void;
+  toggleMilestoneCheck: (childId: string, milestoneId: string) => void;
+  generatorIntent: GeneratorIntent | null;
+  setGeneratorIntent: (intent: GeneratorIntent | null) => void;
+  clearGeneratorIntent: () => void;
   /** JSON file for backup / moving devices (contains child names & notes — keep private). */
   exportLocalDataBackup: () => string;
   /** Replace all local app data from a backup file. */
@@ -190,11 +234,15 @@ export function useApp() {
 // ─── Provider ──────────────────────────────────────────────────────────────────
 export function AppProvider({ children: ch }: { children: ReactNode }) {
   const [p, setP] = useState<Persisted>(load);
-  const [view, setView] = useState<AppView>(() => p.user ? "home" : "landing");
+  const [view, setView] = useState<AppView>(() => {
+    if (!p.user) return "landing";
+    return p.children.length > 0 ? "home" : "onboard_welcome";
+  });
   const [hist, setHist] = useState<AppView[]>([]);
   const [generatedPack, setGeneratedPack] = useState<Activity[] | null>(null);
   const [viewingActivity, setViewingActivity] = useState<Activity | null>(null);
   const [authMode, setAuthMode] = useState<"login"|"signup">("signup");
+  const [generatorIntent, setGeneratorIntent] = useState<GeneratorIntent | null>(null);
 
   useEffect(() => { save(p); }, [p]);
 
@@ -204,8 +252,11 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     if (!client) return;
 
     const syncFromSession = (session: Session | null) => {
-      setP((prev) => syncPersistedSessionUser(prev, session));
-      setView((v) => getViewAfterSessionSync(v));
+      setP((prev) => {
+        const next = syncPersistedSessionUser(prev, session);
+        setView((v) => getViewAfterSessionSync(v, { hasChildren: next.children.length > 0 }));
+        return next;
+      });
     };
 
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
@@ -217,6 +268,7 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
         setHist([]);
         setGeneratedPack(null);
         setViewingActivity(null);
+        setGeneratorIntent(null);
         return;
       }
 
@@ -279,11 +331,12 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
       } catch (e) {
         console.warn("[NeuroSpark] Supabase signOut failed", e);
       }
-      upd({ user: null, children: [], activeChildId: null, activityLogs: [], outcomeChecklists: {}, kycData: {} });
+      upd({ user: null, children: [], activeChildId: null, activityLogs: [], outcomeChecklists: {}, kycData: {}, milestoneChecks: {}, lastPackGeneratedOn: null });
       setView("landing");
       setHist([]);
       setGeneratedPack(null);
       setViewingActivity(null);
+      setGeneratorIntent(null);
     })();
   };
 
@@ -353,17 +406,35 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
 
   const addCredits = (n: number) => upd({ credits: (p.credits ?? 0) + n });
   const consumeCredit = (): boolean => {
+    const today = new Date().toDateString();
+    if (p.lastPackGeneratedOn === today) return true;
     const result = consumeCreditBalance(p.credits ?? 0);
     if (!result.ok) return false;
-    upd({ credits: result.credits });
+    upd({ credits: result.credits, lastPackGeneratedOn: today });
     return true;
   };
-  const hasCreditForToday = (): boolean => (p.credits ?? 0) > 0;
+  const hasCreditForToday = (): boolean => p.lastPackGeneratedOn === new Date().toDateString() || (p.credits ?? 0) > 0;
 
   const saveKYCData = (childId: string, data: Omit<KYCData, "updatedAt">) => {
     const entry: KYCData = { ...data, updatedAt: new Date().toISOString() };
     upd({ kycData: { ...p.kycData, [childId]: entry } });
   };
+
+  const toggleMilestoneCheck = useCallback((childId: string, milestoneId: string) => {
+    setP((prev) => {
+      const existing = prev.milestoneChecks[childId] ?? [];
+      const next = existing.includes(milestoneId)
+        ? existing.filter((id) => id !== milestoneId)
+        : [...existing, milestoneId];
+      return {
+        ...prev,
+        milestoneChecks: {
+          ...prev.milestoneChecks,
+          [childId]: next,
+        },
+      };
+    });
+  }, []);
 
   const exportLocalDataBackup = useCallback(() => buildNeurosparkBackupFile(p), [p]);
 
@@ -375,7 +446,8 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     setHist([]);
     setGeneratedPack(null);
     setViewingActivity(null);
-    setView(next.user ? "home" : "landing");
+    setGeneratorIntent(null);
+    setView(next.user ? (next.children.length > 0 ? "home" : "onboard_welcome") : "landing");
     return { ok: true };
   }, []);
 
@@ -406,8 +478,13 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     loginUser, logoutUser, addChild, setActiveChild, setMaterialInventory,
     logActivity, updateChildBadges, authMode, setAuthMode,
     addCredits, consumeCredit, hasCreditForToday,
+    lastPackGeneratedOn: p.lastPackGeneratedOn,
     saveKYCData,
     saveOutcomeChecklist,
+    toggleMilestoneCheck,
+    generatorIntent,
+    setGeneratorIntent,
+    clearGeneratorIntent: () => setGeneratorIntent(null),
     exportLocalDataBackup,
     importLocalDataBackup,
   };

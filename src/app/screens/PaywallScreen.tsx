@@ -166,13 +166,13 @@ export function PaywallScreen() {
         <div>
           <div className="text-white font-black text-2xl mb-2">Payment Successful!</div>
           <div className="text-white/70 text-sm">
-            {plan.days} day{plan.days > 1 ? "s" : ""} unlocked for {activeChild?.name}
+            {plan.days} daily pack credit{plan.days > 1 ? "s" : ""} unlocked for {activeChild?.name}
           </div>
         </div>
         <div className="rounded-2xl p-4 w-full" style={{ background:"rgba(6,214,160,0.1)", border:"1px solid rgba(6,214,160,0.3)" }}>
           <div className="text-emerald-400 font-bold text-sm mb-3">🧠 What you just unlocked:</div>
           {[
-            `${plan.days} personalised brain packs`,
+            `${plan.days} daily personalised pack credits`,
             `${plan.days * 3}–${plan.days * 5} research-backed activities`,
             `Full Brain Map progress tracking`,
             `AI Counselor unlimited access`,
@@ -311,7 +311,7 @@ export function PaywallScreen() {
                 </div>
                 {selected===p.id && p.id==="day30" && (
                   <div className="mt-3 pt-3 grid grid-cols-2 gap-2" style={{ borderTop:`1px solid ${p.color}30` }}>
-                    {["30 daily packs","90–150 activities","All 13 intelligences","Brain Map tracking"].map(f => (
+                    {["30 daily pack credits","90–150 activities","All 15 brain regions","Brain Map tracking"].map(f => (
                       <div key={f} className="flex items-center gap-1">
                         <span style={{ color:p.color, fontSize:10 }}>✓</span>
                         <span className="text-white/60" style={{ fontSize:10 }}>{f}</span>

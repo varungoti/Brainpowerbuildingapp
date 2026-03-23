@@ -8,6 +8,12 @@ import {
   type Milestone, type MilestoneCategory,
 } from "../data/milestones";
 import { playClick, playActivityComplete } from "../utils/audioEffects";
+import {
+  BRAIN_REGIONS,
+  buildRegionScoresFromWeightedKeys,
+  getActiveBrainRegionCount,
+  getSortedBrainRegionProgress,
+} from "../data/brainRegions";
 
 // ─── Concern Activity Generator ───────────────────────────────────────────────
 const CONCERN_ACTIVITIES: Record<string, { title: string; desc: string; duration: string; emoji: string }[]> = {
@@ -89,12 +95,15 @@ function MilestoneCard({
     >
       <div className="flex items-start gap-3">
         {/* Checkbox */}
-        <button onClick={() => { onToggle(); playClick(); }}
+        <button
+          onClick={() => { onToggle(); playClick(); }}
+          aria-label={checked ? `Mark ${milestone.title} incomplete` : `Mark ${milestone.title} complete`}
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
           style={{
             background: checked ? "#06D6A0" : "rgba(255,255,255,0.08)",
             border: `2px solid ${checked ? "#06D6A0" : "rgba(255,255,255,0.2)"}`,
-          }}>
+          }}
+        >
           {checked && <span className="text-white text-sm font-bold">✓</span>}
         </button>
 
@@ -125,9 +134,12 @@ function MilestoneCard({
 
       {/* Concern button */}
       {!checked && (overdue || concern !== "on_track") && (
-        <button onClick={onConcern}
+        <button
+          onClick={onConcern}
+          aria-label={`Get activities for ${milestone.title}`}
           className="mt-2.5 w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-          style={{ background: "rgba(230,57,70,0.12)", color: "#E63946", border: "1px solid rgba(230,57,70,0.2)" }}>
+          style={{ background: "rgba(230,57,70,0.12)", color: "#E63946", border: "1px solid rgba(230,57,70,0.2)" }}
+        >
           <span>🩺</span> Get Activities for This Concern
         </button>
       )}
@@ -137,8 +149,14 @@ function MilestoneCard({
 
 // ─── Concern Activities Panel ─────────────────────────────────────────────────
 function ConcernPanel({ milestone, onClose }: { milestone: Milestone; onClose: () => void }) {
+  const { navigate, setGeneratorIntent } = useApp();
   const activities = CONCERN_ACTIVITIES[milestone.category] ?? CONCERN_ACTIVITIES.cognitive;
   const catInfo = CATEGORY_INFO[milestone.category];
+  const suggestedMood =
+    milestone.category === "emotional" ? "calm" :
+    milestone.category === "motor_gross" ? "high" :
+    milestone.category === "speech" ? "focus" :
+    "focus";
 
   return (
     <motion.div
@@ -164,6 +182,23 @@ function ConcernPanel({ milestone, onClose }: { milestone: Milestone; onClose: (
           <div className="text-red-300 text-xs font-semibold mb-0.5">🚩 When to seek help</div>
           <div className="text-red-200/70 text-xs">{milestone.redFlags}</div>
         </div>
+        <button
+          onClick={() => {
+            setGeneratorIntent({
+              source: "milestone_concern",
+              title: `Support ${milestone.title}`,
+              note: `Generate a pack targeting ${milestone.brainRegions.join(", ")} with milestone-aware activities.`,
+              suggestedMood,
+              priorityIntelligences: milestone.brainRegions,
+            });
+            onClose();
+            navigate("generate");
+          }}
+          className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5"
+          style={{ background: `${catInfo.color}18`, color: catInfo.color, border: `1px solid ${catInfo.color}35` }}
+        >
+          <span>⚡</span> Generate Targeted Support Pack
+        </button>
       </div>
 
       {/* Activities */}
@@ -222,15 +257,14 @@ function ConcernPanel({ milestone, onClose }: { milestone: Milestone; onClose: (
 
 // ─── Main Milestones Screen ───────────────────────────────────────────────────
 export function MilestonesScreen() {
-  const { activeChild, navigate, goBack } = useApp();
+  const { activeChild, navigate, goBack, milestoneChecks, toggleMilestoneCheck } = useApp();
   const [filter, setFilter] = useState<MilestoneCategory | "all">("all");
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(() => {
-    try {
-      const saved = localStorage.getItem(`milestones_${activeChild?.id}`);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch { return new Set(); }
-  });
   const [concernMilestone, setConcernMilestone] = useState<Milestone | null>(null);
+
+  const checkedIds = useMemo(
+    () => new Set(activeChild ? (milestoneChecks[activeChild.id] ?? []) : []),
+    [activeChild, milestoneChecks],
+  );
 
   const childAge = activeChild ? getChildAgeMonths(activeChild.dob) : 24;
 
@@ -241,12 +275,9 @@ export function MilestonesScreen() {
   }, [filter, relevantMilestones]);
 
   const toggleMilestone = (id: string) => {
-    setCheckedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else { next.add(id); playActivityComplete(); }
-      localStorage.setItem(`milestones_${activeChild?.id}`, JSON.stringify([...next]));
-      return next;
-    });
+    if (!activeChild) return;
+    if (!checkedIds.has(id)) playActivityComplete();
+    toggleMilestoneCheck(activeChild.id, id);
   };
 
   const overdueCount = relevantMilestones.filter(m => !checkedIds.has(m.id) && isMilestoneOverdue(m, childAge)).length;
@@ -264,9 +295,16 @@ export function MilestonesScreen() {
       percent,
     };
   }).filter((entry) => entry.total > 0);
-  const strongestCategories = [...categoryProgress]
-    .sort((a, b) => b.percent - a.percent || b.done - a.done)
-    .slice(0, 3);
+  const milestoneRegionScores = buildRegionScoresFromWeightedKeys(
+    relevantMilestones.map((milestone) => ({
+      keys: milestone.brainRegions,
+      weight: checkedIds.has(milestone.id) ? 1 : 0,
+    })),
+  );
+  const strongestRegions = getSortedBrainRegionProgress(milestoneRegionScores)
+    .filter((region) => region.score > 0)
+    .slice(0, 4);
+  const activeBrainRegions = getActiveBrainRegionCount(milestoneRegionScores);
 
   const categories: (MilestoneCategory | "all")[] = ["all", ...Object.keys(CATEGORY_INFO) as MilestoneCategory[]];
 
@@ -329,18 +367,19 @@ export function MilestonesScreen() {
                 alt="Colorful brain development map"
                 className="absolute inset-0 w-full h-full object-contain"
               />
-              {strongestCategories.map((entry, idx) => (
+              {strongestRegions.map((region) => (
                 <div
-                  key={entry.category}
-                  className="absolute rounded-full"
+                  key={region.id}
+                  className="absolute rounded-full transition-all duration-700"
                   style={{
-                    width: 26 + idx * 7,
-                    height: 26 + idx * 7,
-                    right: 10 + idx * 15,
-                    top: 10 + idx * 17,
-                    background: `${entry.info.color}40`,
-                    border: `1px solid ${entry.info.color}66`,
-                    boxShadow: `0 0 18px ${entry.info.color}55`,
+                    width: 10 + Math.round(region.percent / 8),
+                    height: 10 + Math.round(region.percent / 8),
+                    left: `${(region.cx / 400) * 100}%`,
+                    top: `${(region.cy / 360) * 100}%`,
+                    transform: "translate(-50%, -50%)",
+                    background: `${region.color}55`,
+                    border: `1px solid ${region.color}aa`,
+                    boxShadow: `0 0 18px ${region.color}70`,
                     backdropFilter: "blur(2px)",
                   }}
                 />
@@ -359,16 +398,29 @@ export function MilestonesScreen() {
             <div className="min-w-0 flex-1">
               <div className="text-white font-black text-sm">Brain Development Progress</div>
               <div className="text-white/45 text-xs leading-relaxed mt-0.5">
-                Milestones light up the brain journey visually so parents can see colorful progress, not just a checklist.
+                Milestones now map into the same 15-region brain model used across the rest of the app.
               </div>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white/10 text-white/80">
                   {completedCount}/{relevantMilestones.length} completed
                 </span>
                 <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white/10 text-white/80">
-                  {categoryProgress.filter((entry) => entry.done > 0).length}/{categoryProgress.length} domains active
+                  {activeBrainRegions}/{BRAIN_REGIONS.length} brain regions active
                 </span>
               </div>
+              {strongestRegions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {strongestRegions.map((region) => (
+                    <span
+                      key={region.id}
+                      className="px-2 py-1 rounded-full text-xs font-semibold"
+                      style={{ background: `${region.color}20`, color: region.color }}
+                    >
+                      {region.emoji} {region.name} {region.percent}%
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

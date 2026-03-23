@@ -1,10 +1,14 @@
 import React from "react";
 import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from "../context/AppContext";
-import { INTEL_COLORS, getAgeTierConfig } from "../data/activities";
+import { getAgeTierConfig } from "../data/activities";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from "recharts";
 import { OutcomeChecklistCard } from "../components/OutcomeChecklistCard";
-
-const ALL_INTELS = ["Linguistic","Logical-Mathematical","Spatial-Visual","Musical-Rhythmic","Bodily-Kinesthetic","Interpersonal","Intrapersonal","Naturalist","Emotional","Creative","Executive Function","Existential","Digital-Technological"];
+import {
+  BRAIN_REGIONS,
+  getActiveBrainRegionCount,
+  getBrainCoveragePercent,
+  getSortedBrainRegionProgress,
+} from "../data/brainRegions";
 
 export function StatsScreen() {
   const { activeChild, activityLogs, outcomeChecklists, saveOutcomeChecklist } = useApp();
@@ -17,11 +21,11 @@ export function StatsScreen() {
   const tierCfg   = getAgeTierConfig(activeChild.ageTier);
 
   // Radar data
-  const radarData = ALL_INTELS.map(intel => ({
-    intel: intel.split("-")[0].slice(0,8),
-    fullName: intel,
-    score: Math.min((activeChild.intelligenceScores[intel] ?? 0) * 20, 100),
-    fill: INTEL_COLORS[intel] ?? "#888",
+  const radarData = BRAIN_REGIONS.map((region) => ({
+    intel: region.name.slice(0, 8),
+    fullName: region.key,
+    score: Math.min((activeChild.intelligenceScores[region.key] ?? 0) * 20, 100),
+    fill: region.color,
   }));
 
   // By region
@@ -41,9 +45,9 @@ export function StatsScreen() {
   const maxWeek = Math.max(...weekCounts.map(w=>w.count), 1);
 
   // Intelligence bar data (sorted)
-  const intelBars = ALL_INTELS.map(intel => ({
-    intel, score: activeChild.intelligenceScores[intel] ?? 0, color: INTEL_COLORS[intel] ?? "#888",
-  })).sort((a,b)=>b.score-a.score).filter(x=>x.score>0);
+  const intelBars = getSortedBrainRegionProgress(activeChild.intelligenceScores).filter((item) => item.score > 0);
+  const activeRegionCount = getActiveBrainRegionCount(activeChild.intelligenceScores);
+  const coveragePct = getBrainCoveragePercent(activeChild.intelligenceScores);
 
   return (
     <div className="h-full overflow-y-auto" style={{ background:"#F0EFFF" }}>
@@ -104,6 +108,40 @@ export function StatsScreen() {
           ))}
         </div>
 
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="font-bold text-gray-800 text-sm">🧠 Brain Region Coverage</div>
+              <div className="text-gray-500 text-xs mt-1">
+                {activeRegionCount}/{BRAIN_REGIONS.length} mapped regions active across the full 15-region model.
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-gray-900 font-black text-xl">{coveragePct}%</div>
+              <div className="text-gray-400" style={{ fontSize: 10 }}>overall coverage</div>
+            </div>
+          </div>
+          <div className="mt-3 h-2.5 rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-1000"
+              style={{ width: `${coveragePct}%`, background: "linear-gradient(90deg,#4361EE,#F72585,#06D6A0)" }}
+            />
+          </div>
+          {intelBars.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {intelBars.slice(0, 5).map((item) => (
+                <span
+                  key={item.id}
+                  className="px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={{ background: `${item.color}15`, color: item.color }}
+                >
+                  {item.emoji} {item.name} {item.percent}%
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         <OutcomeChecklistCard
           childName={activeChild.name}
           months={outcomeChecklists[activeChild.id]}
@@ -111,8 +149,8 @@ export function StatsScreen() {
         />
 
         {/* Intelligence Radar */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-2">
-          <div className="font-bold text-gray-800 text-sm mb-3">🧠 Intelligence Radar (13 Types)</div>
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-3">
+          <div className="font-bold text-gray-800 text-sm mb-3">🧠 Brain Radar (15 Regions)</div>
           {childLogs.length >= 2 ? (
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData} margin={{ top:8,right:16,bottom:8,left:16 }}>
@@ -132,13 +170,13 @@ export function StatsScreen() {
 
         {/* Intelligence bars */}
         {intelBars.length > 0 && (
-          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-3">
-            <div className="font-bold text-gray-800 text-sm mb-3">📈 Activities by Intelligence</div>
+          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-4">
+            <div className="font-bold text-gray-800 text-sm mb-3">📈 Activities by Brain Region</div>
             <div className="space-y-3">
               {intelBars.map((item, i) => (
-                <div key={item.intel} className={`animate-slide-left stagger-${Math.min(i+1,6)}`}>
+                <div key={item.id} className={`animate-slide-left stagger-${Math.min(i+1,6)}`}>
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-700 text-xs font-medium">{item.intel}</span>
+                    <span className="text-gray-700 text-xs font-medium">{item.emoji} {item.key}</span>
                     <span className="text-gray-400 text-xs">{item.score} activities</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
@@ -151,8 +189,8 @@ export function StatsScreen() {
           </div>
         )}
 
-        {/* 7-day activity bar */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-4">
+        {/* 7-day + 30-day combined panel */}
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-5">
           <div className="font-bold text-gray-800 text-sm mb-3">📅 This Week's Activity</div>
           <div className="flex items-end gap-1.5 h-16">
             {weekCounts.map((w, i) => (
@@ -166,9 +204,41 @@ export function StatsScreen() {
           </div>
         </div>
 
+        {/* 30-day heatmap */}
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-5">
+          <div className="font-bold text-gray-800 text-sm mb-3">🔥 30-Day Heatmap</div>
+          <div className="flex gap-0.5 flex-wrap">
+            {Array.from({ length: 30 }, (_, i) => {
+              const d = new Date();
+              d.setDate(d.getDate() - (29 - i));
+              const ds = d.toDateString();
+              const count = childLogs.filter((l) => new Date(l.date).toDateString() === ds).length;
+              const maxC = 1;
+              const intensity = count === 0 ? 0 : Math.ceil((count / maxC) * 4);
+              const bg = intensity === 0 ? "#F3F4F6" : intensity === 1 ? "#BBF7D0" : intensity === 2 ? "#4ADE80" : intensity === 3 ? "#16A34A" : "#064E3B";
+              const isToday = d.toDateString() === new Date().toDateString();
+              return (
+                <div key={i} className="rounded-sm" style={{
+                  width: "calc((100% - 29 * 2px) / 30)",
+                  paddingBottom: "calc((100% - 29 * 2px) / 30)",
+                  background: bg,
+                  border: isToday ? "1px solid #4361EE" : "none",
+                }} />
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2 mt-2 justify-end">
+            <span className="text-gray-400" style={{ fontSize: 9 }}>Less</span>
+            {["#F3F4F6", "#BBF7D0", "#4ADE80", "#16A34A", "#064E3B"].map((c) => (
+              <div key={c} className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />
+            ))}
+            <span className="text-gray-400" style={{ fontSize: 9 }}>More</span>
+          </div>
+        </div>
+
         {/* Cultural traditions */}
         {regionData.length > 0 && (
-          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-5">
+          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-6">
             <div className="font-bold text-gray-800 text-sm mb-3">🌍 Cultural Traditions Explored</div>
             <div className="space-y-2">
               {regionData.map(([region, count]) => {
@@ -196,15 +266,20 @@ export function StatsScreen() {
 
         {/* Badges */}
         <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-slide-up stagger-6">
-          <div className="font-bold text-gray-800 text-sm mb-3">🏆 Achievement Badges</div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-bold text-gray-800 text-sm">🏆 Achievement Badges</div>
+            <div className="text-gray-400 text-xs">{activeChild.badges.length}/{Object.keys(BADGE_DEFS).length} earned</div>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {Object.entries(BADGE_DEFS).map(([key, bd]) => {
               const earned = activeChild.badges.includes(key);
               return (
-                <div key={key} className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all ${earned?"animate-badge":""}`}
-                  style={{ background:earned?"#FFF9E6":"#F5F5F5", border:`2px solid ${earned?"#FFB703":"#e5e7eb"}`, opacity:earned?1:0.4 }}>
-                  <span className="text-2xl" style={{ filter:earned?"none":"grayscale(1)" }}>{bd.emoji}</span>
-                  <span className="text-gray-700 text-center font-semibold" style={{ fontSize:9 }}>{bd.label}</span>
+                <div key={key} className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${earned ? "animate-badge" : ""}`}
+                  style={{ background: earned ? "#FFF9E6" : "#F5F5F5", border: `2px solid ${earned ? "#FFB703" : "#e5e7eb"}`, opacity: earned ? 1 : 0.4 }}>
+                  <span className="text-2xl" style={{ filter: earned ? "none" : "grayscale(1)" }}>{bd.emoji}</span>
+                  <span className="text-gray-700 text-center font-semibold leading-tight" style={{ fontSize: 9 }}>{bd.label}</span>
+                  {earned && <span className="text-amber-500 font-bold" style={{ fontSize: 8 }}>✓ Earned</span>}
+                  {!earned && <span className="text-gray-400" style={{ fontSize: 8 }}>{bd.desc.slice(0, 20)}…</span>}
                 </div>
               );
             })}
@@ -217,9 +292,9 @@ export function StatsScreen() {
           <div className="font-bold text-gray-800 text-sm mb-2">💡 Development Insight</div>
           <p className="text-gray-600 text-xs leading-relaxed">
             {childLogs.length === 0
-              ? "Start generating activities to build your child's development profile across all 13 intelligence types."
-              : `${activeChild.name} has exercised ${Object.keys(activeChild.intelligenceScores).length} of 13 intelligence types. `+
-                (Object.keys(activeChild.intelligenceScores).length < 8
+              ? "Start generating activities to build your child's development profile across all 15 mapped brain regions."
+              : `${activeChild.name} has exercised ${activeRegionCount} of ${BRAIN_REGIONS.length} mapped brain regions. `+
+                (activeRegionCount < 8
                   ? "Try activities from underexplored areas to ensure holistic brain development."
                   : "Great holistic coverage! Keep diversifying across cultural traditions for maximum impact.")
             }

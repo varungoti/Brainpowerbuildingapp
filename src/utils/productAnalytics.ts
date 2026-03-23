@@ -31,6 +31,7 @@ export interface ProductEventProps {
   fail_reason?: string;
   boost_ai_literacy?: boolean;
   boost_dual_task?: boolean;
+  intent_source?: string;
 }
 
 export interface ProductEventPayload extends ProductEventProps {

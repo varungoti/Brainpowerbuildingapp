@@ -16,8 +16,10 @@ const baseState = (): AppPersistedState => ({
   activityLogs: [],
   materialInventory: ["paper"],
   credits: 2,
+  lastPackGeneratedOn: null,
   kycData: {},
   outcomeChecklists: {},
+  milestoneChecks: {},
 });
 
 const session = (overrides?: Partial<NonNullable<Session["user"]>>): Session =>
@@ -115,19 +117,22 @@ describe("sessionSync helpers", () => {
       }],
       kycData: { c1: { curiosity: 3, energy: 3, patience: 3, creativity: 3, social: 3, learningStyle: null, energyLevel: 3, adaptability: 3, mood: 3, sensitivity: 3, notes: "", updatedAt: "2026-03-19T00:00:00.000Z" } },
       outcomeChecklists: { c1: [] },
+      milestoneChecks: { c1: ["m001"] },
     };
     const next = clearPersistedRemoteSession(prev);
     expect(next.user).toBeNull();
     expect(next.children).toHaveLength(0);
     expect(next.activityLogs).toHaveLength(0);
     expect(next.kycData).toEqual({});
+    expect(next.lastPackGeneratedOn).toBeNull();
+    expect(next.milestoneChecks).toEqual({});
   });
 
   it("computes credit consumption and post-session views safely", () => {
     expect(consumeCreditBalance(2)).toEqual({ ok: true, credits: 1 });
     expect(consumeCreditBalance(0)).toEqual({ ok: false, credits: 0 });
-    expect(getViewAfterSessionSync("landing")).toBe("home");
-    expect(getViewAfterSessionSync("auth")).toBe("home");
+    expect(getViewAfterSessionSync("landing", { hasChildren: true })).toBe("home");
+    expect(getViewAfterSessionSync("auth", { hasChildren: false })).toBe("onboard_welcome");
     expect(getViewAfterSessionSync("profile")).toBe("profile");
   });
 });

@@ -110,6 +110,15 @@ function isOutcomeMonth(x: unknown): x is OutcomeChecklistMonth {
   return true;
 }
 
+function isMilestoneChecksRecord(x: unknown): x is Record<string, string[]> {
+  if (x === undefined) return true;
+  if (!isRecord(x)) return false;
+  for (const arr of Object.values(x)) {
+    if (!Array.isArray(arr) || !arr.every((id) => typeof id === "string")) return false;
+  }
+  return true;
+}
+
 function isAppPersistedState(x: unknown): x is AppPersistedState {
   if (!isRecord(x)) return false;
   if (!isUser(x.user)) return false;
@@ -118,6 +127,7 @@ function isAppPersistedState(x: unknown): x is AppPersistedState {
   if (!Array.isArray(x.activityLogs) || !x.activityLogs.every(isActivityLog)) return false;
   if (!Array.isArray(x.materialInventory) || !x.materialInventory.every((m) => typeof m === "string")) return false;
   if (typeof x.credits !== "number") return false;
+  if (x.lastPackGeneratedOn !== null && x.lastPackGeneratedOn !== undefined && typeof x.lastPackGeneratedOn !== "string") return false;
   if (!isRecord(x.kycData)) return false;
   for (const v of Object.values(x.kycData)) {
     if (!isKYCData(v)) return false;
@@ -126,13 +136,21 @@ function isAppPersistedState(x: unknown): x is AppPersistedState {
   for (const arr of Object.values(x.outcomeChecklists)) {
     if (!Array.isArray(arr) || !arr.every(isOutcomeMonth)) return false;
   }
+  if (!isMilestoneChecksRecord(x.milestoneChecks)) return false;
   return true;
 }
 
-function normalizePersisted(p: AppPersistedState): AppPersistedState {
+function normalizePersisted(
+  p: AppPersistedState & { milestoneChecks?: Record<string, string[]> },
+): AppPersistedState {
   const childIds = new Set(p.children.map((c) => c.id));
   const activeOk = p.activeChildId !== null && childIds.has(p.activeChildId);
   const activeChildId = activeOk ? p.activeChildId : (p.children[0]?.id ?? null);
+  const milestoneChecks = Object.fromEntries(
+    Object.entries(p.milestoneChecks ?? {})
+      .filter(([childId, ids]) => childIds.has(childId) && Array.isArray(ids))
+      .map(([childId, ids]) => [childId, ids.filter((id): id is string => typeof id === "string")]),
+  );
 
   return {
     user: p.user,
@@ -141,8 +159,10 @@ function normalizePersisted(p: AppPersistedState): AppPersistedState {
     activityLogs: p.activityLogs,
     materialInventory: p.materialInventory.length ? p.materialInventory : [...DEFAULT_MATERIALS],
     credits: Number.isFinite(p.credits) ? p.credits : 0,
+    lastPackGeneratedOn: p.lastPackGeneratedOn ?? null,
     kycData: p.kycData ?? {},
     outcomeChecklists: p.outcomeChecklists ?? {},
+    milestoneChecks,
   };
 }
 

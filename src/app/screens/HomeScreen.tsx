@@ -1,8 +1,9 @@
 import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from "../context/AppContext";
 import { INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
-import { getYearPlan, getYearProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
+import { getExecutableYearPlan, getExecutableYearPlanProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 import React, { useState } from "react";
 import brainBase from "../../assets/brain-progress-base.png";
+import { BRAIN_REGIONS, getActiveBrainRegionCount } from "../data/brainRegions";
 
 export function HomeScreen() {
   const { activeChild, children, setActiveChild, navigate, activityLogs, generatedPack, credits, hasCreditForToday } = useApp();
@@ -45,10 +46,14 @@ export function HomeScreen() {
 
   // Year progress
   const completedActivities = activityLogs.filter(l => l.childId === activeChild.id && l.completed).length;
-  const yearProg = getYearProgress(completedActivities);
+  const completedActivityIds = activityLogs
+    .filter((l) => l.childId === activeChild.id && l.completed)
+    .map((l) => l.activityId);
+  const yearProg = getExecutableYearPlanProgress(activeChild.ageTier, completedActivityIds);
   const currentMonthName = MONTH_NAMES_FULL[getCurrentMonth() - 1];
-  const yearPlan = getYearPlan(activeChild.ageTier);
+  const yearPlan = getExecutableYearPlan(activeChild.ageTier);
   const thisMonthPlan = yearPlan.months.find(m => m.month === getCurrentMonth());
+  const activeBrainRegions = getActiveBrainRegionCount(activeChild.intelligenceScores);
 
   return (
     <div className="h-full overflow-y-auto" style={{ background:"#F0EFFF" }}>
@@ -190,13 +195,13 @@ export function HomeScreen() {
               <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
                 style={{ background:"#EEF1FF" }}>🗓️</div>
               <div>
-                <div className="font-bold text-gray-800 text-sm">2026 Year Plan</div>
-                <div className="text-gray-400" style={{ fontSize:10 }}>300-activity journey · {currentMonthName}</div>
+                <div className="font-bold text-gray-800 text-sm">{yearProg.planYear} Year Plan</div>
+                <div className="text-gray-400" style={{ fontSize:10 }}>Curriculum-linked journey · {currentMonthName}</div>
               </div>
             </div>
             <div className="text-right">
-              <div className="font-black text-gray-900" style={{ fontSize:18 }}>{completedActivities}</div>
-              <div className="text-gray-400" style={{ fontSize:9 }}>of 300</div>
+              <div className="font-black text-gray-900" style={{ fontSize:18 }}>{yearProg.curriculumCoverage}%</div>
+              <div className="text-gray-400" style={{ fontSize:9 }}>coverage</div>
             </div>
           </div>
           <div className="mb-3 rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#EEF1FF,#F7F3FF)", border:"1px solid rgba(67,97,238,0.08)" }}>
@@ -210,18 +215,18 @@ export function HomeScreen() {
                 <div className="absolute inset-x-2 bottom-2 h-1.5 rounded-full overflow-hidden bg-black/20">
                   <div
                     className="h-full rounded-full transition-all duration-1000"
-                    style={{ width:`${yearProg.percent}%`, background:"linear-gradient(90deg,#F72585,#4361EE,#06D6A0)" }}
+                    style={{ width:`${yearProg.curriculumCoverage}%`, background:"linear-gradient(90deg,#F72585,#4361EE,#06D6A0)" }}
                   />
                 </div>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-gray-800 text-xs">Brain Development Journey</div>
                 <div className="text-gray-500 leading-relaxed mt-0.5" style={{ fontSize:10 }}>
-                  The year plan now maps daily activities into a visible, colorful development journey.
+                  The roadmap now tracks linked curriculum coverage, not just raw activity count.
                 </div>
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                   <span className="px-2 py-1 rounded-full font-bold text-gray-700" style={{ fontSize:9, background:"#FFFFFF" }}>
-                    {yearProg.percent}% journey complete
+                    {yearProg.completedLinkedActivities}/{yearProg.totalLinkedActivities} linked activities
                   </span>
                   {thisMonthPlan && (
                     <span className="px-2 py-1 rounded-full font-bold" style={{ fontSize:9, background:thisMonthPlan.color + "15", color:thisMonthPlan.color }}>
@@ -234,7 +239,7 @@ export function HomeScreen() {
           </div>
           <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-2">
             <div className="h-full rounded-full transition-all duration-1000"
-              style={{ width:`${yearProg.percent}%`, background:"linear-gradient(90deg,#4361EE,#7209B7)" }}/>
+              style={{ width:`${yearProg.curriculumCoverage}%`, background:"linear-gradient(90deg,#4361EE,#7209B7)" }}/>
           </div>
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${yearProg.onTrack ? "bg-emerald-100" : "bg-amber-100"}`}>
@@ -368,22 +373,20 @@ export function HomeScreen() {
               <div>
                 <div className="text-white font-black text-sm">🧠 Brain Development Map</div>
                 <div className="text-white/40 text-xs">
-                  {Object.keys(activeChild.intelligenceScores).filter(k => (activeChild.intelligenceScores[k]??0) > 0).length}/13 regions active
+                  {activeBrainRegions}/{BRAIN_REGIONS.length} regions active
                 </div>
               </div>
               <span className="text-white/30 text-lg">›</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              {["🧩","🗣️","🎨","🔢","🎯","❤️","🎵","🤝","🏃","🧘","🌿","✨","💻"].map((emoji, i) => {
-                const keys = ["Executive Function","Linguistic","Creative","Logical-Mathematical","Spatial-Visual","Emotional","Musical-Rhythmic","Interpersonal","Bodily-Kinesthetic","Intrapersonal","Naturalist","Existential","Digital-Technological"];
-                const score = activeChild.intelligenceScores[keys[i]] ?? 0;
-                const colors = ["#4361EE","#F72585","#7209B7","#3A0CA3","#480CA8","#E63946","#FB5607","#06D6A0","#2DC653","#118AB2","#06D6A0","#6A4C93","#4CC9F0"];
+              {BRAIN_REGIONS.map((region) => {
+                const score = activeChild.intelligenceScores[region.key] ?? 0;
                 return (
-                  <div key={i} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ fontSize:14,
-                    background: score > 0 ? `${colors[i]}30` : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${score > 0 ? colors[i] + "50" : "rgba(255,255,255,0.05)"}`,
+                  <div key={region.id} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ fontSize:14,
+                    background: score > 0 ? `${region.color}30` : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${score > 0 ? region.color + "50" : "rgba(255,255,255,0.05)"}`,
                     filter: score > 0 ? "none" : "grayscale(1) opacity(0.3)" }}>
-                    {emoji}
+                    {region.emoji}
                   </div>
                 );
               })}

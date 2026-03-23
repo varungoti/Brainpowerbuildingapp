@@ -1,7 +1,8 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "neurospark",
   "private": true,
   "version": "0.0.1",
+  "description": "NeuroSpark child development app",
   "packageManager": "pnpm@10.30.3",
   "type": "module",
   "scripts": {

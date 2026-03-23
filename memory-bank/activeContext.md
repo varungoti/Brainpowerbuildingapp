@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current task
-Level 3 enhancement completed: refine the brain tracker from rough hotspot overlays into tighter color-area masks aligned to the visible segments of the source brain image.
+Level 3 launch-hardening workstream completed: close the highest-value local launch-readiness gaps in CI, E2E, server trust boundaries, and packaging without touching external accounts or deployment.
 
 ## Current focus
-- Preserve the production-readiness foundation while improving the brain-progress storytelling in the core child-development surfaces.
-- Keep the visual system coherent between Home, Brain Map, Milestones, and Year Plan.
-- Make the brain tracker feel semantically mapped, not decorative: muted base image, image-matched zone colors, detailed color-area boundaries, and progress-driven reveals.
+- Keep the local repo release bar enforceable in automation, not just in docs.
+- Preserve the improved brain/progress UX while expanding confidence around offline, milestone, and launch-critical flows.
+- Maintain hardened server defaults in-repo while leaving external secrets, payments, and deployment steps untouched.
 
 ## Known boundaries
 - No secrets, contracts, licenses, or external account setup.
@@ -15,5 +15,5 @@ Level 3 enhancement completed: refine the brain tracker from rough hotspot overl
 
 ## Immediate next steps
 - Keep docs and memory bank aligned with the shipped repo state.
-- Preserve the new verification and content-quality workflow for future sessions.
-- If requested next, run a browser QA pass to tune any remaining segment edges against the live artwork or add targeted tests around score-to-visual mapping behavior.
+- If requested next, continue with the next roadmap workstream or perform a final release-oriented QA sweep.
+- Preserve the stricter CI, E2E, and server-hardening patterns for future changes.

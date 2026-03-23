@@ -100,7 +100,7 @@ export function ProfileScreen() {
         <Section title="Backup & new device" icon="💾">
           <p className="text-gray-500 text-xs mb-2 leading-relaxed">
             Download a JSON backup before switching phones or browsers. The file includes child names and any notes —{" "}
-            <strong>keep it private</strong>. Restoring <strong>replaces</strong> all data on this device.
+            <strong>keep it private</strong>. Milestone completion, check-ins, and child progress now round-trip too. Restoring <strong>replaces</strong> all data on this device.
           </p>
           <button
             type="button"

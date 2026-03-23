@@ -2,129 +2,24 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useApp, KYCData } from "../context/AppContext";
 import { getAgeTierConfig } from "../data/activities";
-import { getYearPlan, getYearProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
+import { getExecutableYearPlan, getExecutableYearPlanProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 import {
   playBrainPulse,
   playClick, playActivityComplete,
 } from "../utils/audioEffects";
 import { AnatomicalBrain } from "../components/AnatomicalBrain";
-
-// ─── 15 Brain Region Definitions (13 original + Pronunciation + Coordination)
-const BRAIN_REGIONS = [
-  // TOP CENTER — Prefrontal
-  { id:"executive", key:"Executive Function", name:"Executive", emoji:"🧩",
-    cx:200, cy:72, r:22, color:"#F2B0BC",
-    lobe:"Prefrontal Cortex",
-    desc:"Planning, decision-making & impulse control — the brain's CEO. Powers focus, goal-setting and self-regulation.",
-    connTo:[1,2,3,5,13] },
-
-  // UPPER LEFT
-  { id:"linguistic", key:"Linguistic", name:"Language", emoji:"🗣️",
-    cx:112, cy:100, r:20, color:"#BFEFF2",
-    lobe:"Left Frontal (Broca's Area)",
-    desc:"Reading, writing, storytelling and language acquisition. Broca's & Wernicke's areas both activated.",
-    connTo:[0,6,13] },
-
-  // UPPER RIGHT
-  { id:"creative", key:"Creative", name:"Creative", emoji:"🎨",
-    cx:288, cy:100, r:20, color:"#CBB8F4",
-    lobe:"Right Frontal Lobe",
-    desc:"Imagination, artistic thinking, divergent problem-solving. Right hemisphere speciality.",
-    connTo:[0,4,14] },
-
-  // MID LEFT
-  { id:"logical", key:"Logical-Mathematical", name:"Logical", emoji:"🔢",
-    cx:78, cy:158, r:19, color:"#D9DD67",
-    lobe:"Left Parietal Lobe",
-    desc:"Number sense, pattern recognition, scientific reasoning and abstract logic.",
-    connTo:[0,4,8] },
-
-  // MID RIGHT
-  { id:"spatial", key:"Spatial-Visual", name:"Spatial", emoji:"🎯",
-    cx:322, cy:158, r:19, color:"#BCCA74",
-    lobe:"Right Parietal Lobe",
-    desc:"Mental rotation, navigation, design thinking. Crucial for STEM and visual arts.",
-    connTo:[2,3,14] },
-
-  // CENTER — Emotional (Limbic)
-  { id:"emotional", key:"Emotional", name:"Emotional", emoji:"❤️",
-    cx:200, cy:148, r:22, color:"#F6A8A6",
-    lobe:"Limbic System (Amygdala)",
-    desc:"Emotional intelligence, empathy, self-awareness. Foundation of mental wellbeing.",
-    connTo:[0,7,9] },
-
-  // LOWER LEFT
-  { id:"musical", key:"Musical-Rhythmic", name:"Musical", emoji:"🎵",
-    cx:100, cy:220, r:18, color:"#F0B37F",
-    lobe:"Left Temporal (Auditory Cortex)",
-    desc:"Rhythm, melody, beat & pitch. Strengthens mathematical reasoning and language.",
-    connTo:[1,8,13] },
-
-  // LOWER RIGHT
-  { id:"social", key:"Interpersonal", name:"Social", emoji:"🤝",
-    cx:300, cy:220, r:18, color:"#94E55C",
-    lobe:"Right Temporal Lobe",
-    desc:"Reading social cues, cooperation, leadership and communication. Mirror neuron network.",
-    connTo:[5,10] },
-
-  // BOTTOM LEFT
-  { id:"bodily", key:"Bodily-Kinesthetic", name:"Bodily", emoji:"🏃",
-    cx:72, cy:285, r:18, color:"#7A69E8",
-    lobe:"Motor Cortex & Cerebellum",
-    desc:"Motor skills, body awareness, physical intelligence and gross motor coordination.",
-    connTo:[6,11,14] },
-
-  // BOTTOM CENTER
-  { id:"intrapersonal", key:"Intrapersonal", name:"Self", emoji:"🧘",
-    cx:200, cy:260, r:18, color:"#CB84CB",
-    lobe:"Default Mode Network",
-    desc:"Self-knowledge, mindfulness, reflective thinking and metacognition.",
-    connTo:[5,11,12] },
-
-  // BOTTOM RIGHT
-  { id:"naturalist", key:"Naturalist", name:"Nature", emoji:"🌿",
-    cx:328, cy:285, r:18, color:"#AEEED4",
-    lobe:"Right Cerebellum",
-    desc:"Pattern recognition in nature, categorisation, ecological thinking.",
-    connTo:[7,12] },
-
-  // FAR BOTTOM LEFT
-  { id:"existential", key:"Existential", name:"Wonder", emoji:"✨",
-    cx:140, cy:320, r:16, color:"#D98BE0",
-    lobe:"Left Occipital",
-    desc:"Deep questioning, wonder, philosophy and meaning-making. Uniquely human.",
-    connTo:[8,9] },
-
-  // FAR BOTTOM RIGHT
-  { id:"digital", key:"Digital-Technological", name:"Digital", emoji:"💻",
-    cx:260, cy:320, r:16, color:"#E8D6CE",
-    lobe:"Right Occipital",
-    desc:"Computational thinking, systems understanding and tech-native pattern recognition.",
-    connTo:[9,10] },
-
-  // NEW: PRONUNCIATION — between Linguistic and Musical
-  { id:"pronunciation", key:"Pronunciation", name:"Speech", emoji:"👅",
-    cx:55, cy:180, r:17, color:"#F08B9A",
-    lobe:"Broca's & Wernicke's Areas",
-    desc:"Articulation, phonological awareness, speech clarity. Controls tongue/mouth motor planning for clear speech.",
-    connTo:[1,6,3] },
-
-  // NEW: COORDINATION — between Bodily and Spatial
-  { id:"coordination", key:"Coordination", name:"Coordination", emoji:"🤹",
-    cx:340, cy:228, r:17, color:"#C7D377",
-    lobe:"Cerebellum & Basal Ganglia",
-    desc:"Hand-eye coordination, finger dexterity, muscle reflex timing, bilateral integration.",
-    connTo:[4,8,7,2] },
-] as const;
-
-const MAX_SCORE = 20;
+import {
+  BRAIN_REGIONS,
+  MAX_BRAIN_REGION_SCORE,
+  getActiveBrainRegionCount,
+  getBrainCoveragePercent,
+  getTopBrainRegions,
+} from "../data/brainRegions";
 
 // ─── 3D Cartoonish Brain Visualization ────────────────────────────────────────
 function BrainMapViz({ scores }: { scores: Record<string, number> }) {
-  const totalScore = Object.values(scores).reduce((s, v) => s + v, 0);
-  const maxTotal = BRAIN_REGIONS.length * MAX_SCORE;
-  const overallPct = Math.min(100, (totalScore / maxTotal) * 100);
-  const activeCount = Object.keys(scores).filter(k => (scores[k] ?? 0) > 0).length;
+  const overallPct = getBrainCoveragePercent(scores);
+  const activeCount = getActiveBrainRegionCount(scores);
 
   useEffect(() => {
     const t = setTimeout(() => playBrainPulse(), 300);
@@ -132,8 +27,7 @@ function BrainMapViz({ scores }: { scores: Record<string, number> }) {
   }, []);
 
   // Compute top 3 strengths
-  const sorted = [...BRAIN_REGIONS].sort((a, b) => (scores[b.key] ?? 0) - (scores[a.key] ?? 0));
-  const topThree = sorted.slice(0, 3).filter(r => (scores[r.key] ?? 0) > 0);
+  const topThree = getTopBrainRegions(scores, 3);
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto" style={{ scrollbarWidth: "none" }}>
@@ -152,7 +46,7 @@ function BrainMapViz({ scores }: { scores: Record<string, number> }) {
         </div>
         <div className="flex items-center justify-between mt-1">
           <span className="text-white/30" style={{ fontSize: 9 }}>
-            {activeCount}/15 regions active
+            {activeCount}/{BRAIN_REGIONS.length} regions active
           </span>
           {topThree.length > 0 && (
             <div className="flex items-center gap-1">
@@ -189,7 +83,7 @@ function RadarTab({ scores }: { scores: Record<string, number> }) {
 
   const points = categories.map((cat, i) => {
     const score = scores[cat.key] ?? 0;
-    const pct = Math.min(1, score / MAX_SCORE);
+      const pct = Math.min(1, score / MAX_BRAIN_REGION_SCORE);
     const angle = -Math.PI / 2 + i * angleStep;
     return {
       x: cx + Math.cos(angle) * maxR * pct,
@@ -246,7 +140,7 @@ function RadarTab({ scores }: { scores: Record<string, number> }) {
       <div className="px-2 space-y-1.5 mt-1">
         {[...BRAIN_REGIONS].sort((a, b) => (scores[b.key] ?? 0) - (scores[a.key] ?? 0)).map(reg => {
           const score = scores[reg.key] ?? 0;
-          const pct = Math.min(100, (score / MAX_SCORE) * 100);
+          const pct = Math.min(100, (score / MAX_BRAIN_REGION_SCORE) * 100);
           return (
             <div key={reg.id} className="flex items-center gap-2.5 p-2 rounded-xl"
               style={{ background: pct > 0 ? `${reg.color}10` : "rgba(255,255,255,0.02)", border: `1px solid ${pct > 0 ? reg.color + "25" : "rgba(255,255,255,0.04)"}` }}>
@@ -427,12 +321,15 @@ function YearPlanTab() {
   const { activeChild, activityLogs, navigate } = useApp();
   if (!activeChild) return <div className="flex-1 flex items-center justify-center text-white/40 text-sm">No child selected</div>;
   const completed = activityLogs.filter(l => l.childId === activeChild.id && l.completed).length;
-  const progress  = getYearProgress(completed);
-  const plan      = getYearPlan(activeChild.ageTier);
+  const completedActivityIds = activityLogs
+    .filter((l) => l.childId === activeChild.id && l.completed)
+    .map((l) => l.activityId);
+  const progress  = getExecutableYearPlanProgress(activeChild.ageTier, completedActivityIds);
+  const plan      = getExecutableYearPlan(activeChild.ageTier);
   const curMonth  = getCurrentMonth();
   const monthPlan = plan.months.find(m => m.month === curMonth)!;
   const circ      = 2 * Math.PI * 56;
-  const dash      = (progress.percent / 100) * circ;
+  const dash      = (progress.curriculumCoverage / 100) * circ;
 
   return (
     <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ scrollbarWidth: "none" }}>
@@ -448,12 +345,12 @@ function YearPlanTab() {
               style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.5))" }} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-white font-black" style={{ fontSize: 24 }}>{completed}</div>
-            <div className="text-white/40 text-center leading-tight" style={{ fontSize: 9 }}>of 300<br/>done</div>
+            <div className="text-white font-black" style={{ fontSize: 24 }}>{progress.curriculumCoverage}%</div>
+            <div className="text-white/40 text-center leading-tight" style={{ fontSize: 9 }}>curriculum<br/>coverage</div>
           </div>
         </div>
         <div>
-          <div className="text-white font-black text-base mb-1">{activeChild.name}'s 2026 Plan</div>
+          <div className="text-white font-black text-base mb-1">{activeChild.name}'s {progress.planYear} Plan</div>
           <div className="text-white/50 text-xs mb-2">{plan.tagline}</div>
           <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${progress.onTrack ? "bg-emerald-900/50 text-emerald-300" : "bg-amber-900/50 text-amber-300"}`}>
             {progress.onTrack ? "✅ On Track" : `⚡ Need ${progress.activitiesPerWeekNeeded}/week`}

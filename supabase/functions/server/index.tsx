@@ -1,13 +1,57 @@
 /// <reference path="./deno.d.ts" />
-import { Hono } from "npm:hono";
+import { Hono, type Context } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
 
 const app = new Hono();
+
+const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
+function getAllowedOrigins(): string[] {
+  const raw = Deno.env.get("ALLOWED_ORIGINS") ?? "";
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function resolveCorsOrigin(origin?: string): string | undefined {
+  if (!origin) return undefined;
+  if (LOCALHOST_ORIGIN_RE.test(origin)) return origin;
+  const allowedOrigins = getAllowedOrigins();
+  return allowedOrigins.includes(origin) ? origin : undefined;
+}
+
+function getClientKey(c: Context): string {
+  return (
+    c.req.header("cf-connecting-ip") ??
+    c.req.header("x-real-ip") ??
+    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "anonymous"
+  );
+}
+
+async function enforceRateLimit(
+  c: Context,
+  bucket: string,
+  limit: number,
+  windowSeconds: number,
+) {
+  const windowId = Math.floor(Date.now() / (windowSeconds * 1000));
+  const key = `rate:${bucket}:${getClientKey(c)}:${windowId}`;
+  const record = (await kv.get(key)) as { count?: number } | null;
+  const count = (record?.count ?? 0) + 1;
+  await kv.set(key, { count, ts: Date.now() });
+  if (count > limit) {
+    return c.json({ error: "rate_limit_exceeded", retryAfterSeconds: windowSeconds }, 429);
+  }
+  return null;
+}
+
 app.use('*', logger(console.log));
 app.use("/*", cors({
-  origin: "*",
+  origin: (origin) => resolveCorsOrigin(origin) ?? "",
   allowHeaders: ["Content-Type", "Authorization"],
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   exposeHeaders: ["Content-Length"],
@@ -31,6 +75,8 @@ const ALLOWED_ANALYTICS_EVENTS = new Set([
 // ─── Product analytics (daily rollups in kv) ───────────────────────────────────
 app.post("/make-server-76b0ba9a/analytics/event", async (c) => {
   try {
+    const rateLimit = await enforceRateLimit(c, "analytics-event", 120, 300);
+    if (rateLimit) return rateLimit;
     const body = await c.req.json();
     const event = body?.event;
     if (!event || typeof event !== "string" || !ALLOWED_ANALYTICS_EVENTS.has(event)) {
@@ -831,6 +877,8 @@ const DEMO_RESPONSES: Record<string, object> = {
 
 app.post("/make-server-76b0ba9a/ai-counselor", async (c) => {
   try {
+    const rateLimit = await enforceRateLimit(c, "ai-counselor", 20, 600);
+    if (rateLimit) return rateLimit;
     const { concern, childAge, tier, category } = await c.req.json();
     if (!concern || !category) return c.json({ error: "Missing concern or category" }, 400);
 
@@ -921,6 +969,8 @@ Return ONLY valid JSON in this exact structure:
 // ─── Razorpay Payment ──────────────────────────────────────────────────────────
 app.post("/make-server-76b0ba9a/razorpay/create-order", async (c) => {
   try {
+    const rateLimit = await enforceRateLimit(c, "razorpay-create-order", 10, 600);
+    if (rateLimit) return rateLimit;
     const { amount } = await c.req.json();
     if (!amount || typeof amount !== "number") return c.json({ error: "Invalid amount" }, 400);
     const keyId     = Deno.env.get("RAZORPAY_KEY_ID");
@@ -947,6 +997,8 @@ app.post("/make-server-76b0ba9a/razorpay/create-order", async (c) => {
 
 app.post("/make-server-76b0ba9a/razorpay/verify-payment", async (c) => {
   try {
+    const rateLimit = await enforceRateLimit(c, "razorpay-verify-payment", 20, 600);
+    if (rateLimit) return rateLimit;
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await c.req.json();
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature)
       return c.json({ error: "Missing payment verification fields" }, 400);

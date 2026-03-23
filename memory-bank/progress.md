@@ -21,11 +21,15 @@
 - The brain tracker boundaries are now path-based rather than ellipse-based, so attribute regions are demarcated by explicit shape masks tied more closely to the source artwork
 - The color-area mapping was tightened again so attribute masks track the visible colored segments more closely, with updated anchors and palette sync in the brain map UI
 - The source brain artwork now also serves as a low-opacity segmentation guide under the grayscale layer so the real color areas remain visually legible during idle states and QA
+- CI now enforces `content:validate` and `age:report` in addition to typecheck, lint, unit tests, build, and Playwright
+- Playwright now covers offline AI/paywall messaging and milestone completion persistence in addition to onboarding, generation, activity detail, and backup flows
+- The server function now restricts CORS to localhost plus explicit `ALLOWED_ORIGINS` entries and applies basic KV-backed rate limits to analytics, AI counselor, and payment routes
+- Packaging metadata no longer uses the starter package name and now identifies the app as `neurospark`
 
 ## Remaining major areas
 - External deployment, secrets, real payment/provider configuration, and legal sign-off remain out of scope.
 
 ## Current state
 - `pnpm run verify`, `pnpm run verify:full`, `pnpm run age:report`, and `pnpm run content:validate` are available.
-- Latest local verification is green.
+- Latest local verification is green for `typecheck`, unit tests, content validation, AGE reporting, production build, and Playwright E2E.
 - The repo is materially closer to production-ready within local-only constraints.

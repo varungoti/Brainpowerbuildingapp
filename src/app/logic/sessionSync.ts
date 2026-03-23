@@ -45,13 +45,18 @@ export function clearPersistedRemoteSession(prev: AppPersistedState): AppPersist
     children: [],
     activeChildId: null,
     activityLogs: [],
+    lastPackGeneratedOn: null,
     outcomeChecklists: {},
     kycData: {},
+    milestoneChecks: {},
   };
 }
 
-export function getViewAfterSessionSync(view: AppView): AppView {
-  return view === "landing" || view === "auth" ? "home" : view;
+export function getViewAfterSessionSync(view: AppView, options?: { hasChildren?: boolean }): AppView {
+  if (view === "landing" || view === "auth") {
+    return options?.hasChildren === false ? "onboard_welcome" : "home";
+  }
+  return view;
 }
 
 export function consumeCreditBalance(credits: number): { ok: boolean; credits: number } {

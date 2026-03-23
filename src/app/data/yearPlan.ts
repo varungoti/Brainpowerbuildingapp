@@ -4,6 +4,7 @@
 // ============================================================
 
 import { ACTIVITIES } from "./activities";
+import { MILESTONES, type Milestone } from "./milestones";
 
 export interface WeekPlan {
   week: number;
@@ -25,6 +26,7 @@ export interface MonthPlan {
   researchHighlight: string;
   weeklyPlans: WeekPlan[];
   culturalMethod: string;
+  developmentalMilestoneIds?: string[];
 }
 
 export interface IntelProjection {
@@ -812,8 +814,20 @@ export function getYearPlan(tier: number): YearPlan {
 export const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 export const MONTH_NAMES_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+const TIER_START_AGE_MONTHS: Record<number, number> = {
+  1: 12,
+  2: 36,
+  3: 60,
+  4: 84,
+  5: 108,
+};
+
 export function getCurrentMonth(): number {
   return new Date().getMonth() + 1; // 1-12
+}
+
+export function getCurrentPlanYear(now = new Date()): number {
+  return now.getFullYear();
 }
 
 export function getYearProgress(activitiesCompleted: number): {
@@ -822,14 +836,30 @@ export function getYearProgress(activitiesCompleted: number): {
   projectedYearEnd: number;
   activitiesPerWeekNeeded: number;
 } {
-  const weeksElapsed = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+  return getYearProgressForTarget(activitiesCompleted, 300);
+}
+
+export function getYearProgressForTarget(
+  activitiesCompleted: number,
+  activitiesNeeded: number,
+  now = new Date(),
+): {
+  percent: number;
+  onTrack: boolean;
+  projectedYearEnd: number;
+  activitiesPerWeekNeeded: number;
+} {
+  const weeksElapsed = Math.max(
+    1,
+    Math.ceil((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)),
+  );
   const weeksRemaining = 52 - weeksElapsed;
-  const activitiesNeeded = 300 - activitiesCompleted;
-  const activitiesPerWeekNeeded = weeksRemaining > 0 ? Math.ceil(activitiesNeeded / weeksRemaining) : 0;
+  const remainingActivities = Math.max(0, activitiesNeeded - activitiesCompleted);
+  const activitiesPerWeekNeeded = weeksRemaining > 0 ? Math.ceil(remainingActivities / weeksRemaining) : 0;
   const projectedYearEnd = Math.round((activitiesCompleted / weeksElapsed) * 52);
-  const onTrack = activitiesCompleted >= Math.floor((weeksElapsed / 52) * 300);
+  const onTrack = activitiesCompleted >= Math.floor((weeksElapsed / 52) * activitiesNeeded);
   return {
-    percent: Math.min(100, Math.round((activitiesCompleted / 300) * 100)),
+    percent: Math.min(100, Math.round((activitiesCompleted / activitiesNeeded) * 100)),
     onTrack,
     projectedYearEnd: Math.min(365, projectedYearEnd),
     activitiesPerWeekNeeded: Math.max(1, activitiesPerWeekNeeded),
@@ -871,16 +901,109 @@ export function getLinkedWeekActivityIds(tier: number, weekPlan: WeekPlan): stri
     .map((match) => match.id);
 }
 
+function getTargetAgeMonthsForPlanMonth(tier: number, month: number): number {
+  const start = TIER_START_AGE_MONTHS[tier] ?? TIER_START_AGE_MONTHS[1];
+  return start + month - 1;
+}
+
+function getLinkedDevelopmentalMilestoneIds(tier: number, monthPlan: MonthPlan): string[] {
+  const targetAgeMonths = getTargetAgeMonthsForPlanMonth(tier, monthPlan.month);
+  const tokens = new Set([
+    ...tokenizeCurriculumText(monthPlan.theme),
+    ...tokenizeCurriculumText(monthPlan.description),
+    ...monthPlan.milestones.flatMap((milestone) => tokenizeCurriculumText(milestone)),
+    ...monthPlan.intelligenceFocus.flatMap((intel) => tokenizeCurriculumText(intel)),
+  ]);
+
+  return MILESTONES
+    .map((milestone) => {
+      const haystack = [
+        milestone.title,
+        milestone.description,
+        ...milestone.activities,
+        ...milestone.brainRegions,
+        milestone.category,
+      ]
+        .join(" ")
+        .toLowerCase();
+      const keywordScore = [...tokens].reduce((sum, token) => (haystack.includes(token) ? sum + 1 : sum), 0);
+      const focusScore = milestone.brainRegions.reduce(
+        (sum, region) => (monthPlan.intelligenceFocus.includes(region) ? sum + 2 : sum),
+        0,
+      );
+      const ageDistance = Math.abs(milestone.ageMonths - targetAgeMonths);
+      const ageScore = Math.max(0, 5 - Math.floor(ageDistance / 4));
+      return {
+        milestone,
+        score: keywordScore + focusScore + ageScore,
+      };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.milestone.ageMonths - b.milestone.ageMonths)
+    .slice(0, 3)
+    .map(({ milestone }) => milestone.id);
+}
+
+export function getDevelopmentalMilestonesForMonth(tier: number, monthPlan: MonthPlan): Milestone[] {
+  const ids = monthPlan.developmentalMilestoneIds ?? getLinkedDevelopmentalMilestoneIds(tier, monthPlan);
+  return ids
+    .map((id) => MILESTONES.find((milestone) => milestone.id === id))
+    .filter((milestone): milestone is Milestone => Boolean(milestone));
+}
+
 export function getExecutableYearPlan(tier: number): YearPlan {
   const plan = getYearPlan(tier);
   return {
     ...plan,
     months: plan.months.map((month) => ({
       ...month,
+      developmentalMilestoneIds: getLinkedDevelopmentalMilestoneIds(tier, month),
       weeklyPlans: month.weeklyPlans.map((weekPlan) => ({
         ...weekPlan,
         activityIds: getLinkedWeekActivityIds(tier, weekPlan),
       })),
     })),
+  };
+}
+
+export function getExecutableYearPlanProgress(
+  tier: number,
+  completedActivityIds: string[],
+  now = new Date(),
+) {
+  const plan = getExecutableYearPlan(tier);
+  const completedSet = new Set(completedActivityIds);
+  const totalLinkedActivityIds = Array.from(
+    new Set(plan.months.flatMap((month) => month.weeklyPlans.flatMap((weekPlan) => weekPlan.activityIds ?? []))),
+  );
+  const completedLinkedActivities = totalLinkedActivityIds.filter((id) => completedSet.has(id)).length;
+  const curriculumCoverage = totalLinkedActivityIds.length
+    ? Math.round((completedLinkedActivities / totalLinkedActivityIds.length) * 100)
+    : 0;
+  const quantityProgress = getYearProgressForTarget(completedActivityIds.length, plan.activitiesNeeded, now);
+
+  const monthlyProgress = plan.months.map((month) => {
+    const linkedActivityIds = Array.from(
+      new Set(month.weeklyPlans.flatMap((weekPlan) => weekPlan.activityIds ?? [])),
+    );
+    const completed = linkedActivityIds.filter((id) => completedSet.has(id)).length;
+    return {
+      month: month.month,
+      linkedActivityIds,
+      completedLinkedActivities: completed,
+      totalLinkedActivities: linkedActivityIds.length,
+      percent: linkedActivityIds.length ? Math.round((completed / linkedActivityIds.length) * 100) : 0,
+      developmentalMilestones: getDevelopmentalMilestonesForMonth(tier, month),
+    };
+  });
+
+  return {
+    ...quantityProgress,
+    planYear: getCurrentPlanYear(now),
+    activitiesNeeded: plan.activitiesNeeded,
+    curriculumCoverage,
+    completedLinkedActivities,
+    totalLinkedActivities: totalLinkedActivityIds.length,
+    monthlyProgress,
   };
 }

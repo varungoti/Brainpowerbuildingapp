@@ -31,7 +31,23 @@ type Step = "config" | "generating" | "result";
 const GEN_PREFS_KEY = "neurospark_generator_prefs";
 
 export function GeneratorScreen() {
-  const { activeChild, materialInventory, activityLogs, setGeneratedPack, generatedPack, logActivity, kycData, setViewingActivity, navigate, outcomeChecklists } = useApp();
+  const {
+    activeChild,
+    materialInventory,
+    activityLogs,
+    setGeneratedPack,
+    generatedPack,
+    logActivity,
+    kycData,
+    setViewingActivity,
+    navigate,
+    outcomeChecklists,
+    consumeCredit,
+    hasCreditForToday,
+    lastPackGeneratedOn,
+    generatorIntent,
+    clearGeneratorIntent,
+  } = useApp();
 
   const personalization: AGEPersonalization | null = useMemo(() => {
     if (!activeChild) return null;
@@ -62,7 +78,9 @@ export function GeneratorScreen() {
     return getOutcomeFocusPillars(outcomeChecklists[activeChild.id] ?? []);
   }, [activeChild, outcomeChecklists]);
 
-  const [step, setStep]             = useState<Step>(generatedPack ? "result" : "config");
+  const todayKey = new Date().toDateString();
+  const hasTodaysPack = Boolean(generatedPack && lastPackGeneratedOn === todayKey);
+  const [step, setStep]             = useState<Step>(hasTodaysPack ? "result" : "config");
   const [mood, setMood]             = useState("focus");
   const [timeMin, setTimeMin]       = useState(45);
   const [pack, setPack]             = useState<Activity[]>(generatedPack ?? []);
@@ -75,6 +93,16 @@ export function GeneratorScreen() {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [boostAILiteracy, setBoostAILiteracy] = useState(false);
   const [boostDualTask, setBoostDualTask] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStep(hasTodaysPack ? "result" : "config");
+  }, [hasTodaysPack]);
+
+  useEffect(() => {
+    if (!generatorIntent?.suggestedMood) return;
+    setMood(generatorIntent.suggestedMood);
+  }, [generatorIntent]);
 
   useEffect(() => {
     try {
@@ -97,12 +125,19 @@ export function GeneratorScreen() {
   const recentIds = activityLogs.filter(l => l.childId === activeChild?.id).slice(0, 10).map(l => l.activityId);
 
   const generate = () => {
+    if (!activeChild) return;
+    if (!hasCreditForToday() || !consumeCredit()) {
+      navigate("paywall");
+      return;
+    }
+    setGenerateError(null);
     setStep("generating");
     setTimeout(() => {
       const result = runAGE(tier, materialInventory, mood, timeMin, recentIds, personalization, lastCompletionByActivity, {
         boostAILiteracy,
         boostDualTask,
         focusPillars: outcomeFocusPillars,
+        priorityIntelligences: generatorIntent?.priorityIntelligences,
       });
       setPack(result);
       setGeneratedPack(result);
@@ -115,7 +150,9 @@ export function GeneratorScreen() {
         pack_size: result.length,
         boost_ai_literacy: boostAILiteracy,
         boost_dual_task: boostDualTask,
+        intent_source: generatorIntent?.source ?? "default",
       });
+      clearGeneratorIntent();
       setStep("result");
     }, 2200);
   };
@@ -146,6 +183,9 @@ export function GeneratorScreen() {
       mood={mood} setMood={setMood} timeMin={timeMin} setTimeMin={setTimeMin} tier={tier} onGenerate={generate}
       boostAILiteracy={boostAILiteracy} setBoostAILiteracy={setBoostAILiteracy}
       boostDualTask={boostDualTask} setBoostDualTask={setBoostDualTask}
+      generatorIntent={generatorIntent}
+      canGenerateToday={hasCreditForToday()}
+      generateError={generateError}
     />
   );
   if (step === "generating") return <GeneratingScreen tier={tier} />;
@@ -377,11 +417,14 @@ export function GeneratorScreen() {
   );
 }
 
-function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate, boostAILiteracy, setBoostAILiteracy, boostDualTask, setBoostDualTask }: {
+function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate, boostAILiteracy, setBoostAILiteracy, boostDualTask, setBoostDualTask, generatorIntent, canGenerateToday, generateError }: {
   mood:string; setMood:(m:string)=>void; timeMin:number; setTimeMin:(t:number)=>void;
   tier:number; onGenerate:()=>void;
   boostAILiteracy: boolean; setBoostAILiteracy: (v: boolean) => void;
   boostDualTask: boolean; setBoostDualTask: (v: boolean) => void;
+  generatorIntent: ReturnType<typeof useApp>["generatorIntent"];
+  canGenerateToday: boolean;
+  generateError: string | null;
 }) {
   const { materialInventory, setMaterialInventory, activeChild } = useApp();
   const tierCfg = getAgeTierConfig(tier);
@@ -398,6 +441,25 @@ function ConfigScreen({ mood, setMood, timeMin, setTimeMin, tier, onGenerate, bo
       </div>
 
       <div className="px-4 pb-6 space-y-5">
+        {generatorIntent && (
+          <div className="rounded-2xl p-3" style={{ background: "rgba(67,97,238,0.08)", border: "1px solid rgba(67,97,238,0.18)" }}>
+            <div className="text-blue-700 font-semibold text-xs mb-1">Targeted support pack</div>
+            <div className="text-blue-600 text-xs leading-relaxed">
+              {generatorIntent.title}: {generatorIntent.note}
+            </div>
+          </div>
+        )}
+        {!canGenerateToday && (
+          <div className="rounded-2xl p-3" style={{ background: "#FFF4EF", border: "1px solid rgba(251,86,7,0.25)" }}>
+            <div className="text-orange-700 font-semibold text-xs mb-1">No unused daily pack credits left</div>
+            <div className="text-orange-600 text-xs">Unlock another day to generate a new pack, or revisit today's completed activities from History.</div>
+          </div>
+        )}
+        {generateError && (
+          <div className="rounded-2xl p-3" style={{ background: "#FFF0F6", border: "1px solid rgba(247,37,133,0.25)" }}>
+            <div className="text-pink-700 text-xs">{generateError}</div>
+          </div>
+        )}
         {/* Mood */}
         <div>
           <Label text="1. How is your child feeling right now?" />

@@ -6,14 +6,16 @@ Use this before any serious staging or production handoff.
 
 - Run `pnpm install`
 - Run `pnpm run verify`
-- Run `pnpm run test:e2e`
-- Run `pnpm run verify:full`
 - Run `pnpm run content:validate`
 - Run `pnpm run age:report`
+- Run `pnpm run test:e2e`
+- Run `pnpm run verify:full`
+- Confirm CI passed `typecheck`, `lint`, `test`, `content:validate`, `age:report`, `build`, and Playwright E2E.
 
 ## Product readiness
 
 - Confirm onboarding, generator, activity detail, backup tools, and profile install flow still work.
+- Confirm milestone completion persists and the milestone-to-progress tracker updates correctly.
 - Confirm offline banner, AI Counselor offline state, and paywall offline state are understandable.
 - Confirm `activity_detail` remains reachable from generated activities.
 - Confirm legal/privacy screens still render and match current draft policy language.

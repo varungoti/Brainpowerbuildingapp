@@ -3,11 +3,11 @@ import { useApp } from "../context/AppContext";
 
 const FEATURES = [
   { emoji:"🌍", title:"16 Global Methods", desc:"Vedic Math · Shichida · Montessori · Origami · Kumon and 11 more", color:"#E63946", bg:"#FFF0F0" },
-  { emoji:"🧠", title:"13 Intelligence Types", desc:"Gardner's full framework + EQ, Creativity & Executive Function", color:"#7209B7", bg:"#F5F0FF" },
+  { emoji:"🧠", title:"15 Brain Regions", desc:"Full neuro-mapping: language, memory, creativity, motor, EQ, executive function & more", color:"#7209B7", bg:"#F5F0FF" },
   { emoji:"🏠", title:"Zero Cost Forever", desc:"Every activity uses only household materials — rice, paper, spoons, stones", color:"#06D6A0", bg:"#EDFFF8" },
   { emoji:"⚡", title:"AGE Algorithm", desc:"AI-grade algorithm selects 3–5 optimal activities daily for each child", color:"#4361EE", bg:"#EEF1FF" },
-  { emoji:"📊", title:"Development Tracking", desc:"Visualise your child's intelligence growth across all 13 domains", color:"#FFB703", bg:"#FFFBEF" },
-  { emoji:"🎯", title:"Age-Calibrated", desc:"Every activity is calibrated to 5 developmental tiers, ages 1–10", color:"#F72585", bg:"#FFF0F7" },
+  { emoji:"📊", title:"Brain Map Tracking", desc:"Visualise your child's development across all 15 brain regions in real time", color:"#FFB703", bg:"#FFFBEF" },
+  { emoji:"🎯", title:"Age-Calibrated", desc:"Every activity is calibrated to 6 developmental tiers, ages 0–10", color:"#F72585", bg:"#FFF0F7" },
 ];
 
 const RESEARCH_STATS = [
@@ -76,9 +76,9 @@ export function LandingScreen() {
 
         {/* Who is it for */}
         <div className="glass rounded-2xl p-4 mb-7 animate-slide-up stagger-3">
-          <p className="text-white/60 text-center mb-3" style={{ fontSize:11, letterSpacing:"1px" }}>DESIGNED FOR PARENTS OF CHILDREN 1–10</p>
+          <p className="text-white/60 text-center mb-3" style={{ fontSize:11, letterSpacing:"1px" }}>DESIGNED FOR PARENTS OF CHILDREN 0–10</p>
           <div className="flex items-center gap-3">
-            {["1–2 yrs\n🌱 Seedling", "3–4 yrs\n🌿 Sprout", "5–6 yrs\n🌳 Sapling", "7–8 yrs\n🌲 Branch", "9–10 yrs\n🏔️ Forest"].map((t, i) => {
+            {["0–12 mo\n🌸 Blossom", "1–2 yrs\n🌱 Seedling", "3–4 yrs\n🌿 Sprout", "5–6 yrs\n🌳 Sapling", "7–10 yrs\n🌲 Forest"].map((t, i) => {
               const [age, label] = t.split("\n");
               return (
                 <div key={i} className="flex-1 text-center py-2 rounded-xl" style={{ background:"rgba(255,255,255,0.08)" }}>

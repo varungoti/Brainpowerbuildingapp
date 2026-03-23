@@ -26,8 +26,10 @@ type SeedState = {
   activityLogs: Array<unknown>;
   materialInventory: string[];
   credits: number;
+  lastPackGeneratedOn: string | null;
   kycData: Record<string, unknown>;
   outcomeChecklists: Record<string, unknown>;
+  milestoneChecks: Record<string, string[]>;
 };
 
 const seededState: SeedState = {
@@ -58,8 +60,10 @@ const seededState: SeedState = {
   activityLogs: [],
   materialInventory: ["paper", "pencils", "cups", "water", "blanket", "spoons", "outdoor"],
   credits: 3,
+  lastPackGeneratedOn: null,
   kycData: {},
   outcomeChecklists: {},
+  milestoneChecks: {},
 };
 
 async function seedLocalState(page: import("@playwright/test").Page, state = seededState) {
@@ -113,5 +117,48 @@ test.describe("NeuroSpark core flows", () => {
 
     await expect(page.getByRole("button", { name: /Download backup/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Choose backup to restore/i })).toBeVisible();
+  });
+
+  test("offline states stay understandable for AI help and paywall", async ({ page, context }) => {
+    await seedLocalState(page, { ...seededState, credits: 0 });
+    await page.goto("/");
+    await context.setOffline(true);
+    await expect(
+      page.getByText(/Offline mode: local profiles, history, and backups still work/i),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /AI Help/i }).click();
+    await expect(page.getByText(/Offline right now/i)).toBeVisible();
+    await expect(
+      page.getByText(/new AI research requests will wait until you reconnect/i),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /^Home$/i }).click();
+    await page.getByRole("button", { name: /^Today$/i }).click();
+    await expect(page.getByText(/^Offline mode$/i)).toBeVisible();
+    await expect(
+      page.getByText(/payment starts only after you reconnect/i),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /Pay ₹/i })).toBeDisabled();
+
+    await context.setOffline(false);
+  });
+
+  test("milestone completion persists across navigation", async ({ page }) => {
+    await seedLocalState(page);
+    await page.goto("/");
+
+    await page.getByRole("button", { name: /^Brain$/i }).click();
+    await page.getByRole("button", { name: /Developmental Milestones Tracker/i }).click();
+    await expect(page.getByText(/Brain Development Progress/i)).toBeVisible();
+
+    const firstMilestoneToggle = page.locator('button[aria-label^="Mark "]').first();
+    await firstMilestoneToggle.click();
+    await expect(firstMilestoneToggle).toHaveAttribute("aria-label", /Mark .* incomplete/i);
+
+    await page.getByRole("button", { name: /^Home$/i }).click();
+    await page.getByRole("button", { name: /^Brain$/i }).click();
+    await page.getByRole("button", { name: /Developmental Milestones Tracker/i }).click();
+    await expect(page.getByRole("button", { name: /Mark .* incomplete/i }).first()).toBeVisible();
   });
 });
