@@ -8,83 +8,223 @@ const BG = "#0b0e1d";
 // ─── 15 Brain Regions (keys match activity intelligences + Pronunciation, Coordination) ───
 const BRAIN_REGIONS = [
   { id: "executive", key: "Executive Function", name: "Executive", emoji: "🧩",
-    cx: 200, cy: 72, rx: 22, ry: 22, color: "#4361EE",
+    cx: 184, cy: 83, rx: 22, ry: 22, color: "#F2B0BC",
     lobe: "Prefrontal Cortex",
     desc: "Planning, decision-making & impulse control — the brain's CEO.",
-    labelX: 200, labelY: 45 },
+    labelX: 190, labelY: 42 },
   { id: "linguistic", key: "Linguistic", name: "Language", emoji: "🗣️",
-    cx: 112, cy: 100, rx: 20, ry: 20, color: "#F72585",
+    cx: 82, cy: 73, rx: 20, ry: 20, color: "#BFEFF2",
     lobe: "Left Frontal (Broca's Area)",
     desc: "Reading, writing, storytelling and language acquisition.",
-    labelX: 80, labelY: 100 },
+    labelX: 64, labelY: 96 },
   { id: "creative", key: "Creative", name: "Creative", emoji: "🎨",
-    cx: 288, cy: 100, rx: 20, ry: 20, color: "#7209B7",
+    cx: 228, cy: 88, rx: 20, ry: 20, color: "#CBB8F4",
     lobe: "Right Frontal Lobe",
     desc: "Imagination, artistic thinking, divergent problem-solving.",
-    labelX: 320, labelY: 100 },
+    labelX: 264, labelY: 88 },
   { id: "logical", key: "Logical-Mathematical", name: "Logical", emoji: "🔢",
-    cx: 78, cy: 158, rx: 19, ry: 19, color: "#3A0CA3",
+    cx: 136, cy: 111, rx: 19, ry: 19, color: "#D9DD67",
     lobe: "Left Parietal Lobe",
     desc: "Number sense, pattern recognition, scientific reasoning.",
-    labelX: 45, labelY: 158 },
+    labelX: 98, labelY: 136 },
   { id: "spatial", key: "Spatial-Visual", name: "Spatial", emoji: "🎯",
-    cx: 322, cy: 158, rx: 19, ry: 19, color: "#480CA8",
+    cx: 302, cy: 146, rx: 19, ry: 19, color: "#BCCA74",
     lobe: "Right Parietal Lobe",
     desc: "Mental rotation, navigation, design thinking.",
-    labelX: 355, labelY: 158 },
+    labelX: 346, labelY: 154 },
   { id: "emotional", key: "Emotional", name: "Emotional", emoji: "❤️",
-    cx: 200, cy: 148, rx: 22, ry: 22, color: "#E63946",
+    cx: 183, cy: 128, rx: 22, ry: 22, color: "#F6A8A6",
     lobe: "Limbic System (Amygdala)",
     desc: "Emotional intelligence, empathy, self-awareness.",
-    labelX: 200, labelY: 115 },
+    labelX: 204, labelY: 118 },
   { id: "musical", key: "Musical-Rhythmic", name: "Musical", emoji: "🎵",
-    cx: 100, cy: 220, rx: 18, ry: 18, color: "#FB5607",
+    cx: 158, cy: 185, rx: 18, ry: 18, color: "#F0B37F",
     lobe: "Left Temporal (Auditory Cortex)",
     desc: "Rhythm, melody, beat & pitch.",
-    labelX: 65, labelY: 220 },
+    labelX: 102, labelY: 214 },
   { id: "social", key: "Interpersonal", name: "Social", emoji: "🤝",
-    cx: 300, cy: 220, rx: 18, ry: 18, color: "#06D6A0",
+    cx: 192, cy: 244, rx: 18, ry: 18, color: "#94E55C",
     lobe: "Right Temporal Lobe",
     desc: "Reading social cues, cooperation, leadership.",
-    labelX: 335, labelY: 220 },
+    labelX: 326, labelY: 234 },
   { id: "bodily", key: "Bodily-Kinesthetic", name: "Bodily", emoji: "🏃",
-    cx: 72, cy: 285, rx: 18, ry: 18, color: "#2DC653",
+    cx: 48, cy: 232, rx: 18, ry: 18, color: "#7A69E8",
     lobe: "Motor Cortex & Cerebellum",
     desc: "Motor skills, body awareness, physical intelligence.",
-    labelX: 35, labelY: 285 },
+    labelX: 42, labelY: 278 },
   { id: "intrapersonal", key: "Intrapersonal", name: "Self", emoji: "🧘",
-    cx: 200, cy: 260, rx: 18, ry: 18, color: "#118AB2",
+    cx: 142, cy: 286, rx: 18, ry: 18, color: "#CB84CB",
     lobe: "Default Mode Network",
     desc: "Self-knowledge, mindfulness, reflective thinking.",
-    labelX: 200, labelY: 230 },
+    labelX: 176, labelY: 240 },
   { id: "naturalist", key: "Naturalist", name: "Nature", emoji: "🌿",
-    cx: 328, cy: 285, rx: 18, ry: 18, color: "#06D6A0",
+    cx: 300, cy: 58, rx: 18, ry: 18, color: "#AEEED4",
     lobe: "Right Cerebellum",
     desc: "Pattern recognition in nature, categorisation.",
-    labelX: 365, labelY: 285 },
+    labelX: 334, labelY: 72 },
   { id: "existential", key: "Existential", name: "Wonder", emoji: "✨",
-    cx: 140, cy: 320, rx: 16, ry: 16, color: "#6A4C93",
+    cx: 36, cy: 126, rx: 16, ry: 16, color: "#D98BE0",
     lobe: "Left Occipital",
     desc: "Deep questioning, wonder, philosophy.",
-    labelX: 100, labelY: 320 },
+    labelX: 86, labelY: 148 },
   { id: "digital", key: "Digital-Technological", name: "Digital", emoji: "💻",
-    cx: 260, cy: 320, rx: 16, ry: 16, color: "#4CC9F0",
+    cx: 309, cy: 112, rx: 16, ry: 16, color: "#E8D6CE",
     lobe: "Right Occipital",
     desc: "Computational thinking, systems understanding.",
-    labelX: 300, labelY: 320 },
+    labelX: 336, labelY: 118 },
   { id: "pronunciation", key: "Pronunciation", name: "Speech", emoji: "👅",
-    cx: 55, cy: 180, rx: 17, ry: 17, color: "#FF6B9D",
+    cx: 18, cy: 132, rx: 17, ry: 17, color: "#F08B9A",
     lobe: "Broca's & Wernicke's Areas",
     desc: "Articulation, phonological awareness, speech clarity.",
-    labelX: 20, labelY: 180 },
+    labelX: 22, labelY: 178 },
   { id: "coordination", key: "Coordination", name: "Coordination", emoji: "🤹",
-    cx: 340, cy: 228, rx: 17, ry: 17, color: "#FFD166",
+    cx: 321, cy: 198, rx: 17, ry: 17, color: "#C7D377",
     lobe: "Cerebellum & Basal Ganglia",
     desc: "Hand-eye coordination, finger dexterity.",
-    labelX: 375, labelY: 228 },
+    labelX: 360, labelY: 214 },
 ] as const;
 
 const MAX_SCORE = 20;
+
+type RevealDirection = "left" | "right" | "top" | "bottom";
+
+type RegionBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type RegionVisual = {
+  paths: string[];
+  bounds: RegionBounds;
+  revealFrom: RevealDirection;
+};
+
+const REGION_VISUALS: Record<string, RegionVisual> = {
+  executive: {
+    paths: [
+      "M147 51 L167 43 L193 46 L206 61 L202 83 L183 95 L160 92 L147 75 Z",
+      "M171 92 L186 87 L200 93 L204 107 L198 121 L185 127 L172 120 L168 105 Z",
+    ],
+    bounds: { x: 147, y: 43, width: 59, height: 84 },
+    revealFrom: "bottom",
+  },
+  linguistic: {
+    paths: [
+      "M41 48 L61 39 L87 39 L111 46 L122 57 L118 73 L98 84 L73 84 L49 75 L39 61 Z",
+      "M32 77 L44 71 L58 72 L67 79 L68 92 L59 102 L44 105 L31 99 L27 88 Z",
+    ],
+    bounds: { x: 27, y: 39, width: 95, height: 66 },
+    revealFrom: "left",
+  },
+  creative: {
+    paths: [
+      "M205 45 L223 39 L240 42 L246 57 L241 76 L229 91 L214 91 L205 77 L202 59 Z",
+      "M226 90 L239 85 L251 90 L256 104 L250 120 L238 127 L226 122 L221 108 Z",
+    ],
+    bounds: { x: 202, y: 39, width: 54, height: 88 },
+    revealFrom: "top",
+  },
+  logical: {
+    paths: ["M117 98 L131 91 L147 95 L152 108 L143 120 L126 122 L115 112 Z"],
+    bounds: { x: 115, y: 91, width: 37, height: 31 },
+    revealFrom: "left",
+  },
+  spatial: {
+    paths: ["M282 119 L297 113 L313 116 L321 130 L317 147 L304 159 L290 156 L281 141 Z"],
+    bounds: { x: 281, y: 113, width: 40, height: 46 },
+    revealFrom: "right",
+  },
+  emotional: {
+    paths: [
+      "M150 86 L166 79 L185 80 L198 90 L198 109 L189 128 L173 139 L156 132 L147 115 Z",
+      "M177 139 L190 135 L202 141 L206 154 L199 168 L186 173 L174 166 L171 152 Z",
+    ],
+    bounds: { x: 147, y: 79, width: 59, height: 94 },
+    revealFrom: "bottom",
+  },
+  musical: {
+    paths: ["M89 166 L122 159 L155 159 L184 164 L202 173 L198 186 L176 194 L145 196 L112 193 L90 187 L80 174 Z"],
+    bounds: { x: 80, y: 159, width: 122, height: 37 },
+    revealFrom: "left",
+  },
+  social: {
+    paths: [
+      "M75 219 L115 213 L161 213 L208 217 L248 223 L279 232 L292 243 L289 255 L258 263 L208 267 L154 265 L106 258 L77 249 L69 232 Z",
+      "M279 205 L294 199 L309 201 L318 210 L317 224 L307 234 L292 235 L280 227 L275 214 Z",
+    ],
+    bounds: { x: 69, y: 199, width: 249, height: 68 },
+    revealFrom: "right",
+  },
+  bodily: {
+    paths: ["M20 211 L32 202 L48 202 L61 212 L62 229 L54 245 L40 252 L26 246 L19 228 Z"],
+    bounds: { x: 19, y: 202, width: 43, height: 50 },
+    revealFrom: "left",
+  },
+  intrapersonal: {
+    paths: ["M77 273 L103 267 L136 268 L163 272 L177 282 L171 292 L145 297 L109 296 L82 290 L69 281 Z"],
+    bounds: { x: 69, y: 267, width: 108, height: 30 },
+    revealFrom: "bottom",
+  },
+  naturalist: {
+    paths: ["M242 31 L273 24 L307 25 L334 34 L346 46 L342 59 L316 68 L279 69 L248 64 L235 52 Z"],
+    bounds: { x: 235, y: 24, width: 111, height: 45 },
+    revealFrom: "right",
+  },
+  existential: {
+    paths: ["M14 119 L25 108 L40 105 L51 113 L51 127 L42 139 L28 142 L16 136 Z"],
+    bounds: { x: 14, y: 105, width: 37, height: 37 },
+    revealFrom: "left",
+  },
+  digital: {
+    paths: [
+      "M263 48 L293 42 L321 45 L342 56 L350 79 L347 111 L338 139 L322 159 L301 165 L283 158 L271 140 L265 113 L262 80 Z",
+      "M291 160 L307 156 L323 158 L332 166 L332 181 L323 191 L307 195 L294 190 L287 177 Z",
+    ],
+    bounds: { x: 262, y: 42, width: 88, height: 153 },
+    revealFrom: "right",
+  },
+  pronunciation: {
+    paths: ["M8 125 L14 120 L22 122 L25 129 L20 138 L12 140 L8 133 Z"],
+    bounds: { x: 8, y: 120, width: 17, height: 20 },
+    revealFrom: "left",
+  },
+  coordination: {
+    paths: ["M303 178 L317 173 L331 176 L339 188 L337 202 L327 212 L313 213 L303 206 L298 191 Z"],
+    bounds: { x: 298, y: 173, width: 41, height: 40 },
+    revealFrom: "right",
+  },
+};
+
+function getRevealRect(bounds: RegionBounds, revealFrom: RevealDirection, pct: number) {
+  const boundedPct = Math.max(0, Math.min(1, pct));
+  const minX = bounds.x;
+  const maxX = bounds.x + bounds.width;
+  const minY = bounds.y;
+  const maxY = bounds.y + bounds.height;
+
+  if (revealFrom === "left") {
+    return { x: minX, y: minY, width: bounds.width * boundedPct, height: bounds.height };
+  }
+  if (revealFrom === "right") {
+    return {
+      x: maxX - bounds.width * boundedPct,
+      y: minY,
+      width: bounds.width * boundedPct,
+      height: bounds.height,
+    };
+  }
+  if (revealFrom === "top") {
+    return { x: minX, y: minY, width: bounds.width, height: bounds.height * boundedPct };
+  }
+  return {
+    x: minX,
+    y: maxY - bounds.height * boundedPct,
+    width: bounds.width,
+    height: bounds.height * boundedPct,
+  };
+}
 
 // Neural pathway connections (indices into BRAIN_REGIONS)
 const CONNECTIONS: [number, number][] = [
@@ -143,9 +283,9 @@ export function AnatomicalBrain({ scores }: Props) {
         >
           <defs>
             <radialGradient id="brainTint" cx="50%" cy="45%" r="65%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.22)" />
-              <stop offset="55%" stopColor="rgba(103,80,164,0.1)" />
-              <stop offset="100%" stopColor="rgba(8,10,24,0.25)" />
+              <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+              <stop offset="55%" stopColor="rgba(108,124,176,0.12)" />
+              <stop offset="100%" stopColor="rgba(8,10,24,0.3)" />
             </radialGradient>
             <filter id="abGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="10" result="b" />
@@ -161,9 +301,20 @@ export function AnatomicalBrain({ scores }: Props) {
             <clipPath id="brainClip">
               <ellipse cx="206" cy="170" rx="168" ry="128" />
             </clipPath>
+            {BRAIN_REGIONS.map((region) => (
+              <clipPath key={`clip-${region.id}`} id={`regionClip-${region.id}`}>
+                {REGION_VISUALS[region.id].paths.map((path, idx) => (
+                  <path
+                    key={`${region.id}-${idx}`}
+                    d={path}
+                  />
+                ))}
+              </clipPath>
+            ))}
             <style>{`
               @keyframes abDash { from { stroke-dashoffset: 4 } to { stroke-dashoffset: 0 } }
               @keyframes abPulse { 0%, 100% { opacity: 0.8 } 50% { opacity: 0.48 } }
+              @keyframes abShimmer { from { transform: translateX(-80px) rotate(18deg); } to { transform: translateX(120px) rotate(18deg); } }
             `}</style>
           </defs>
 
@@ -184,7 +335,18 @@ export function AnatomicalBrain({ scores }: Props) {
             height="304"
             preserveAspectRatio="xMidYMid meet"
             clipPath="url(#brainClip)"
-            opacity="0.98"
+            opacity="0.24"
+          />
+          <image
+            href={brainBase}
+            x="18"
+            y="28"
+            width="368"
+            height="304"
+            preserveAspectRatio="xMidYMid meet"
+            clipPath="url(#brainClip)"
+            opacity="0.82"
+            style={{ filter: "grayscale(1) saturate(0.25) brightness(0.42) contrast(1.1)" }}
           />
           <ellipse
             cx="206"
@@ -227,9 +389,13 @@ export function AnatomicalBrain({ scores }: Props) {
             const isHov = hovered === idx;
             const isActive = pct > 0;
             const isHighlighted = isSel || isHov;
+            const visual = REGION_VISUALS[region.id];
+            const revealRect = getRevealRect(visual.bounds, visual.revealFrom, pct);
+            const bounds = visual.bounds;
 
-            const fillOp = isHighlighted ? 0.285 + pct * 0.2 : isActive ? 0.104 + pct * 0.18 : 0;
-            const strokeOpacity = isHighlighted ? 0.8 : isActive ? 0.4 : 0;
+            const fillOp = isHighlighted ? 0.34 + pct * 0.25 : isActive ? 0.14 + pct * 0.46 : 0;
+            const strokeOpacity = isHighlighted ? 0.92 : isActive ? 0.55 : 0.34;
+            const idleBoundaryOpacity = isHighlighted ? 0.18 : 0.1;
 
             const sparks = pct > 0.25
               ? Array.from({ length: Math.ceil(pct * 5) }, (_, pi) => {
@@ -258,31 +424,80 @@ export function AnatomicalBrain({ scores }: Props) {
                 style={{ cursor: "pointer" }}
                 onClick={() => setSelected(selected === idx ? null : idx)}
               >
-                {(isActive || isHighlighted) && (
-                  <ellipse
-                    cx={region.cx}
-                    cy={region.cy}
-                    rx={region.rx}
-                    ry={region.ry}
+                <g clipPath={`url(#regionClip-${region.id})`}>
+                  <rect
+                    x={bounds.x - 8}
+                    y={bounds.y - 8}
+                    width={bounds.width + 16}
+                    height={bounds.height + 16}
                     fill={region.color}
-                    opacity={isHighlighted ? 0.25 : 0.076 + pct * 0.18}
+                    opacity={isHighlighted ? 0.18 : isActive ? 0.08 + pct * 0.14 : idleBoundaryOpacity}
                     filter="url(#abSoft)"
-                    style={isHighlighted ? undefined : { animation: `abPulse ${3.2 + idx * 0.2}s ease-in-out infinite` }}
                   />
-                )}
-                <ellipse
-                  cx={region.cx}
-                  cy={region.cy}
-                  rx={region.rx}
-                  ry={region.ry}
-                  fill={region.color}
-                  fillOpacity={fillOp}
-                  stroke={region.color}
-                  strokeWidth={isHighlighted ? 2.5 : isActive ? 2.2 : 1}
-                  strokeOpacity={strokeOpacity}
-                  filter={isHighlighted ? "url(#abGlow)" : undefined}
-                  style={{ transition: "fill-opacity 0.7s, stroke-width 0.2s" }}
-                />
+                </g>
+                <g clipPath={`url(#regionClip-${region.id})`}>
+                  {pct > 0 && (
+                    <motion.rect
+                      initial={false}
+                      animate={revealRect}
+                      transition={{ duration: 0.95, ease: "easeOut" }}
+                      fill={region.color}
+                      fillOpacity={fillOp}
+                      filter={isHighlighted ? "url(#abGlow)" : undefined}
+                      style={{ mixBlendMode: "screen" }}
+                    />
+                  )}
+                  {(isActive || isHighlighted) && (
+                    <rect
+                      x={bounds.x}
+                      y={bounds.y}
+                      width={bounds.width}
+                      height={bounds.height}
+                      fill={`url(#brainTint)`}
+                      opacity={0.08 + pct * 0.18}
+                    />
+                  )}
+                  {!isActive && !isHighlighted && (
+                    <rect
+                      x={bounds.x}
+                      y={bounds.y}
+                      width={bounds.width}
+                      height={bounds.height}
+                      fill={region.color}
+                      opacity={0.06}
+                    />
+                  )}
+                  {pct > 0.08 && (
+                    <motion.rect
+                      initial={false}
+                      animate={{
+                        x:
+                          bounds.x -
+                          bounds.width * 0.6 +
+                          ((tick * (1.3 + pct * 0.5)) % (bounds.width * 2.1)),
+                      }}
+                      transition={{ duration: 0 }}
+                      y={bounds.y - 12}
+                      width={18}
+                      height={bounds.height + 24}
+                      fill="rgba(255,255,255,0.35)"
+                      opacity={0.15 + pct * 0.18}
+                      style={{ filter: "blur(6px)" }}
+                    />
+                  )}
+                </g>
+                {visual.paths.map((path, partIdx) => (
+                  <path
+                    key={`stroke-${region.id}-${partIdx}`}
+                    d={path}
+                    fill="none"
+                    stroke={region.color}
+                    strokeWidth={isHighlighted ? 2.2 : isActive ? 1.7 : 1.05}
+                    strokeOpacity={strokeOpacity}
+                    filter={isHighlighted ? "url(#abGlow)" : undefined}
+                    style={{ transition: "stroke-opacity 0.5s, stroke-width 0.2s" }}
+                  />
+                ))}
                 {pct > 0 && (
                   <ellipse
                     cx={region.cx}
@@ -431,7 +646,7 @@ export function AnatomicalBrain({ scores }: Props) {
 
       <div className="text-center mt-1 mb-1">
         <span className="text-white/20" style={{ fontSize: 9 }}>
-          {selected !== null ? "Tap region again to deselect" : "Tap a mapped region to explore brain development progress"}
+          {selected !== null ? "Tap region again to deselect" : "Mapped color zones awaken as completed activities build each attribute"}
         </span>
       </div>
 

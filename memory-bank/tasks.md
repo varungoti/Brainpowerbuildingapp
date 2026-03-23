@@ -1,7 +1,7 @@
 # Tasks
 
 ## In progress
-- No active blocker; latest enhancement work completed colorful brain-progress integration across core progress surfaces
+- No active blocker; latest enhancement work completed tighter color-segment mapping across the brain tracker surfaces
 
 ## Planned workstreams
 - Future out-of-repo work: deployment hardening, secret management, real external provider setup, legal review

@@ -17,6 +17,10 @@
 - Release, threat-model, performance-budget, moat, and offline docs
 - Provided colorful brain image is now integrated into the brain map visualization and milestone tracker summary card
 - The same colorful brain-progress language now extends into the home year-plan card and year-plan hero/progress surfaces
+- The anatomical brain tracker now uses a muted base image with image-matched attribute colors and animated zone fills that reveal as activity-linked scores increase
+- The brain tracker boundaries are now path-based rather than ellipse-based, so attribute regions are demarcated by explicit shape masks tied more closely to the source artwork
+- The color-area mapping was tightened again so attribute masks track the visible colored segments more closely, with updated anchors and palette sync in the brain map UI
+- The source brain artwork now also serves as a low-opacity segmentation guide under the grayscale layer so the real color areas remain visually legible during idle states and QA
 
 ## Remaining major areas
 - External deployment, secrets, real payment/provider configuration, and legal sign-off remain out of scope.

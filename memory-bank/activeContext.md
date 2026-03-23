@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current task
-Level 2 enhancement completed: integrate the provided colorful brain image across the brain map, milestone tracker, home progress card, and year-plan progress surfaces.
+Level 3 enhancement completed: refine the brain tracker from rough hotspot overlays into tighter color-area masks aligned to the visible segments of the source brain image.
 
 ## Current focus
 - Preserve the production-readiness foundation while improving the brain-progress storytelling in the core child-development surfaces.
 - Keep the visual system coherent between Home, Brain Map, Milestones, and Year Plan.
+- Make the brain tracker feel semantically mapped, not decorative: muted base image, image-matched zone colors, detailed color-area boundaries, and progress-driven reveals.
 
 ## Known boundaries
 - No secrets, contracts, licenses, or external account setup.
@@ -15,4 +16,4 @@ Level 2 enhancement completed: integrate the provided colorful brain image acros
 ## Immediate next steps
 - Keep docs and memory bank aligned with the shipped repo state.
 - Preserve the new verification and content-quality workflow for future sessions.
-- If requested next, extend the same brain-image language into year-plan or onboarding surfaces for a more consistent visual system.
+- If requested next, run a browser QA pass to tune any remaining segment edges against the live artwork or add targeted tests around score-to-visual mapping behavior.

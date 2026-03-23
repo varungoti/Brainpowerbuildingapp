@@ -13,105 +13,105 @@ import { AnatomicalBrain } from "../components/AnatomicalBrain";
 const BRAIN_REGIONS = [
   // TOP CENTER — Prefrontal
   { id:"executive", key:"Executive Function", name:"Executive", emoji:"🧩",
-    cx:200, cy:72, r:22, color:"#4361EE",
+    cx:200, cy:72, r:22, color:"#F2B0BC",
     lobe:"Prefrontal Cortex",
     desc:"Planning, decision-making & impulse control — the brain's CEO. Powers focus, goal-setting and self-regulation.",
     connTo:[1,2,3,5,13] },
 
   // UPPER LEFT
   { id:"linguistic", key:"Linguistic", name:"Language", emoji:"🗣️",
-    cx:112, cy:100, r:20, color:"#F72585",
+    cx:112, cy:100, r:20, color:"#BFEFF2",
     lobe:"Left Frontal (Broca's Area)",
     desc:"Reading, writing, storytelling and language acquisition. Broca's & Wernicke's areas both activated.",
     connTo:[0,6,13] },
 
   // UPPER RIGHT
   { id:"creative", key:"Creative", name:"Creative", emoji:"🎨",
-    cx:288, cy:100, r:20, color:"#7209B7",
+    cx:288, cy:100, r:20, color:"#CBB8F4",
     lobe:"Right Frontal Lobe",
     desc:"Imagination, artistic thinking, divergent problem-solving. Right hemisphere speciality.",
     connTo:[0,4,14] },
 
   // MID LEFT
   { id:"logical", key:"Logical-Mathematical", name:"Logical", emoji:"🔢",
-    cx:78, cy:158, r:19, color:"#3A0CA3",
+    cx:78, cy:158, r:19, color:"#D9DD67",
     lobe:"Left Parietal Lobe",
     desc:"Number sense, pattern recognition, scientific reasoning and abstract logic.",
     connTo:[0,4,8] },
 
   // MID RIGHT
   { id:"spatial", key:"Spatial-Visual", name:"Spatial", emoji:"🎯",
-    cx:322, cy:158, r:19, color:"#480CA8",
+    cx:322, cy:158, r:19, color:"#BCCA74",
     lobe:"Right Parietal Lobe",
     desc:"Mental rotation, navigation, design thinking. Crucial for STEM and visual arts.",
     connTo:[2,3,14] },
 
   // CENTER — Emotional (Limbic)
   { id:"emotional", key:"Emotional", name:"Emotional", emoji:"❤️",
-    cx:200, cy:148, r:22, color:"#E63946",
+    cx:200, cy:148, r:22, color:"#F6A8A6",
     lobe:"Limbic System (Amygdala)",
     desc:"Emotional intelligence, empathy, self-awareness. Foundation of mental wellbeing.",
     connTo:[0,7,9] },
 
   // LOWER LEFT
   { id:"musical", key:"Musical-Rhythmic", name:"Musical", emoji:"🎵",
-    cx:100, cy:220, r:18, color:"#FB5607",
+    cx:100, cy:220, r:18, color:"#F0B37F",
     lobe:"Left Temporal (Auditory Cortex)",
     desc:"Rhythm, melody, beat & pitch. Strengthens mathematical reasoning and language.",
     connTo:[1,8,13] },
 
   // LOWER RIGHT
   { id:"social", key:"Interpersonal", name:"Social", emoji:"🤝",
-    cx:300, cy:220, r:18, color:"#06D6A0",
+    cx:300, cy:220, r:18, color:"#94E55C",
     lobe:"Right Temporal Lobe",
     desc:"Reading social cues, cooperation, leadership and communication. Mirror neuron network.",
     connTo:[5,10] },
 
   // BOTTOM LEFT
   { id:"bodily", key:"Bodily-Kinesthetic", name:"Bodily", emoji:"🏃",
-    cx:72, cy:285, r:18, color:"#2DC653",
+    cx:72, cy:285, r:18, color:"#7A69E8",
     lobe:"Motor Cortex & Cerebellum",
     desc:"Motor skills, body awareness, physical intelligence and gross motor coordination.",
     connTo:[6,11,14] },
 
   // BOTTOM CENTER
   { id:"intrapersonal", key:"Intrapersonal", name:"Self", emoji:"🧘",
-    cx:200, cy:260, r:18, color:"#118AB2",
+    cx:200, cy:260, r:18, color:"#CB84CB",
     lobe:"Default Mode Network",
     desc:"Self-knowledge, mindfulness, reflective thinking and metacognition.",
     connTo:[5,11,12] },
 
   // BOTTOM RIGHT
   { id:"naturalist", key:"Naturalist", name:"Nature", emoji:"🌿",
-    cx:328, cy:285, r:18, color:"#06D6A0",
+    cx:328, cy:285, r:18, color:"#AEEED4",
     lobe:"Right Cerebellum",
     desc:"Pattern recognition in nature, categorisation, ecological thinking.",
     connTo:[7,12] },
 
   // FAR BOTTOM LEFT
   { id:"existential", key:"Existential", name:"Wonder", emoji:"✨",
-    cx:140, cy:320, r:16, color:"#6A4C93",
+    cx:140, cy:320, r:16, color:"#D98BE0",
     lobe:"Left Occipital",
     desc:"Deep questioning, wonder, philosophy and meaning-making. Uniquely human.",
     connTo:[8,9] },
 
   // FAR BOTTOM RIGHT
   { id:"digital", key:"Digital-Technological", name:"Digital", emoji:"💻",
-    cx:260, cy:320, r:16, color:"#4CC9F0",
+    cx:260, cy:320, r:16, color:"#E8D6CE",
     lobe:"Right Occipital",
     desc:"Computational thinking, systems understanding and tech-native pattern recognition.",
     connTo:[9,10] },
 
   // NEW: PRONUNCIATION — between Linguistic and Musical
   { id:"pronunciation", key:"Pronunciation", name:"Speech", emoji:"👅",
-    cx:55, cy:180, r:17, color:"#FF6B9D",
+    cx:55, cy:180, r:17, color:"#F08B9A",
     lobe:"Broca's & Wernicke's Areas",
     desc:"Articulation, phonological awareness, speech clarity. Controls tongue/mouth motor planning for clear speech.",
     connTo:[1,6,3] },
 
   // NEW: COORDINATION — between Bodily and Spatial
   { id:"coordination", key:"Coordination", name:"Coordination", emoji:"🤹",
-    cx:340, cy:228, r:17, color:"#FFD166",
+    cx:340, cy:228, r:17, color:"#C7D377",
     lobe:"Cerebellum & Basal Ganglia",
     desc:"Hand-eye coordination, finger dexterity, muscle reflex timing, bilateral integration.",
     connTo:[4,8,7,2] },
@@ -173,7 +173,7 @@ function BrainMapViz({ scores }: { scores: Record<string, number> }) {
       {/* Legend hint */}
       <div className="px-4 pb-3">
         <div className="text-center text-white/25" style={{ fontSize: 8 }}>
-          Tap any brain region to see details · Colors fill as activities are completed
+          Tap any mapped zone to see details · Image-matched colors fill as activities are completed
         </div>
       </div>
     </div>
