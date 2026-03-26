@@ -11,5 +11,5 @@ test-results
 Thumbs.db
 .cursor
 *.tsbuildinfo
-docs
+.docs
 memory-bank
