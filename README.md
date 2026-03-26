@@ -1,7 +1,6 @@
 # Brain Power Building App (NeuroSpark)
 
-This is a code bundle for Brain Power Building App. The original project is available at https://www.figma.com/design/8n4lLSuoVpk9aOCvTDkAIb/Brain-Power-Building-App.
-
+This is a code bundle for Brain Power Building App for kids. 
 ## Install & run (use **pnpm**, not npm)
 
 This project is locked with **`pnpm-lock.yaml`**. Dependencies (including `@supabase/supabase-js`) are already declared in `package.json` — you do **not** need a separate `npm install @supabase/supabase-js`.
