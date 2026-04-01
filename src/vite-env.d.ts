@@ -15,6 +15,8 @@ interface ImportMetaEnv {
   readonly VITE_BLUEPRINT_DEV_OPEN?: string;
   /** Injected at build time from package.json version — do not set manually in .env files. */
   readonly VITE_APP_VERSION: string;
+  /** Optional comma/space-separated flags; see src/utils/featureFlags.ts */
+  readonly VITE_FEATURE_FLAGS?: string;
 }
 
 interface ImportMeta {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
+import { isPaymentsRemotelyDisabled } from "@/utils/featureFlags";
 import { captureProductEvent } from "@/utils/productAnalytics";
 import { useOnlineStatus } from "@/utils/networkStatus";
 
@@ -13,10 +14,10 @@ const PLANS = [
 ];
 
 const VALUE_PROPS = [
-  { emoji:"🧠", title:"Research-Backed",  desc:"7 global traditions, 13 intelligences, 300+ expert activities" },
-  { emoji:"🏠", title:"Zero Extra Cost",  desc:"100% household materials — no kits or classes" },
-  { emoji:"📈", title:"Proven Results",   desc:"Kids score 18+ months ahead after 300 activities" },
-  { emoji:"🤖", title:"AI-Personalised", desc:"AGE Algorithm tailors every pack to your child" },
+  { emoji:"🧠", title:"Research-Backed",  desc:"25+ global methods, 15 brain regions, 70+ curated activities" },
+  { emoji:"🏠", title:"Zero Extra Cost",  desc:"Household materials — no kits or classes required" },
+  { emoji:"📈", title:"Structured growth", desc:"Daily packs tuned to age tier and your child’s progress" },
+  { emoji:"🤖", title:"AI-Personalised", desc:"AGE algorithm tailors each pack to your child" },
 ];
 
 // ─── Razorpay loader ──────────────────────────────────────────────────────────
@@ -37,6 +38,8 @@ export function PaywallScreen() {
   const { activeChild, navigate, addCredits, activityLogs } = useApp();
   const isOnline = useOnlineStatus();
   const hasServerConfig = isSupabaseConfigured();
+  const paymentsKilled = isPaymentsRemotelyDisabled();
+  const checkoutReady = hasServerConfig && !paymentsKilled;
   const [selected, setSelected]   = useState("day30");
   const [step, setStep]           = useState<PayStep>("plan");
   const [processing, setProcessing] = useState(false);
@@ -65,8 +68,12 @@ export function PaywallScreen() {
       setPayError("You're offline. Checkout and payment verification need an internet connection.");
       return;
     }
-    if (!hasServerConfig) {
-      setPayError("Checkout is not configured in this environment yet. Add the Supabase project URL/ref and anon key before testing payments.");
+    if (!checkoutReady) {
+      setPayError(
+        paymentsKilled
+          ? "Checkout is temporarily unavailable. Please try again later."
+          : "Checkout is not configured in this environment yet. Add the Supabase project URL/ref and anon key before testing payments.",
+      );
       return;
     }
     setProcessing(true);
@@ -216,7 +223,13 @@ export function PaywallScreen() {
             <div className="text-amber-100/90 text-xs">You can still review plan options, but payment starts only after you reconnect.</div>
           </div>
         )}
-        {!hasServerConfig && (
+        {paymentsKilled && (
+          <div className="rounded-2xl p-3" style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(245,158,11,0.3)" }}>
+            <div className="text-amber-200 font-semibold text-xs mb-1">Payments paused</div>
+            <div className="text-amber-100/90 text-xs">Checkout is temporarily disabled. You can still browse plans; try again later.</div>
+          </div>
+        )}
+        {!hasServerConfig && !paymentsKilled && (
           <div className="rounded-2xl p-3" style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)" }}>
             <div className="text-white font-semibold text-xs mb-1">Checkout not configured</div>
             <div className="text-white/75 text-xs">This local build can render the paywall, but payment requests stay disabled until Supabase config is present.</div>
@@ -345,9 +358,17 @@ export function PaywallScreen() {
         )}
 
         {/* Razorpay CTA */}
-        <button onClick={handleRazorpay} disabled={processing || !isOnline || !hasServerConfig}
+        <button
+          type="button"
+          data-testid="paywall-pay-button"
+          onClick={handleRazorpay}
+          disabled={processing || !isOnline || !checkoutReady}
           className="w-full py-4 rounded-2xl font-black text-white text-base relative overflow-hidden"
-          style={{ background: (processing || !isOnline || !hasServerConfig) ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`, boxShadow: (processing || !isOnline || !hasServerConfig) ? "none" : "0 8px 24px rgba(67,97,238,0.4)" }}>
+          style={{
+            background: (processing || !isOnline || !checkoutReady) ? "rgba(67,97,238,0.4)" : `linear-gradient(135deg,${plan.color},#4361EE)`,
+            boxShadow: (processing || !isOnline || !checkoutReady) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
+          }}
+        >
           {processing ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>

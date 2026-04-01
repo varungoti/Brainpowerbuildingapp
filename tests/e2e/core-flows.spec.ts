@@ -139,7 +139,7 @@ test.describe("NeuroSpark core flows", () => {
     await expect(
       page.getByText(/payment starts only after you reconnect/i),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: /Pay ₹/i })).toBeDisabled();
+    await expect(page.getByTestId("paywall-pay-button")).toBeDisabled();
 
     await context.setOffline(false);
   });
@@ -179,6 +179,18 @@ test.describe("NeuroSpark core flows", () => {
     // Reload and confirm the child name is still present (appears in multiple elements — check first)
     await page.reload();
     await expect(page.getByText(/Aarav/i).first()).toBeVisible({ timeout: 8000 });
+  });
+
+  test("paywall shows plans when out of credits and disables pay without checkout", async ({ page }) => {
+    await seedLocalState(page, { ...seededState, credits: 0 });
+    await page.goto("/");
+    await page.getByRole("button", { name: /^Today$/i }).click();
+
+    await expect(page.getByText(/Unlock Today's Brain Pack/i)).toBeVisible();
+    await expect(page.getByText(/Choose Your Plan/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /30 Days/i })).toBeVisible();
+    await expect(page.getByText(/Checkout not configured/i)).toBeVisible();
+    await expect(page.getByTestId("paywall-pay-button")).toBeDisabled();
   });
 
   test("milestone completion persists across navigation", async ({ page }) => {

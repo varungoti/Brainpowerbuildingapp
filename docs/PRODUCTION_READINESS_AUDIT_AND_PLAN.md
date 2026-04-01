@@ -114,3 +114,5 @@ The app is **strong on product vision and local-first UX** (activities, brain ma
 ## 6. Ownership
 
 Assign a **single release owner** per platform (Android / iOS / Web) to drive store forms, screenshots, and version cadence. Revisit this document **after each major release** and tick items in Section 5.
+
+**Human-only tasks** (outside the repo): see **[OWNER_ACTION_CHECKLIST.md](./OWNER_ACTION_CHECKLIST.md)**. Environment matrix: **[ENVIRONMENTS.md](./ENVIRONMENTS.md)**. Incidents: **[INCIDENT_RUNBOOK.md](./INCIDENT_RUNBOOK.md)**.

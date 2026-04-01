@@ -50,6 +50,9 @@ jobs:
           VITE_ADMIN_EMAILS: ${{ secrets.VITE_ADMIN_EMAILS || '' }}
         run: pnpm run build
 
+      - name: Bundle size budget
+        run: node scripts/check-bundle-budget.mjs
+
       - name: Install Playwright (Chromium)
         run: pnpm exec playwright install --with-deps chromium
 

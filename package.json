@@ -21,7 +21,8 @@
     "age:report": "tsx scripts/age-report.ts",
     "content:validate": "tsx scripts/content-validate.ts",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
-    "verify:full": "pnpm run verify && pnpm run test:e2e"
+    "verify:full": "pnpm run verify && pnpm run test:e2e",
+    "build:check-budget": "pnpm run build && node scripts/check-bundle-budget.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.1",

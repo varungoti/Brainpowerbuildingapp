@@ -295,7 +295,13 @@ export function ProfileScreen() {
 
         {/* Innovation Lab */}
         <Section title="💡 Innovation Lab" icon="">
-          <p className="text-gray-500 text-xs mb-3">Planned features and research-backed improvements coming to NeuroSpark:</p>
+          <p className="text-gray-500 text-xs mb-3">
+            <span className="inline-block mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+              style={{ background: "rgba(67,97,238,0.12)", color: "#4361EE" }}>
+              Coming soon
+            </span>
+            Ideas we may ship — not available in the app yet:
+          </p>
           <button onClick={() => setShowInnovation(s=>!s)}
             className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200 mb-2">
             <span className="text-gray-700 text-sm">{showInnovation?"Hide":"Show"} 10 innovation ideas</span>
@@ -306,10 +312,13 @@ export function ProfileScreen() {
               {INNOVATION_IDEAS.map((idea, i) => (
                 <div key={i} className="bg-white rounded-2xl p-3.5 border border-gray-100 animate-slide-up"
                   style={{ animationDelay:`${i*0.06}s` }}>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
                       style={{ background:`${idea.color}18` }}>{idea.emoji}</div>
-                    <span className="font-bold text-gray-800 text-sm">{idea.title}</span>
+                    <span className="font-bold text-gray-800 text-sm flex-1 min-w-0">{idea.title}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
+                      Planned
+                    </span>
                   </div>
                   <p className="text-gray-500 text-xs leading-relaxed">{idea.desc}</p>
                 </div>
