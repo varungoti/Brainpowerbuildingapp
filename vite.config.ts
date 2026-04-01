@@ -2,8 +2,11 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
+  // Relative base so Capacitor WebView resolves JS/CSS from the app bundle (file / capacitor://).
+  base: "./",
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
@@ -15,6 +18,11 @@ export default defineConfig({
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
     },
+  },
+
+  // Expose package.json version as VITE_APP_VERSION so the UI can display it without importing JSON at runtime.
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.

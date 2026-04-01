@@ -1,11 +1,14 @@
 import React, { useRef, useState } from "react";
+const APP_VERSION: string = import.meta.env.VITE_APP_VERSION ?? "1.0";
 import { useApp, getLevelFromBP } from "../context/AppContext";
 import { MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
 import { usePwaInstallPrompt } from "@/utils/pwaInstall";
+import { canAccessBlueprint } from "@/utils/adminAccess";
+import { TEXT_SCALE_PRESETS, persistTextScale, readTextScaleFromLocalStorage } from "@/utils/textScale";
 
 const INNOVATION_IDEAS = [
   { emoji:"🤖", title:"AI Activity Adaptation",       desc:"On-device ML adapts difficulty based on rolling engagement ratings across all families (privacy-first).", color:"#4361EE" },
-  { emoji:"📄", title:"Weekly Intelligence Report",   desc:"Auto-generated PDF showing 13 intelligence coverage — shareable with teachers or pediatricians.", color:"#F72585" },
+  { emoji:"📄", title:"Weekly Intelligence Report",   desc:"Auto-generated PDF showing 15 brain-region coverage — shareable with teachers or pediatricians.", color:"#F72585" },
   { emoji:"👨‍👩‍👧‍👦", title:"Sibling Collaboration Mode", desc:"Activities designed for 2+ children at different ages — builds interpersonal intelligence together.", color:"#06D6A0" },
   { emoji:"🗣️", title:"Voice Instruction Mode",      desc:"Audio-guided activity narration so parents don't need to look at the screen while doing activities.", color:"#FFB703" },
   { emoji:"🌏", title:"10-Language Support",          desc:"Full localisation: Hindi, Tamil, Mandarin, Korean, Spanish, Arabic, Bengali, Portuguese, French, Swahili.", color:"#7209B7" },
@@ -37,6 +40,8 @@ export function ProfileScreen() {
   const [pendingImportJson, setPendingImportJson] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { canInstall, isInstalled, promptInstall } = usePwaInstallPrompt();
+  const [textScale, setTextScale] = useState(readTextScaleFromLocalStorage);
+  const showAdminDocs = canAccessBlueprint(user);
 
   const toggle = (id: string) =>
     setMaterialInventory(materialInventory.includes(id) ? materialInventory.filter(m=>m!==id) : [...materialInventory, id]);
@@ -262,6 +267,32 @@ export function ProfileScreen() {
           )}
         </Section>
 
+        {/* Text size — persists locally and on device (Capacitor Preferences when native) */}
+        <Section title="Reading comfort" icon="🔤">
+          <p className="text-gray-500 text-xs mb-2 leading-relaxed">
+            Increase app text size for easier reading. Saved on this device.
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {TEXT_SCALE_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => {
+                  void persistTextScale(preset.value).then(() => setTextScale(preset.value));
+                }}
+                className="flex-1 min-w-[88px] py-2.5 rounded-xl text-sm font-semibold border transition-all"
+                style={{
+                  borderColor: Math.abs(textScale - preset.value) < 0.02 ? "#4361EE" : "#e5e7eb",
+                  background: Math.abs(textScale - preset.value) < 0.02 ? "rgba(67,97,238,0.08)" : "white",
+                  color: Math.abs(textScale - preset.value) < 0.02 ? "#4361EE" : "#374151",
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </Section>
+
         {/* Innovation Lab */}
         <Section title="💡 Innovation Lab" icon="">
           <p className="text-gray-500 text-xs mb-3">Planned features and research-backed improvements coming to NeuroSpark:</p>
@@ -291,12 +322,10 @@ export function ProfileScreen() {
         <Section title="About" icon="ℹ️">
           <div className="space-y-1">
             {[
-              { icon:"📊", label:"Stats & monthly check-in",    fn:() => navigate("stats") },
-              { icon:"📜", label:"Activity history",            fn:() => navigate("history") },
-              { icon:"⚖️", label:"Legal, privacy & AI notice",   fn:() => navigate("legal_info") },
-              { icon:"📱", label:"View Blueprint Documentation", fn:() => navigate("blueprint") },
-              { icon:"🔬", label:"Research Framework",          fn:() => navigate("blueprint") },
-            ].map(item => (
+              { icon:"📊", label:"Stats & monthly check-in", fn:() => navigate("stats") },
+              { icon:"📜", label:"Activity history", fn:() => navigate("history") },
+              { icon:"⚖️", label:"Legal, privacy & AI notice", fn:() => navigate("legal_info") },
+            ].map((item) => (
               <button key={item.label} onClick={item.fn}
                 className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border border-gray-100 text-left">
                 <span className="text-xl">{item.icon}</span>
@@ -304,8 +333,19 @@ export function ProfileScreen() {
                 <span className="text-gray-300 ml-auto">›</span>
               </button>
             ))}
+            {/* Contact / help */}
+            <a
+              href="mailto:support@neurospark.app?subject=NeuroSpark%20Support"
+              className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border border-gray-100 text-left"
+            >
+              <span className="text-xl">💬</span>
+              <span className="text-gray-700 text-sm">Contact support</span>
+              <span className="text-gray-300 ml-auto">›</span>
+            </a>
           </div>
         </Section>
+
+        {showAdminDocs && <AdminPanel navigate={navigate} />}
 
         {/* Sign out */}
         {!confirmLogout ? (
@@ -325,7 +365,9 @@ export function ProfileScreen() {
           </div>
         )}
 
-        <p className="text-center text-gray-400 text-xs">NeuroSpark Blueprint v1.0 · March 2026 · Research & Planning Phase</p>
+        <p className="text-center text-gray-400 text-xs">
+          NeuroSpark v{APP_VERSION} · Parent brain-development activities
+        </p>
       </div>
     </div>
   );
@@ -339,6 +381,54 @@ function Section({ title, icon, children }: { title:string; icon:string; childre
         <span className="text-gray-800 font-bold text-sm">{title}</span>
       </div>
       {children}
+    </div>
+  );
+}
+
+function AdminPanel({ navigate }: { navigate: (v: import("../context/AppContext").AppView) => void }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: "1.5px solid rgba(245,158,11,0.4)", background: "rgba(255,251,235,0.8)" }}>
+      {/* Header / toggle */}
+      <button
+        type="button"
+        onClick={() => setOpen(s => !s)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+      >
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+          style={{ background: "rgba(245,158,11,0.18)" }}>🔐</div>
+        <div className="flex-1">
+          <div className="text-amber-900 font-bold text-sm">Admin</div>
+          <div className="text-amber-700/70 text-xs">Internal team tools</div>
+        </div>
+        <span className="text-amber-500 font-bold text-xs px-2 py-0.5 rounded-full mr-2"
+          style={{ background: "rgba(245,158,11,0.15)" }}>
+          ADMIN
+        </span>
+        <span className="text-amber-400 text-base">{open ? "▲" : "▼"}</span>
+      </button>
+
+      {/* Collapsible body */}
+      {open && (
+        <div className="px-4 pb-4 pt-1 space-y-2 animate-slide-down border-t" style={{ borderColor: "rgba(245,158,11,0.2)" }}>
+          <p className="text-amber-800/70 text-xs leading-relaxed">
+            Architecture &amp; research docs — restricted to allowlisted admin accounts. Set <span className="font-mono">VITE_ADMIN_EMAILS</span> in production.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("blueprint")}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all active:scale-95"
+            style={{ background: "white", border: "1px solid rgba(245,158,11,0.25)" }}
+          >
+            <span className="text-xl">📐</span>
+            <div className="flex-1">
+              <div className="text-gray-800 text-sm font-semibold">Blueprint Documentation</div>
+              <div className="text-gray-400 text-xs">Architecture, research framework, algorithm &amp; roadmap</div>
+            </div>
+            <span className="text-gray-300">›</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

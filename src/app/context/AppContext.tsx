@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { Activity, getAgeTierFromDob } from "../data/activities";
 import { currentMonthKey, computeComposite, type OutcomeChecklistMonth } from "../data/outcomeChecklist";
@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient, signOutSupabase } from "../../utils/supabase/
 import { captureProductEvent } from "../../utils/productAnalytics";
 import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../utils/neurosparkBackup";
 import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
+import { canAccessBlueprint } from "../../utils/adminAccess";
 export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -243,6 +244,10 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   const [viewingActivity, setViewingActivity] = useState<Activity | null>(null);
   const [authMode, setAuthMode] = useState<"login"|"signup">("signup");
   const [generatorIntent, setGeneratorIntent] = useState<GeneratorIntent | null>(null);
+  const userRef = useRef(p.user);
+  useEffect(() => {
+    userRef.current = p.user;
+  }, [p.user]);
 
   useEffect(() => { save(p); }, [p]);
 
@@ -295,8 +300,12 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   const upd = (patch: Partial<Persisted>) => setP(prev => ({ ...prev, ...patch }));
 
   const navigate = useCallback((to: AppView) => {
-    setHist(h => [...h, view]);
-    setView(to);
+    let target = to;
+    if (to === "blueprint" && !canAccessBlueprint(userRef.current)) {
+      target = "profile";
+    }
+    setHist((h) => [...h, view]);
+    setView(target);
   }, [view]);
 
   const goBack = useCallback(() => {

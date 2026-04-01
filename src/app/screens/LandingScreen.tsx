@@ -2,7 +2,7 @@ import React from "react";
 import { useApp } from "../context/AppContext";
 
 const FEATURES = [
-  { emoji:"🌍", title:"16 Global Methods", desc:"Vedic Math · Shichida · Montessori · Origami · Kumon and 11 more", color:"#E63946", bg:"#FFF0F0" },
+  { emoji:"🌍", title:"25+ Global Methods", desc:"Vedic Math · Shichida · Montessori · Origami · Kumon · Waldorf · Reggio Emilia and more", color:"#E63946", bg:"#FFF0F0" },
   { emoji:"🧠", title:"15 Brain Regions", desc:"Full neuro-mapping: language, memory, creativity, motor, EQ, executive function & more", color:"#7209B7", bg:"#F5F0FF" },
   { emoji:"🏠", title:"Zero Cost Forever", desc:"Every activity uses only household materials — rice, paper, spoons, stones", color:"#06D6A0", bg:"#EDFFF8" },
   { emoji:"⚡", title:"AGE Algorithm", desc:"AI-grade algorithm selects 3–5 optimal activities daily for each child", color:"#4361EE", bg:"#EEF1FF" },
@@ -11,10 +11,10 @@ const FEATURES = [
 ];
 
 const RESEARCH_STATS = [
-  { value:"32%", label:"attention improvement from daily Yoga (Harvard Med)" },
-  { value:"200%", label:"better retention with Spaced Repetition (Cepeda 2006)" },
-  { value:"3×", label:"faster mental math with Abacus (Journal of Neuroscience)" },
-  { value:"30%", label:"higher achievement from Growth Mindset (Dweck, Stanford)" },
+  { value:"↑32%", label:"attention span with regular Yoga practice (Harvard Med School)" },
+  { value:"↑2×", label:"recall with Spaced Repetition vs massed practice (Cepeda et al. 2006)" },
+  { value:"↑3×", label:"mental math speed with Abacus training (Journal of Neuroscience)" },
+  { value:"↑30%", label:"academic achievement with Growth Mindset interventions (Dweck, Stanford)" },
 ];
 
 export function LandingScreen() {
@@ -60,6 +60,10 @@ export function LandingScreen() {
             ))}
           </div>
         </div>
+
+        <p className="text-white/25 text-center mb-4" style={{ fontSize:9 }}>
+          Statistics from peer-reviewed research; individual results vary.
+        </p>
 
         {/* Feature grid */}
         <div className="grid grid-cols-2 gap-2.5 mb-7 animate-slide-up stagger-2">

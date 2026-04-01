@@ -217,36 +217,38 @@ export function GeneratorScreen() {
       </div>
 
       <div className="px-4 pb-6 space-y-3">
-        {/* Algorithm trace */}
-        <div className="rounded-2xl p-3 bg-gray-900 animate-slide-up">
-          <div className="text-gray-400 font-bold tracking-widest mb-1.5" style={{ fontSize:10 }}>⚙️ AGE TRACE</div>
-          <div className="space-y-0.5 font-mono" style={{ fontSize:10 }}>
-            <div className="text-blue-400">▸ Tier {tier} · {tierCfg.desc} · Mood: {mood}</div>
-            <div className="text-green-400">▸ {pack.length} activities selected · {totalDur}min budget used</div>
-            <div className="text-yellow-400">▸ {coveredIntel.length} intelligence types covered</div>
-            {personalization && (
-              <div className="text-purple-400">
-                ▸ KYC personalization on · style:{personalization.learningStyle ?? "mixed"} · traits weighted
-              </div>
-            )}
-            {lastCompletionByActivity && (
-              <div className="text-cyan-400">
-                ▸ Spaced repetition · {Object.keys(lastCompletionByActivity).length} activities in history · 24h repeat deprioritized
-              </div>
-            )}
-            {(boostAILiteracy || boostDualTask) && (
-              <div className="text-orange-300">
-                ▸ Pack focus ·{" "}
-                {[boostAILiteracy && "AI literacy weight + swap-in if needed", boostDualTask && "dual-task scoring boost"].filter(Boolean).join(" · ")}
-              </div>
-            )}
-            {outcomeFocusPillars.length > 0 && (
-              <div className="text-emerald-300">
-                ▸ Outcome support · bias toward recent low pillars: {outcomeFocusPillars.join(", ")}
-              </div>
-            )}
+        {/* Algorithm trace — dev-only; hidden in production builds */}
+        {import.meta.env.DEV && (
+          <div className="rounded-2xl p-3 bg-gray-900 animate-slide-up">
+            <div className="text-gray-400 font-bold tracking-widest mb-1.5" style={{ fontSize:10 }}>⚙️ AGE TRACE</div>
+            <div className="space-y-0.5 font-mono" style={{ fontSize:10 }}>
+              <div className="text-blue-400">▸ Tier {tier} · {tierCfg.desc} · Mood: {mood}</div>
+              <div className="text-green-400">▸ {pack.length} activities selected · {totalDur}min budget used</div>
+              <div className="text-yellow-400">▸ {coveredIntel.length} intelligence types covered</div>
+              {personalization && (
+                <div className="text-purple-400">
+                  ▸ KYC personalization on · style:{personalization.learningStyle ?? "mixed"} · traits weighted
+                </div>
+              )}
+              {lastCompletionByActivity && (
+                <div className="text-cyan-400">
+                  ▸ Spaced repetition · {Object.keys(lastCompletionByActivity).length} activities in history · 24h repeat deprioritized
+                </div>
+              )}
+              {(boostAILiteracy || boostDualTask) && (
+                <div className="text-orange-300">
+                  ▸ Pack focus ·{" "}
+                  {[boostAILiteracy && "AI literacy weight + swap-in if needed", boostDualTask && "dual-task scoring boost"].filter(Boolean).join(" · ")}
+                </div>
+              )}
+              {outcomeFocusPillars.length > 0 && (
+                <div className="text-emerald-300">
+                  ▸ Outcome support · bias toward recent low pillars: {outcomeFocusPillars.join(", ")}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {pack.map((act, idx) => {
           const done      = completedIds.has(act.id);

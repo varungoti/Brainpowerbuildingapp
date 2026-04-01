@@ -1,8 +1,9 @@
-import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FULL_SCREEN_VIEWS, getActiveNavTab, getScreenTitle, shouldHideHeader } from "./logic/viewConfig";
 import { useOnlineStatus } from "../utils/networkStatus";
+import { hydrateTextScaleFromNativePreferences } from "../utils/textScale";
 
 // Screens
 import { LandingScreen }     from "./screens/LandingScreen";
@@ -10,19 +11,18 @@ import { AuthScreen }        from "./screens/AuthScreen";
 import { OnboardingScreen }  from "./screens/OnboardingScreen";
 import { HomeScreen }        from "./screens/HomeScreen";
 import { GeneratorScreen }   from "./screens/GeneratorScreen";
-
-const HistoryScreen = lazy(() => import("./screens/HistoryScreen").then((m) => ({ default: m.HistoryScreen })));
-const StatsScreen = lazy(() => import("./screens/StatsScreen").then((m) => ({ default: m.StatsScreen })));
-const ProfileScreen = lazy(() => import("./screens/ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
-const AddChildScreen = lazy(() => import("./screens/AddChildScreen").then((m) => ({ default: m.AddChildScreen })));
-const PaywallScreen = lazy(() => import("./screens/PaywallScreen").then((m) => ({ default: m.PaywallScreen })));
-const YearPlanScreen = lazy(() => import("./screens/YearPlanScreen").then((m) => ({ default: m.YearPlanScreen })));
-const AICounselorScreen = lazy(() => import("./screens/AICounselorScreen").then((m) => ({ default: m.AICounselorScreen })));
-const BrainMapScreen = lazy(() => import("./screens/BrainMapScreen").then((m) => ({ default: m.BrainMapScreen })));
-const MilestonesScreen = lazy(() => import("./screens/MilestonesScreen").then((m) => ({ default: m.MilestonesScreen })));
-const LegalInfoScreen = lazy(() => import("./screens/LegalInfoScreen").then((m) => ({ default: m.LegalInfoScreen })));
-const ActivityDetailScreen = lazy(() => import("./screens/ActivityDetailScreen").then((m) => ({ default: m.ActivityDetailScreen })));
-const BlueprintDocsScreen = lazy(() => import("./screens/BlueprintDocsScreen").then((m) => ({ default: m.BlueprintDocsScreen })));
+import { HistoryScreen } from "./screens/HistoryScreen";
+import { StatsScreen } from "./screens/StatsScreen";
+import { ProfileScreen } from "./screens/ProfileScreen";
+import { AddChildScreen } from "./screens/AddChildScreen";
+import { PaywallScreen } from "./screens/PaywallScreen";
+import { YearPlanScreen } from "./screens/YearPlanScreen";
+import { AICounselorScreen } from "./screens/AICounselorScreen";
+import { BrainMapScreen } from "./screens/BrainMapScreen";
+import { MilestonesScreen } from "./screens/MilestonesScreen";
+import { LegalInfoScreen } from "./screens/LegalInfoScreen";
+import { ActivityDetailScreen } from "./screens/ActivityDetailScreen";
+import { BlueprintDocsScreen } from "./screens/BlueprintDocsScreen";
 
 // ─── Bottom Nav ────────────────────────────────────────────────────────────────
 const NAV_TABS = [
@@ -100,18 +100,6 @@ function AppHeader() {
   );
 }
 
-function ScreenLoadingFallback({ title }: { title: string }) {
-  return (
-    <div className="h-full flex items-center justify-center px-6" style={{ background: "#F0EFFF" }}>
-      <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center shadow-sm max-w-sm w-full">
-        <div className="text-4xl mb-3 animate-pulse">🧠</div>
-        <div className="text-gray-900 font-black text-lg mb-1">Loading {title}</div>
-        <div className="text-gray-500 text-sm">Preparing a smoother, lighter app experience…</div>
-      </div>
-    </div>
-  );
-}
-
 function OfflineBanner() {
   return (
     <div
@@ -177,6 +165,10 @@ function AppShell() {
     mainRef.current?.focus();
   }, [view]);
 
+  useEffect(() => {
+    void hydrateTextScaleFromNativePreferences();
+  }, []);
+
   const shellStyle = isCompactViewport
     ? {
         width: "100vw",
@@ -196,8 +188,6 @@ function AppShell() {
         boxShadow: "0 0 0 10px #1a1a2e, 0 0 0 12px #2d2d3e, 0 0 80px rgba(67,97,238,0.4), inset 0 0 30px rgba(0,0,0,0.5)",
         background: "#F0EFFF",
       };
-  const screenTitle = getScreenTitle(view);
-
   return (
     <div className={`min-h-screen ${isCompactViewport ? "" : "flex items-center justify-center p-2"}`}
       style={{ background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)" }}>
@@ -244,9 +234,7 @@ function AppShell() {
 
         {/* Main content */}
         <div id="app-main" ref={mainRef} role="main" tabIndex={-1} className="flex-1 overflow-hidden relative outline-none">
-          <Suspense fallback={<ScreenLoadingFallback title={screenTitle} />}>
-            <ScreenContent />
-          </Suspense>
+          <ScreenContent />
         </div>
 
         {/* Bottom nav */}
@@ -265,7 +253,7 @@ function AppShell() {
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
           <div className="glass rounded-full px-4 py-1.5 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/>
-            <span className="text-white/60 text-xs">NeuroSpark · v2.0 Premium · March 2026</span>
+            <span className="text-white/60 text-xs">NeuroSpark · v{import.meta.env.VITE_APP_VERSION ?? "1.0"}</span>
           </div>
         </div>
       )}

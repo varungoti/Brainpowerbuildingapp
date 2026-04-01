@@ -7,6 +7,9 @@ const TABS = [
   { id: "ai" as const, label: "AI", emoji: "🤖" },
 ];
 
+const EFFECTIVE_DATE = "1 April 2026";
+const SUPPORT_EMAIL = "support@neurospark.app";
+
 /**
  * Non-binding draft copy for in-app transparency. Replace with counsel-reviewed text before public marketing.
  */
@@ -41,6 +44,7 @@ export function LegalInfoScreen() {
       </div>
 
       <div className="px-4 pb-8 space-y-4 text-gray-700 text-sm leading-relaxed">
+        <p className="text-gray-400 text-xs text-center">Effective {EFFECTIVE_DATE}</p>
         {tab === "terms" && (
           <article className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
             <h2 className="font-black text-gray-900 text-base">Terms of use (summary)</h2>
@@ -92,6 +96,20 @@ export function LegalInfoScreen() {
             </ul>
           </article>
         )}
+
+        {/* Contact footer */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center space-y-1">
+          <p className="text-gray-500 text-xs">Questions about these policies?</p>
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=NeuroSpark%20Legal%20Query`}
+            className="text-blue-600 font-semibold text-sm underline underline-offset-2"
+          >
+            {SUPPORT_EMAIL}
+          </a>
+          <p className="text-gray-400 text-xs mt-1">
+            This is a draft summary. Replace with counsel-reviewed text before public launch.
+          </p>
+        </div>
       </div>
     </div>
   );

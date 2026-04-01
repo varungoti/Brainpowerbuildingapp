@@ -1,5 +1,6 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
+import { canAccessBlueprint } from "@/utils/adminAccess";
 import { ResearchFramework } from "../components/blueprint/ResearchFramework";
 import { IntelligenceMatrix } from "../components/blueprint/IntelligenceMatrix";
 import { DevelopmentalMatrix } from "../components/blueprint/DevelopmentalMatrix";
@@ -21,7 +22,19 @@ const SECTIONS = [
 ];
 
 export function BlueprintDocsScreen() {
-  const { goBack } = useApp();
+  const { goBack, user, navigate } = useApp();
+
+  if (!canAccessBlueprint(user)) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center px-6 text-center gap-3" style={{ background: "#F0EFFF" }}>
+        <div className="text-4xl">🔒</div>
+        <p className="text-gray-600 text-sm font-semibold">This area is restricted to team administrators.</p>
+        <button type="button" onClick={() => navigate("profile")} className="text-[#4361EE] text-sm font-bold underline">
+          Back to Profile
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto" style={{ background: "#F0EFFF" }}>

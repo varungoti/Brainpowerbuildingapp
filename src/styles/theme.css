@@ -2,6 +2,8 @@
 
 :root {
   --font-size: 16px;
+  /** Text size multiplier (Profile → Reading comfort); set via JS for accessibility */
+  --ns-text-scale: 1;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -39,6 +41,10 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+html {
+  font-size: calc(var(--font-size, 16px) * var(--ns-text-scale, 1));
 }
 
 .dark {
@@ -262,6 +268,31 @@
   .stagger-5 { animation-delay: 0.25s; }
   .stagger-6 { animation-delay: 0.30s; }
   
+  /* ── Focus-visible accessibility rings ──────────────────────────────── */
+  /*
+   * Keyboard-navigating users see a clear indigo ring.
+   * Mouse/touch users see nothing (focus-visible, not focus).
+   * Applied globally so every interactive element inherits it.
+   */
+  :focus-visible {
+    outline: 2.5px solid #4361EE;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Override for elements that already supply their own ring */
+  [data-no-focus-ring]:focus-visible {
+    outline: none;
+  }
+
+  /* ── Reduced-motion: respect system preference ───────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* Glass morphism */
   .glass {
     background: rgba(255,255,255,0.12);

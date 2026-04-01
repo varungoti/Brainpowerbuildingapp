@@ -7,6 +7,11 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios",
+    "build:mobile": "vite build && cap sync",
+    "apk:debug": "pnpm run build:mobile && cd android && gradlew.bat assembleDebug",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -19,6 +24,10 @@
     "verify:full": "pnpm run verify && pnpm run test:e2e"
   },
   "dependencies": {
+    "@capacitor/android": "^7.6.1",
+    "@capacitor/core": "^7.6.1",
+    "@capacitor/ios": "^7.6.1",
+    "@capacitor/preferences": "^7.0.4",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -78,6 +87,7 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@rollup/rollup-win32-x64-msvc": "4.59.0",

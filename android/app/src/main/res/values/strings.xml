@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NeuroSpark</string>
+    <string name="title_activity_main">NeuroSpark</string>
+    <string name="package_name">com.neurospark.app</string>
+    <string name="custom_url_scheme">com.neurospark.app</string>
+</resources>

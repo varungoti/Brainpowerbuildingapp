@@ -100,7 +100,7 @@ test.describe("NeuroSpark core flows", () => {
     await page.getByRole("button", { name: /^Today/i }).click();
     await page.getByRole("button", { name: /Generate My Pack/i }).click();
 
-    await expect(page.getByText(/AGE TRACE/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Today's Pack for/i)).toBeVisible({ timeout: 10000 });
     await page.getByText(/Tap to expand, or open the full detail view below/i).first().click();
     await page.getByRole("button", { name: /Open full detail/i }).first().click();
 
@@ -142,6 +142,43 @@ test.describe("NeuroSpark core flows", () => {
     await expect(page.getByRole("button", { name: /Pay ₹/i })).toBeDisabled();
 
     await context.setOffline(false);
+  });
+
+  test("backup export file is downloadable and importable", async ({ page }) => {
+    await seedLocalState(page);
+    await page.goto("/");
+    await page.getByRole("button", { name: /^Profile/i }).click();
+
+    // Reveal backup tools
+    await page.getByRole("button", { name: /Show backup tools/i }).click();
+    await expect(page.getByRole("button", { name: /Download backup/i })).toBeVisible();
+
+    // Trigger download and capture the file content via the download event
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: /Download backup/i }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/neurospark-backup-\d{4}-\d{2}-\d{2}\.json/);
+
+    // Read the downloaded file and verify it is valid JSON with the expected shape
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+    const raw = Buffer.concat(chunks).toString("utf-8");
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    expect(parsed.format).toBe("neurospark_backup");
+    expect(parsed.version).toBe(1);
+    expect(parsed.payload).toBeTruthy();
+
+    // Simulate restore: write the backup into localStorage as the parse result
+    const payload = parsed.payload as Record<string, unknown>;
+    await page.evaluate((p) => {
+      window.localStorage.setItem("neurospark_v2", JSON.stringify(p));
+    }, payload);
+
+    // Reload and confirm the child name is still present (appears in multiple elements — check first)
+    await page.reload();
+    await expect(page.getByText(/Aarav/i).first()).toBeVisible({ timeout: 8000 });
   });
 
   test("milestone completion persists across navigation", async ({ page }) => {
