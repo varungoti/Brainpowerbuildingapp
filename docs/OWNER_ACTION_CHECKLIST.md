@@ -2,6 +2,8 @@
 
 Use this as your personal launch backlog. Tick items when done.
 
+**Step-by-step credential setup (Supabase, Razorpay, Sentry, flags):** see **[SETUP_CREDENTIALS.md](./SETUP_CREDENTIALS.md)**.
+
 ## Legal & trust
 
 - [ ] Have counsel review **Terms**, **Privacy**, and **Refunds** copy in `LegalInfoScreen` and any public website policy pages.

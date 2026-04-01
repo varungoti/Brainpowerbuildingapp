@@ -18,10 +18,11 @@
     "test:watch": "vitest",
     "lint": "eslint src",
     "test:e2e": "playwright test",
+    "test:e2e:paywall": "playwright test -c playwright.paywall-e2e.config.ts",
     "age:report": "tsx scripts/age-report.ts",
     "content:validate": "tsx scripts/content-validate.ts",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
-    "verify:full": "pnpm run verify && pnpm run test:e2e",
+    "verify:full": "pnpm run verify && pnpm run test:e2e && pnpm run test:e2e:paywall",
     "build:check-budget": "pnpm run build && node scripts/check-bundle-budget.mjs"
   },
   "dependencies": {

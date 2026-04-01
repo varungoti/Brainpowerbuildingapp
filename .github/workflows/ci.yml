@@ -61,6 +61,9 @@ jobs:
           E2E_SKIP_BUILD: "1"
         run: pnpm run test:e2e
 
+      - name: E2E paywall checkout (mocked Razorpay)
+        run: pnpm run test:e2e:paywall
+
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

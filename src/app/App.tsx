@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
+import { RemoteConfigProvider } from "./context/RemoteConfigContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FULL_SCREEN_VIEWS, getActiveNavTab, getScreenTitle, shouldHideHeader } from "./logic/viewConfig";
 import { useOnlineStatus } from "../utils/networkStatus";
@@ -265,7 +266,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <AppShell />
+        <RemoteConfigProvider>
+          <AppShell />
+        </RemoteConfigProvider>
       </AppProvider>
     </ErrorBoundary>
   );

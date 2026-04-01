@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "tests/e2e",
+  /** Uses `vite build --mode e2e-paywall` + mocked Razorpay; see `playwright.paywall-e2e.config.ts`. */
+  testIgnore: /paywall-checkout\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

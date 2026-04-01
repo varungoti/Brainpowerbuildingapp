@@ -9,6 +9,7 @@ export function isSupabaseAuthConfigured(): boolean {
 
 /** Browser client with isolated storage key so it doesn't clash with app JSON. */
 export function getSupabaseBrowserClient(): SupabaseClient | null {
+  if (import.meta.env.VITE_E2E_SUPPRESS_SB_CLIENT === "true") return null;
   if (!isSupabaseAuthConfigured()) return null;
   if (singleton === undefined) {
     singleton = createClient(supabaseUrl, publicAnonKey, {

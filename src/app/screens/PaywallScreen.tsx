@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 import { ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
 import { isPaymentsRemotelyDisabled } from "@/utils/featureFlags";
+import { useRemoteAppFlags } from "@/app/context/RemoteConfigContext";
 import { captureProductEvent } from "@/utils/productAnalytics";
 import { useOnlineStatus } from "@/utils/networkStatus";
 
@@ -38,7 +39,9 @@ export function PaywallScreen() {
   const { activeChild, navigate, addCredits, activityLogs } = useApp();
   const isOnline = useOnlineStatus();
   const hasServerConfig = isSupabaseConfigured();
-  const paymentsKilled = isPaymentsRemotelyDisabled();
+  const remoteFlags = useRemoteAppFlags();
+  const paymentsKilled =
+    isPaymentsRemotelyDisabled() || remoteFlags.payments_remote_kill === true;
   const checkoutReady = hasServerConfig && !paymentsKilled;
   const [selected, setSelected]   = useState("day30");
   const [step, setStep]           = useState<PayStep>("plan");

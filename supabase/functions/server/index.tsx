@@ -875,7 +875,7 @@ const DEMO_RESPONSES: Record<string, object> = {
   },
 };
 
-app.post("/make-server-76b0ba9a/ai-counselor", async (c) => {
+async function postAiCounselor(c: Context) {
   try {
     const rateLimit = await enforceRateLimit(c, "ai-counselor", 20, 600);
     if (rateLimit) return rateLimit;
@@ -885,7 +885,6 @@ app.post("/make-server-76b0ba9a/ai-counselor", async (c) => {
     const apiKey = Deno.env.get("OPENAI_API_KEY");
 
     if (!apiKey) {
-      // Return demo response for the selected category
       const demo = DEMO_RESPONSES[category] ?? DEMO_RESPONSES["behavior"];
       return c.json({ success: true, data: demo, isDemo: true });
     }
@@ -950,7 +949,6 @@ Return ONLY valid JSON in this exact structure:
     const content = aiResult.choices?.[0]?.message?.content ?? "";
     let parsed;
     try {
-      // Strip markdown code blocks if present
       const clean = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       parsed = JSON.parse(clean);
     } catch {
@@ -964,10 +962,48 @@ Return ONLY valid JSON in this exact structure:
     console.log("ai-counselor error:", e);
     return c.json({ error: String(e) }, 500);
   }
-});
+}
+
+/** Supabase Edge passes path after /functions/v1/<function-name>/ — register both styles. */
+app.post("/make-server-76b0ba9a/ai-counselor", postAiCounselor);
+app.post("/ai-counselor", postAiCounselor);
+
+// ─── Remote config (feature flags, no secrets) ───────────────────────────────
+async function getRemoteConfig(c: Context) {
+  const rateLimit = await enforceRateLimit(c, "remote-config", 120, 300);
+  if (rateLimit) return rateLimit;
+  const defaults: Record<string, boolean> = {
+    payments_remote_kill: false,
+    ai_counselor_paused: false,
+  };
+  let fromEnv: Record<string, boolean> = {};
+  try {
+    const raw = Deno.env.get("REMOTE_CONFIG_JSON")?.trim();
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === "boolean") fromEnv[k] = v;
+      }
+    }
+  } catch (e) {
+    console.log("REMOTE_CONFIG_JSON parse error:", e);
+  }
+  let fromKv: Record<string, boolean> | null = null;
+  try {
+    const rawKv = await kv.get("remote_config:flags") as Record<string, boolean> | null;
+    if (rawKv && typeof rawKv === "object") fromKv = rawKv;
+  } catch (e) {
+    console.log("remote_config:flags kv error:", e);
+  }
+  const flags = { ...defaults, ...fromEnv, ...(fromKv ?? {}) };
+  return c.json({ ok: true, flags, updatedAt: new Date().toISOString() });
+}
+
+app.get("/make-server-76b0ba9a/remote-config", getRemoteConfig);
+app.get("/remote-config", getRemoteConfig);
 
 // ─── Razorpay Payment ──────────────────────────────────────────────────────────
-app.post("/make-server-76b0ba9a/razorpay/create-order", async (c) => {
+async function postRazorpayCreateOrder(c: Context) {
   try {
     const rateLimit = await enforceRateLimit(c, "razorpay-create-order", 10, 600);
     if (rateLimit) return rateLimit;
@@ -993,9 +1029,9 @@ app.post("/make-server-76b0ba9a/razorpay/create-order", async (c) => {
     console.log("razorpay create-order error:", e);
     return c.json({ error: String(e) }, 500);
   }
-});
+}
 
-app.post("/make-server-76b0ba9a/razorpay/verify-payment", async (c) => {
+async function postRazorpayVerifyPayment(c: Context) {
   try {
     const rateLimit = await enforceRateLimit(c, "razorpay-verify-payment", 20, 600);
     if (rateLimit) return rateLimit;
@@ -1019,6 +1055,11 @@ app.post("/make-server-76b0ba9a/razorpay/verify-payment", async (c) => {
     console.log("razorpay verify-payment error:", e);
     return c.json({ error: String(e) }, 500);
   }
-});
+}
+
+app.post("/make-server-76b0ba9a/razorpay/create-order", postRazorpayCreateOrder);
+app.post("/razorpay/create-order", postRazorpayCreateOrder);
+app.post("/make-server-76b0ba9a/razorpay/verify-payment", postRazorpayVerifyPayment);
+app.post("/razorpay/verify-payment", postRazorpayVerifyPayment);
 
 Deno.serve(app.fetch);

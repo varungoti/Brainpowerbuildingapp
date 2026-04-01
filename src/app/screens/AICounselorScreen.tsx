@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { useRemoteAppFlags } from "../context/RemoteConfigContext";
 import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
 import { useOnlineStatus } from "@/utils/networkStatus";
 
@@ -44,6 +45,8 @@ export function AICounselorScreen() {
   const { activeChild } = useApp();
   const isOnline = useOnlineStatus();
   const hasServerConfig = isSupabaseConfigured();
+  const remoteFlags = useRemoteAppFlags();
+  const aiPausedRemote = remoteFlags.ai_counselor_paused === true;
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [concern, setConcern] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,6 +68,10 @@ export function AICounselorScreen() {
     }
     if (!hasServerConfig) {
       setError("AI Counselor is not configured in this environment yet. Add your Supabase project URL/ref and anon key to enable server-backed guidance.");
+      return;
+    }
+    if (aiPausedRemote) {
+      setError("AI Counselor is temporarily paused. Please try again later.");
       return;
     }
     if (!selectedCategory || !concern.trim()) return;
@@ -140,6 +147,12 @@ export function AICounselorScreen() {
             <div className="text-white/80 text-xs">This build keeps the feature visible, but requests stay disabled until Supabase env vars are provided.</div>
           </div>
         )}
+        {hasServerConfig && aiPausedRemote && (
+          <div className="mt-3 p-3 rounded-2xl" style={{ background: "rgba(251,191,36,0.14)", border: "1px solid rgba(245,158,11,0.35)" }}>
+            <div className="text-amber-200 font-semibold text-xs mb-1">AI Counselor paused</div>
+            <div className="text-amber-100/90 text-xs">New research requests are temporarily disabled. You can still read any guidance already on screen.</div>
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-8 space-y-4">
@@ -207,11 +220,11 @@ export function AICounselorScreen() {
 
             <button
               onClick={handleAsk}
-              disabled={!selectedCategory || concern.trim().length < 20 || loading}
+              disabled={!selectedCategory || concern.trim().length < 20 || loading || aiPausedRemote}
               className="w-full py-4 rounded-2xl font-black text-white text-base transition-all"
               style={{
-                background: (!isOnline || !hasServerConfig || !selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
-                boxShadow: (!isOnline || !hasServerConfig || !selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
+                background: (!isOnline || !hasServerConfig || aiPausedRemote || !selectedCategory || concern.trim().length < 20) ? "#D1D5DB" : "linear-gradient(135deg,#4361EE,#7209B7)",
+                boxShadow: (!isOnline || !hasServerConfig || aiPausedRemote || !selectedCategory || concern.trim().length < 20) ? "none" : "0 8px 24px rgba(67,97,238,0.4)",
               }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

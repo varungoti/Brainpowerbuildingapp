@@ -1,5 +1,7 @@
 # Environments (staging vs production)
 
+For **exact variable names and Supabase/Razorpay secrets**, use **[SETUP_CREDENTIALS.md](./SETUP_CREDENTIALS.md)**.
+
 ## Principles
 
 - **Never** commit real `.env` files. Use `.env.example` as the template.

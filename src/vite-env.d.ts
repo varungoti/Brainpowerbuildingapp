@@ -17,6 +17,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_VERSION: string;
   /** Optional comma/space-separated flags; see src/utils/featureFlags.ts */
   readonly VITE_FEATURE_FLAGS?: string;
+  /** E2E paywall build: skip creating Supabase browser client (avoids calls to fake host). */
+  readonly VITE_E2E_SUPPRESS_SB_CLIENT?: string;
 }
 
 interface ImportMeta {
