@@ -8,6 +8,7 @@ export const SCREEN_TITLES: Partial<Record<AppView, string>> = {
   profile: "Profile",
   add_child: "Add Child",
   blueprint: "Blueprint Docs",
+  feeds: "Community feeds",
   paywall: "Unlock Activities",
   year_plan: "Year Roadmap",
   ai_counselor: "AI Counselor",
@@ -47,6 +48,6 @@ export function shouldHideHeader(view: AppView): boolean {
 export function getActiveNavTab(view: AppView): AppView | null {
   if (view === "pack_result" || view === "paywall" || view === "activity_detail") return "generate";
   if (view === "know_your_child") return "brain_map";
-  if (view === "legal_info" || view === "stats" || view === "history" || view === "add_child" || view === "blueprint") return "profile";
+  if (view === "legal_info" || view === "stats" || view === "history" || view === "add_child" || view === "blueprint" || view === "feeds") return "profile";
   return view;
 }

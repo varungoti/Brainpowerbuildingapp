@@ -404,6 +404,7 @@ export function HomeScreen() {
               { emoji:"🧠", label:"AI Counselor",       color:"#F72585", bg:"#FFF0F6", fn:() => navigate("ai_counselor") },
               { emoji:"📊", label:"Stats & check-in", color:"#06D6A0", bg:"#EDFFF8", fn:() => navigate("stats") },
               { emoji:"📅", label:"Activity History",   color:"#FFB703", bg:"#FFFBE6", fn:() => navigate("history") },
+              { emoji:"📰", label:"Community feeds",    color:"#4361EE", bg:"#EEF1FF", fn:() => navigate("feeds") },
               { emoji:"👤", label:"Profile & Settings", color:"#FB5607", bg:"#FFF4EF", fn:() => navigate("profile") },
             ].map((a, i) => (
               <button key={a.label} onClick={a.fn}

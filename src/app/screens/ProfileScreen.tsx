@@ -333,6 +333,7 @@ export function ProfileScreen() {
             {[
               { icon:"📊", label:"Stats & monthly check-in", fn:() => navigate("stats") },
               { icon:"📜", label:"Activity history", fn:() => navigate("history") },
+              { icon:"📰", label:"Community feeds", fn:() => navigate("feeds") },
               { icon:"⚖️", label:"Legal, privacy & AI notice", fn:() => navigate("legal_info") },
             ].map((item) => (
               <button key={item.label} onClick={item.fn}

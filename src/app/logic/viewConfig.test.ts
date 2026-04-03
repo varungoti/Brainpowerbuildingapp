@@ -12,6 +12,7 @@ describe("viewConfig", () => {
     expect(getActiveNavTab("pack_result")).toBe("generate");
     expect(getActiveNavTab("activity_detail")).toBe("generate");
     expect(getActiveNavTab("legal_info")).toBe("profile");
+    expect(getActiveNavTab("feeds")).toBe("profile");
     expect(getActiveNavTab("know_your_child")).toBe("brain_map");
   });
 

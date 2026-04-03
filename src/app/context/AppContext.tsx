@@ -14,7 +14,7 @@ export type AppView =
   | "landing" | "auth"
   | "onboard_welcome" | "onboard_child" | "onboard_materials" | "onboard_ready"
   | "home" | "generate" | "pack_result" | "activity_detail"
-  | "history" | "stats" | "profile" | "add_child" | "blueprint"
+  | "history" | "stats" | "profile" | "add_child" | "blueprint" | "feeds"
   | "paywall" | "year_plan" | "ai_counselor"
   | "brain_map" | "know_your_child" | "milestones"
   | "legal_info";

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
+import { FeedProvider } from "./context/FeedContext";
 import { RemoteConfigProvider } from "./context/RemoteConfigContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FULL_SCREEN_VIEWS, getActiveNavTab, getScreenTitle, shouldHideHeader } from "./logic/viewConfig";
@@ -24,6 +25,7 @@ import { MilestonesScreen } from "./screens/MilestonesScreen";
 import { LegalInfoScreen } from "./screens/LegalInfoScreen";
 import { ActivityDetailScreen } from "./screens/ActivityDetailScreen";
 import { BlueprintDocsScreen } from "./screens/BlueprintDocsScreen";
+import { FeedsScreen } from "./screens/FeedsScreen";
 
 // ─── Bottom Nav ────────────────────────────────────────────────────────────────
 const NAV_TABS = [
@@ -138,6 +140,7 @@ function ScreenContent() {
     case "know_your_child":   return <BrainMapScreen />;
     case "milestones":        return <MilestonesScreen />;
     case "legal_info":        return <LegalInfoScreen />;
+    case "feeds":             return <FeedsScreen />;
     default:                  return <HomeScreen />;
   }
 }
@@ -267,7 +270,9 @@ export default function App() {
     <ErrorBoundary>
       <AppProvider>
         <RemoteConfigProvider>
-          <AppShell />
+          <FeedProvider>
+            <AppShell />
+          </FeedProvider>
         </RemoteConfigProvider>
       </AppProvider>
     </ErrorBoundary>

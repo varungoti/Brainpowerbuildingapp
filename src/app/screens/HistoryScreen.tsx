@@ -23,8 +23,6 @@ function StreakCalendar({ childId, activityLogs }: {
 
   const maxCount = Math.max(...days.map((d) => d.count), 1);
 
-  const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
-
   return (
     <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-3">
@@ -91,7 +89,7 @@ function WeekChart({ childId, activityLogs }: {
     <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
       <div className="font-bold text-gray-800 text-sm mb-3">This Week</div>
       <div className="flex items-end gap-1.5 h-20">
-        {weekDays.map(({ label, count, bp, isToday }, i) => (
+        {weekDays.map(({ label, count, isToday }, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div className="text-gray-400 font-mono" style={{ fontSize: 8 }}>
               {count > 0 && <span style={{ color: "#4361EE" }}>{count}</span>}

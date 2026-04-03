@@ -3,6 +3,13 @@ import { Hono, type Context } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
+import {
+  buildCoachFallback,
+  generateCoachPrompt,
+  type CoachChatMessage,
+  type CoachChildProfile,
+  type CoachResponse,
+} from "./coach_shared.ts";
 
 const app = new Hono();
 
@@ -967,6 +974,141 @@ Return ONLY valid JSON in this exact structure:
 /** Supabase Edge passes path after /functions/v1/<function-name>/ — register both styles. */
 app.post("/make-server-76b0ba9a/ai-counselor", postAiCounselor);
 app.post("/ai-counselor", postAiCounselor);
+
+// ─── AI Parenting Coach ───────────────────────────────────────────────────────
+type CoachRequestBody = {
+  profile?: CoachChildProfile;
+  scores?: Record<string, number>;
+  question?: string;
+  messages?: CoachChatMessage[];
+  isPremium?: boolean;
+};
+
+function isFiniteRecord(input: unknown): input is Record<string, number> {
+  if (!input || typeof input !== "object") return false;
+  return Object.values(input).every((value) => typeof value === "number" && Number.isFinite(value));
+}
+
+function sanitizeCoachMessages(messages: unknown): CoachChatMessage[] {
+  if (!Array.isArray(messages)) return [];
+  return messages
+    .filter(
+      (message): message is CoachChatMessage =>
+        !!message &&
+        typeof message === "object" &&
+        (message as CoachChatMessage).role !== undefined &&
+        ((message as CoachChatMessage).role === "user" || (message as CoachChatMessage).role === "assistant") &&
+        typeof (message as CoachChatMessage).content === "string",
+    )
+    .slice(-8);
+}
+
+async function postCoach(c: Context) {
+  try {
+    const rateLimit = await enforceRateLimit(c, "coach", 24, 600);
+    if (rateLimit) return rateLimit;
+
+    const body = (await c.req.json()) as CoachRequestBody;
+    if (!body.profile || typeof body.profile.age !== "number" || !isFiniteRecord(body.scores)) {
+      return c.json({ success: false, error: "invalid_payload" }, 400);
+    }
+
+    const profile: CoachChildProfile = {
+      age: body.profile.age,
+      name: typeof body.profile.name === "string" ? body.profile.name : undefined,
+      goals: Array.isArray(body.profile.goals)
+        ? body.profile.goals.filter((goal): goal is string => typeof goal === "string")
+        : undefined,
+    };
+    const scores = body.scores;
+    const isPremium = body.isPremium !== false;
+    const question = typeof body.question === "string" ? body.question : undefined;
+    const messages = sanitizeCoachMessages(body.messages);
+
+    const fallback = buildCoachFallback(profile, scores, { question, isPremium });
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!apiKey) {
+      return c.json({ success: true, data: fallback, isDemo: true });
+    }
+
+    const prompt = generateCoachPrompt(profile, scores, {
+      question,
+      isPremium,
+      messages,
+    });
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.7,
+        max_tokens: 2200,
+        messages: [
+          { role: "system", content: prompt },
+          {
+            role: "user",
+            content: question?.trim()
+              ? `Parent follow-up: ${question}`
+              : "Create the initial AI parenting coach response now.",
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      return c.json({ success: true, data: fallback, isDemo: true });
+    }
+
+    const aiResult = await response.json();
+    const content = aiResult.choices?.[0]?.message?.content ?? "";
+    try {
+      const clean = String(content).replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const parsed = JSON.parse(clean) as Partial<CoachResponse>;
+      const normalized: CoachResponse = {
+        insights: typeof parsed.insights === "string" ? parsed.insights : fallback.insights,
+        summary: typeof parsed.summary === "string" ? parsed.summary : fallback.summary,
+        strengths: Array.isArray(parsed.strengths)
+          ? parsed.strengths.filter((item): item is string => typeof item === "string")
+          : fallback.strengths,
+        improvements: Array.isArray(parsed.improvements)
+          ? parsed.improvements.filter((item): item is string => typeof item === "string")
+          : fallback.improvements,
+        dailyPlan: Array.isArray(parsed.dailyPlan)
+          ? parsed.dailyPlan.filter(
+              (item): item is CoachResponse["dailyPlan"][number] =>
+                !!item &&
+                typeof item === "object" &&
+                typeof item.timeOfDay === "string" &&
+                typeof item.title === "string" &&
+                typeof item.description === "string" &&
+                typeof item.duration === "string" &&
+                typeof item.regionKey === "string",
+            )
+          : fallback.dailyPlan,
+        weeklyFocus: Array.isArray(parsed.weeklyFocus)
+          ? parsed.weeklyFocus.filter((item): item is string => typeof item === "string")
+          : fallback.weeklyFocus,
+        chatReply: typeof parsed.chatReply === "string" ? parsed.chatReply : fallback.chatReply,
+        disclaimer: typeof parsed.disclaimer === "string" ? parsed.disclaimer : fallback.disclaimer,
+        isPremium,
+      };
+
+      return c.json({ success: true, data: normalized, isDemo: false });
+    } catch {
+      return c.json({ success: true, data: fallback, isDemo: true });
+    }
+  } catch (e) {
+    console.log("coach error:", e);
+    return c.json({ success: false, error: "coach_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/coach", postCoach);
+app.post("/coach", postCoach);
 
 // ─── Remote config (feature flags, no secrets) ───────────────────────────────
 async function getRemoteConfig(c: Context) {

@@ -23,7 +23,11 @@
     "content:validate": "tsx scripts/content-validate.ts",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
     "verify:full": "pnpm run verify && pnpm run test:e2e && pnpm run test:e2e:paywall",
-    "build:check-budget": "pnpm run build && node scripts/check-bundle-budget.mjs"
+    "build:check-budget": "pnpm run build && node scripts/check-bundle-budget.mjs",
+    "supabase:cli": "node scripts/run-supabase-cli.mjs",
+    "supabase:sync-env": "node scripts/sync-vite-supabase-env.mjs",
+    "supabase:db:push": "node scripts/run-supabase-cli.mjs db push --yes",
+    "supabase:realtime-feeds": "node scripts/run-supabase-cli.mjs db query --linked -f supabase/snippets/enable_feed_posts_realtime.sql"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.1",
