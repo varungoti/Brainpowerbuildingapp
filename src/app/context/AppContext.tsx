@@ -5,6 +5,7 @@ import { currentMonthKey, computeComposite, type OutcomeChecklistMonth } from ".
 import { getSupabaseBrowserClient, signOutSupabase } from "../../utils/supabase/client";
 import { captureProductEvent } from "../../utils/productAnalytics";
 import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../utils/neurosparkBackup";
+import { trainFromLogs } from "../../lib/ml/adaptiveEngine";
 import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
 import { canAccessBlueprint } from "../../utils/adminAccess";
 export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
@@ -17,7 +18,9 @@ export type AppView =
   | "history" | "stats" | "profile" | "add_child" | "blueprint" | "feeds"
   | "paywall" | "year_plan" | "ai_counselor"
   | "brain_map" | "know_your_child" | "milestones"
-  | "legal_info";
+  | "legal_info"
+  | "weekly_report" | "sibling_mode" | "portfolio"
+  | "settings_language" | "settings_sensory" | "seasonal_library";
 
 export interface KYCData {
   curiosity: number;
@@ -57,6 +60,74 @@ export interface ChildProfile {
   totalActivities: number;
   intelligenceScores: Record<string, number>;
 }
+export type SensoryCondition =
+  | "adhd" | "asd" | "visual-impairment" | "hearing-impairment"
+  | "sensory-processing" | "fine-motor-delay" | "anxiety";
+
+export interface SensoryProfile {
+  type: "neurotypical" | "sensory-seeking" | "sensory-avoiding" | "mixed";
+  conditions: SensoryCondition[];
+  modifications: string[];
+}
+
+export type SupportedLocale =
+  | "en" | "hi" | "ta" | "te" | "kn" | "ml" | "bn" | "mr" | "gu" | "pa"
+  | "zh-CN" | "ja" | "ko"
+  | "es" | "fr" | "pt" | "ar" | "sw";
+
+export interface AdaptiveRegionRecommendation {
+  recommendedTier: 1 | 2 | 3;
+  confidenceScore: number;
+  sampleCount: number;
+  lastUpdated: string;
+}
+
+export interface AdaptiveModel {
+  regionWeights: Record<string, number>;
+  recommendations: Record<string, AdaptiveRegionRecommendation>;
+  lastTrainedAt: string;
+  version: number;
+}
+
+export interface ReportHistoryEntry {
+  generatedAt: string;
+  weekStart: string;
+  weekEnd: string;
+}
+
+export interface SiblingGroup {
+  id: string;
+  childIds: string[];
+  name: string;
+  createdAt: string;
+}
+
+export interface CollaborationLog {
+  logId: string;
+  groupId: string;
+  childIds: string[];
+  activityId: string;
+  completedAt: string;
+}
+
+export interface PortfolioEntry {
+  id: string;
+  childId: string;
+  imageDataUrl: string;
+  activityId?: string;
+  intelligences: string[];
+  tags: string[];
+  caption: string;
+  createdAt: string;
+  stage: "sensorimotor" | "preoperational" | "concrete-operational" | "formal-operational";
+  includeInReport: boolean;
+}
+
+export interface CommunityRatingCache {
+  ratings: Record<string, { avg: number; count: number }>;
+  fetchedAt: string;
+}
+
 export interface ActivityLog {
   id: string;
   childId: string;
@@ -73,6 +144,14 @@ export interface ActivityLog {
   engagementRating: number;
   parentNotes: string;
   brainPointsEarned: number;
+  difficultyTier?: 1 | 2 | 3;
+  completionTimeSeconds?: number;
+  attemptsBeforeComplete?: number;
+  siblingGroupId?: string;
+  collaboratingChildIds?: string[];
+  interactionQuality?: 1 | 2 | 3 | 4 | 5;
+  parentParticipation?: "active" | "guided" | "observed";
+  joyMoments?: string[];
 }
 
 export interface GeneratorIntent {
@@ -130,6 +209,14 @@ export interface AppPersistedState {
   kycData: Record<string, KYCData>;
   outcomeChecklists: Record<string, OutcomeChecklistMonth[]>;
   milestoneChecks: Record<string, string[]>;
+  adaptiveModel: AdaptiveModel | null;
+  reportHistory: ReportHistoryEntry[];
+  siblingGroups: SiblingGroup[];
+  collaborationLogs: CollaborationLog[];
+  portfolioEntries: PortfolioEntry[];
+  locale: SupportedLocale;
+  sensoryProfiles: Record<string, SensoryProfile>;
+  communityRatingCache: CommunityRatingCache | null;
 }
 type Persisted = AppPersistedState;
 const DEFAULTS: Persisted = {
@@ -140,6 +227,14 @@ const DEFAULTS: Persisted = {
   kycData: {},
   outcomeChecklists: {},
   milestoneChecks: {},
+  adaptiveModel: null,
+  reportHistory: [],
+  siblingGroups: [],
+  collaborationLogs: [],
+  portfolioEntries: [],
+  locale: "en",
+  sensoryProfiles: {},
+  communityRatingCache: null,
 };
 function loadLegacyMilestoneChecks(
   childIds: string[],
@@ -224,6 +319,15 @@ interface Ctx extends Persisted {
   exportLocalDataBackup: () => string;
   /** Replace all local app data from a backup file. */
   importLocalDataBackup: (json: string) => { ok: true } | { ok: false; error: string };
+  setLocale: (locale: SupportedLocale) => void;
+  saveSensoryProfile: (childId: string, profile: SensoryProfile) => void;
+  saveAdaptiveModel: (model: AdaptiveModel) => void;
+  addSiblingGroup: (group: Omit<SiblingGroup, "id" | "createdAt">) => string;
+  addCollaborationLog: (log: Omit<CollaborationLog, "logId" | "completedAt">) => void;
+  addPortfolioEntry: (entry: Omit<PortfolioEntry, "id" | "createdAt">) => string;
+  removePortfolioEntry: (id: string) => void;
+  addReportHistoryEntry: (entry: Omit<ReportHistoryEntry, "generatedAt">) => void;
+  setCommunityRatingCache: (cache: CommunityRatingCache) => void;
 }
 const AppCtx = createContext<Ctx | null>(null);
 export function useApp() {
@@ -391,6 +495,12 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
         duration_min: log.duration,
         region: log.region,
       });
+      const allLogs = [entry, ...p.activityLogs];
+      const childLogs = allLogs.filter(l => l.childId === log.childId && l.completed);
+      if (childLogs.length % 5 === 0) {
+        const newModel = trainFromLogs(childLogs, p.adaptiveModel);
+        upd({ adaptiveModel: newModel });
+      }
     }
     return bp;
   };
@@ -479,6 +589,37 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     });
   };
 
+  const setLocale = (locale: SupportedLocale) => upd({ locale });
+
+  const saveSensoryProfile = (childId: string, profile: SensoryProfile) =>
+    upd({ sensoryProfiles: { ...p.sensoryProfiles, [childId]: profile } });
+
+  const saveAdaptiveModel = (model: AdaptiveModel) => upd({ adaptiveModel: model });
+
+  const addSiblingGroup = (g: Omit<SiblingGroup, "id" | "createdAt">): string => {
+    const id = crypto.randomUUID();
+    upd({ siblingGroups: [...p.siblingGroups, { ...g, id, createdAt: new Date().toISOString() }] });
+    return id;
+  };
+
+  const addCollaborationLog = (l: Omit<CollaborationLog, "logId" | "completedAt">) =>
+    upd({ collaborationLogs: [...p.collaborationLogs, { ...l, logId: crypto.randomUUID(), completedAt: new Date().toISOString() }] });
+
+  const addPortfolioEntry = (e: Omit<PortfolioEntry, "id" | "createdAt">): string => {
+    const id = crypto.randomUUID();
+    upd({ portfolioEntries: [...p.portfolioEntries, { ...e, id, createdAt: new Date().toISOString() }] });
+    return id;
+  };
+
+  const removePortfolioEntry = (id: string) =>
+    upd({ portfolioEntries: p.portfolioEntries.filter(e => e.id !== id) });
+
+  const addReportHistoryEntry = (e: Omit<ReportHistoryEntry, "generatedAt">) =>
+    upd({ reportHistory: [...p.reportHistory, { ...e, generatedAt: new Date().toISOString() }] });
+
+  const setCommunityRatingCache = (cache: CommunityRatingCache) =>
+    upd({ communityRatingCache: cache });
+
   const activeChild = p.children.find(c => c.id === p.activeChildId) ?? null;
 
   const value: Ctx = {
@@ -496,6 +637,15 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     clearGeneratorIntent: () => setGeneratorIntent(null),
     exportLocalDataBackup,
     importLocalDataBackup,
+    setLocale,
+    saveSensoryProfile,
+    saveAdaptiveModel,
+    addSiblingGroup,
+    addCollaborationLog,
+    addPortfolioEntry,
+    removePortfolioEntry,
+    addReportHistoryEntry,
+    setCommunityRatingCache,
   };
   return <AppCtx.Provider value={value}>{ch}</AppCtx.Provider>;
 }

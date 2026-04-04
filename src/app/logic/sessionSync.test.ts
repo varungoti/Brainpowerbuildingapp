@@ -20,6 +20,14 @@ const baseState = (): AppPersistedState => ({
   kycData: {},
   outcomeChecklists: {},
   milestoneChecks: {},
+  adaptiveModel: null,
+  reportHistory: [],
+  siblingGroups: [],
+  collaborationLogs: [],
+  portfolioEntries: [],
+  locale: "en",
+  sensoryProfiles: {},
+  communityRatingCache: null,
 });
 
 const session = (overrides?: Partial<NonNullable<Session["user"]>>): Session =>

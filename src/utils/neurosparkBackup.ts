@@ -163,6 +163,14 @@ function normalizePersisted(
     kycData: p.kycData ?? {},
     outcomeChecklists: p.outcomeChecklists ?? {},
     milestoneChecks,
+    adaptiveModel: (p as unknown as Record<string, unknown>).adaptiveModel as AppPersistedState["adaptiveModel"] ?? null,
+    reportHistory: ((p as unknown as Record<string, unknown>).reportHistory as AppPersistedState["reportHistory"]) ?? [],
+    siblingGroups: ((p as unknown as Record<string, unknown>).siblingGroups as AppPersistedState["siblingGroups"]) ?? [],
+    collaborationLogs: ((p as unknown as Record<string, unknown>).collaborationLogs as AppPersistedState["collaborationLogs"]) ?? [],
+    portfolioEntries: ((p as unknown as Record<string, unknown>).portfolioEntries as AppPersistedState["portfolioEntries"]) ?? [],
+    locale: ((p as unknown as Record<string, unknown>).locale as AppPersistedState["locale"]) ?? "en",
+    sensoryProfiles: ((p as unknown as Record<string, unknown>).sensoryProfiles as AppPersistedState["sensoryProfiles"]) ?? {},
+    communityRatingCache: (p as unknown as Record<string, unknown>).communityRatingCache as AppPersistedState["communityRatingCache"] ?? null,
   };
 }
 

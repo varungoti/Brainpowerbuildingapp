@@ -982,6 +982,14 @@ type CoachRequestBody = {
   question?: string;
   messages?: CoachChatMessage[];
   isPremium?: boolean;
+  mode?: "brain-map" | "activity-coaching";
+  activityContext?: {
+    name?: string;
+    region?: string;
+    intelligences?: string[];
+    duration?: number;
+    instructions?: string[];
+  };
 };
 
 function isFiniteRecord(input: unknown): input is Record<string, number> {
@@ -1031,11 +1039,36 @@ async function postCoach(c: Context) {
       return c.json({ success: true, data: fallback, isDemo: true });
     }
 
-    const prompt = generateCoachPrompt(profile, scores, {
-      question,
-      isPremium,
-      messages,
-    });
+    const isActivityMode = body.mode === "activity-coaching" && body.activityContext;
+    let systemPrompt: string;
+    let userMessage: string;
+
+    if (isActivityMode) {
+      const ctx = body.activityContext!;
+      systemPrompt = [
+        `You are a child development activity coach. The parent is doing "${ctx.name ?? "an activity"}" with their child (age ${profile.age}).`,
+        `Activity region: ${ctx.region ?? "General"}, intelligences: ${(ctx.intelligences ?? []).join(", ")}, duration: ${ctx.duration ?? "unknown"} min.`,
+        ctx.instructions?.length ? `Steps: ${ctx.instructions.join("; ")}` : "",
+        "Respond with JSON: { keyInteractions: string[], deepeningTips: string[], observeFor: string[], chatReply: string, disclaimer: string }",
+        "keyInteractions: 3 specific ways the parent can interact during THIS activity.",
+        "deepeningTips: 2 ways to extend the learning deeper.",
+        "observeFor: 3 things to watch for in the child's behavior.",
+        "chatReply: A warm, brief response to any parent question.",
+        "Keep advice practical, warm, and age-appropriate.",
+      ].filter(Boolean).join("\n");
+      userMessage = question?.trim()
+        ? `Parent asks: ${question}`
+        : "Give me coaching guidance for this specific activity.";
+    } else {
+      systemPrompt = generateCoachPrompt(profile, scores, {
+        question,
+        isPremium,
+        messages,
+      });
+      userMessage = question?.trim()
+        ? `Parent follow-up: ${question}`
+        : "Create the initial AI parenting coach response now.";
+    }
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -1048,13 +1081,8 @@ async function postCoach(c: Context) {
         temperature: 0.7,
         max_tokens: 2200,
         messages: [
-          { role: "system", content: prompt },
-          {
-            role: "user",
-            content: question?.trim()
-              ? `Parent follow-up: ${question}`
-              : "Create the initial AI parenting coach response now.",
-          },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage },
         ],
       }),
     });

@@ -327,6 +327,27 @@ export function ProfileScreen() {
           )}
         </Section>
 
+        {/* Ultra Features */}
+        <Section title="Tools & Features" icon="🧠">
+          <div className="space-y-1">
+            {[
+              { icon:"📄", label:"Weekly Intelligence Report", fn:() => navigate("weekly_report") },
+              { icon:"👨‍👩‍👧‍👦", label:"Sibling Collaboration Mode", fn:() => navigate("sibling_mode") },
+              { icon:"📸", label:"Creation Portfolio", fn:() => navigate("portfolio") },
+              { icon:"🌦️", label:"Seasonal Activity Library", fn:() => navigate("seasonal_library") },
+              { icon:"🌏", label:"Language", fn:() => navigate("settings_language") },
+              { icon:"🧩", label:"Sensory Settings", fn:() => navigate("settings_sensory") },
+            ].map((item) => (
+              <button key={item.label} onClick={item.fn}
+                className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border border-gray-100 text-left">
+                <span className="text-xl">{item.icon}</span>
+                <span className="text-gray-700 text-sm">{item.label}</span>
+                <span className="text-gray-300 ml-auto">›</span>
+              </button>
+            ))}
+          </div>
+        </Section>
+
         {/* App links */}
         <Section title="About" icon="ℹ️">
           <div className="space-y-1">

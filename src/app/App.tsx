@@ -26,6 +26,12 @@ import { LegalInfoScreen } from "./screens/LegalInfoScreen";
 import { ActivityDetailScreen } from "./screens/ActivityDetailScreen";
 import { BlueprintDocsScreen } from "./screens/BlueprintDocsScreen";
 import { FeedsScreen } from "./screens/FeedsScreen";
+import { ReportScreen } from "./screens/ReportScreen";
+import { SiblingModeScreen } from "./screens/SiblingModeScreen";
+import { PortfolioScreen } from "./screens/PortfolioScreen";
+import { SeasonalLibraryScreen } from "./screens/SeasonalLibraryScreen";
+import { LanguageSettingsScreen } from "./screens/LanguageSettingsScreen";
+import { SensorySettingsScreen } from "./screens/SensorySettingsScreen";
 
 // ─── Bottom Nav ────────────────────────────────────────────────────────────────
 const NAV_TABS = [
@@ -141,6 +147,12 @@ function ScreenContent() {
     case "milestones":        return <MilestonesScreen />;
     case "legal_info":        return <LegalInfoScreen />;
     case "feeds":             return <FeedsScreen />;
+    case "weekly_report":     return <ReportScreen />;
+    case "sibling_mode":      return <SiblingModeScreen />;
+    case "portfolio":         return <PortfolioScreen />;
+    case "seasonal_library":  return <SeasonalLibraryScreen />;
+    case "settings_language": return <LanguageSettingsScreen />;
+    case "settings_sensory":  return <SensorySettingsScreen />;
     default:                  return <HomeScreen />;
   }
 }

@@ -14,11 +14,49 @@ type Props = {
   className?: string;
 };
 
+type Viewport = {
+  scale: number;
+  x: number;
+  y: number;
+};
+
+type PointerState = {
+  clientX: number;
+  clientY: number;
+};
+
+type PanState = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  originX: number;
+  originY: number;
+};
+
+type PinchState = {
+  startDistance: number;
+  startScale: number;
+  startCenterX: number;
+  startCenterY: number;
+  originX: number;
+  originY: number;
+};
+
+type TapState = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  moved: boolean;
+};
+
 const VIEW_WIDTH = 380;
 const VIEW_HEIGHT = 320;
 const PIXEL_COUNT = VIEW_WIDTH * VIEW_HEIGHT;
 const EASE_FACTOR = 0.08;
 const EASE_THRESHOLD = 0.002;
+const MIN_SCALE = 1;
+const MAX_SCALE = 3.2;
+const TAP_MOVE_THRESHOLD = 8;
 
 const COLOR_MAP = [
   { rgb: [242, 176, 188], id: "executive" },
@@ -63,8 +101,23 @@ function clampByte(v: number) {
   return v < 0 ? 0 : v > 255 ? 255 : (v + 0.5) | 0;
 }
 
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
+
 function luminance(r: number, g: number, b: number) {
   return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function getPointerDistance(a: PointerState, b: PointerState) {
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+function getPointerMidpoint(a: PointerState, b: PointerState) {
+  return {
+    x: (a.clientX + b.clientX) / 2,
+    y: (a.clientY + b.clientY) / 2,
+  };
 }
 
 function getClosestRegion(r: number, g: number, b: number): string | null {
@@ -119,19 +172,56 @@ export function BrainCanvas({ scores, className = "" }: Props) {
   const pixelRegionMapRef = useRef<Int16Array | null>(null);
   const regionPathsRef = useRef<Map<string, Path2D> | null>(null);
   const animRef = useRef(0);
+  const pointersRef = useRef<Map<number, PointerState>>(new Map());
+  const panRef = useRef<PanState | null>(null);
+  const pinchRef = useRef<PinchState | null>(null);
+  const tapRef = useRef<TapState | null>(null);
 
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [viewport, setViewport] = useState<Viewport>({
+    scale: MIN_SCALE,
+    x: 0,
+    y: 0,
+  });
 
   const hoveredRef = useRef(hovered);
   const selectedRef = useRef(selected);
   const scoresRef = useRef(scores);
+  const viewportRef = useRef(viewport);
   hoveredRef.current = hovered;
   selectedRef.current = selected;
   scoresRef.current = scores;
+  viewportRef.current = viewport;
 
   const animatedBlends = useRef(new Float32Array(COLOR_MAP.length));
+
+  const constrainViewport = useCallback((next: Viewport): Viewport => {
+    const canvas = canvasRef.current;
+    const scale = clamp(next.scale, MIN_SCALE, MAX_SCALE);
+    if (!canvas) {
+      return { scale, x: next.x, y: next.y };
+    }
+
+    const baseWidth = canvas.offsetWidth || canvas.clientWidth || VIEW_WIDTH;
+    const baseHeight = canvas.offsetHeight || canvas.clientHeight || VIEW_HEIGHT;
+    const maxX = Math.max(0, ((baseWidth * scale) - baseWidth) / 2 + 24);
+    const maxY = Math.max(0, ((baseHeight * scale) - baseHeight) / 2 + 24);
+
+    return {
+      scale,
+      x: clamp(next.x, -maxX, maxX),
+      y: clamp(next.y, -maxY, maxY),
+    };
+  }, []);
+
+  const updateViewport = useCallback(
+    (recipe: (prev: Viewport) => Viewport) => {
+      setViewport((prev) => constrainViewport(recipe(prev)));
+    },
+    [constrainViewport],
+  );
 
   const resolveRegionFromPoint = useCallback(
     (x: number, y: number): string | null => {
@@ -260,20 +350,14 @@ export function BrainCanvas({ scores, className = "" }: Props) {
         const ri = regionMap[i];
 
         if (ri < 0) {
-          buffer[off] = grayData[off];
-          buffer[off + 1] = grayData[off + 1];
-          buffer[off + 2] = grayData[off + 2];
-          buffer[off + 3] = grayData[off + 3];
+          buffer[off] = 0;
+          buffer[off + 1] = 0;
+          buffer[off + 2] = 0;
+          buffer[off + 3] = 0;
           continue;
         }
 
-        const regionId = COLOR_MAP[ri]?.id;
-        let blend = blends[ri];
-        const isHov = regionId === hov;
-        const isSel = regionId === sel;
-
-        if (isHov) blend = Math.min(1, blend + 0.20);
-        if (isSel) blend = Math.min(1, blend + 0.28);
+        const blend = blends[ri];
 
         buffer[off] = clampByte(
           grayData[off] + (colorData[off] - grayData[off]) * blend,
@@ -287,13 +371,6 @@ export function BrainCanvas({ scores, className = "" }: Props) {
             (colorData[off + 2] - grayData[off + 2]) * blend,
         );
         buffer[off + 3] = colorData[off + 3];
-
-        if (isHov || isSel) {
-          const boost = isSel ? 18 : 12;
-          buffer[off] = clampByte(buffer[off] + boost);
-          buffer[off + 1] = clampByte(buffer[off + 1] + boost);
-          buffer[off + 2] = clampByte(buffer[off + 2] + boost);
-        }
       }
 
       ctx.clearRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
@@ -343,16 +420,20 @@ export function BrainCanvas({ scores, className = "" }: Props) {
           const [cr, cg, cb] = COLOR_MAP[ri].rgb;
 
           ctx.save();
-          if (isHov || isSel) {
-            ctx.shadowBlur = isSel ? 22 : 16;
-            ctx.shadowColor = `rgba(${cr},${cg},${cb},${isSel ? 0.72 : 0.52})`;
-            ctx.lineWidth = isSel ? 3.2 : 2.4;
-            ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.88)`;
+          if (isSel) {
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = `rgba(${cr},${cg},${cb},0.42)`;
+            ctx.lineWidth = 2.6;
+            ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.72)`;
+          } else if (isHov) {
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "rgba(71,85,105,0.22)";
           } else {
-            ctx.shadowBlur = 4 + blend * 10;
-            ctx.shadowColor = `rgba(${cr},${cg},${cb},${(0.18 + blend * 0.32).toFixed(2)})`;
-            ctx.lineWidth = 1 + blend * 1.4;
-            ctx.strokeStyle = `rgba(${cr},${cg},${cb},${(0.25 + blend * 0.45).toFixed(2)})`;
+            ctx.shadowBlur = 3 + blend * 6;
+            ctx.shadowColor = `rgba(${cr},${cg},${cb},${(0.12 + blend * 0.18).toFixed(2)})`;
+            ctx.lineWidth = 0.9 + blend * 1.1;
+            ctx.strokeStyle = `rgba(${cr},${cg},${cb},${(0.14 + blend * 0.22).toFixed(2)})`;
           }
           ctx.stroke(path);
           ctx.restore();
@@ -369,8 +450,75 @@ export function BrainCanvas({ scores, className = "" }: Props) {
     };
   }, [ready]);
 
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const observer = new ResizeObserver(() => {
+      setViewport((prev) => constrainViewport(prev));
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [constrainViewport]);
+
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
+      const currentPointer = pointersRef.current.get(event.pointerId);
+      if (currentPointer) {
+        pointersRef.current.set(event.pointerId, {
+          clientX: event.clientX,
+          clientY: event.clientY,
+        });
+      }
+
+      const tap = tapRef.current;
+      if (tap && tap.pointerId === event.pointerId) {
+        const moved =
+          Math.hypot(
+            event.clientX - tap.startClientX,
+            event.clientY - tap.startClientY,
+          ) > TAP_MOVE_THRESHOLD;
+        if (moved) tap.moved = true;
+      }
+
+      if (pointersRef.current.size >= 2 && pinchRef.current) {
+        event.preventDefault();
+        const [first, second] = Array.from(pointersRef.current.values());
+        const midpoint = getPointerMidpoint(first, second);
+        const distance = getPointerDistance(first, second);
+        const pinch = pinchRef.current;
+        const nextScale = clamp(
+          pinch.startScale * (distance / Math.max(1, pinch.startDistance)),
+          MIN_SCALE,
+          MAX_SCALE,
+        );
+
+        updateViewport(() => ({
+          scale: nextScale,
+          x: pinch.originX + (midpoint.x - pinch.startCenterX),
+          y: pinch.originY + (midpoint.y - pinch.startCenterY),
+        }));
+        return;
+      }
+
+      const pan = panRef.current;
+      const isDragging =
+        !!pan &&
+        pan.pointerId === event.pointerId &&
+        (event.pointerType === "touch" || event.buttons === 1) &&
+        viewportRef.current.scale > MIN_SCALE + 0.001;
+
+      if (isDragging) {
+        event.preventDefault();
+        updateViewport((prev) => ({
+          scale: prev.scale,
+          x: pan.originX + (event.clientX - pan.startClientX),
+          y: pan.originY + (event.clientY - pan.startClientY),
+        }));
+        return;
+      }
+
       if (event.pointerType === "touch") return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -384,37 +532,172 @@ export function BrainCanvas({ scores, className = "" }: Props) {
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const { x, y } = getCanvasPoint(event, canvas);
-      const regionId = resolveRegionFromPoint(x, y);
-      setHovered(regionId);
-      if (regionId) {
-        setSelected((c) => (c === regionId ? null : regionId));
+
+      canvas.setPointerCapture(event.pointerId);
+      pointersRef.current.set(event.pointerId, {
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
+
+      if (pointersRef.current.size === 1) {
+        panRef.current = {
+          pointerId: event.pointerId,
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+          originX: viewportRef.current.x,
+          originY: viewportRef.current.y,
+        };
+        tapRef.current = {
+          pointerId: event.pointerId,
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+          moved: false,
+        };
+      } else if (pointersRef.current.size === 2) {
+        const [first, second] = Array.from(pointersRef.current.values());
+        const midpoint = getPointerMidpoint(first, second);
+        pinchRef.current = {
+          startDistance: getPointerDistance(first, second),
+          startScale: viewportRef.current.scale,
+          startCenterX: midpoint.x,
+          startCenterY: midpoint.y,
+          originX: viewportRef.current.x,
+          originY: viewportRef.current.y,
+        };
+        panRef.current = null;
+        tapRef.current = null;
+      } else {
+        tapRef.current = null;
+        panRef.current = null;
+      }
+
+      if (event.pointerType !== "touch") {
+        const { x, y } = getCanvasPoint(event, canvas);
+        setHovered(resolveRegionFromPoint(x, y));
       }
     },
     [resolveRegionFromPoint],
   );
 
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const tap = tapRef.current;
+      const shouldToggleSelection =
+        !!tap &&
+        tap.pointerId === event.pointerId &&
+        !tap.moved &&
+        !pinchRef.current &&
+        pointersRef.current.size === 1;
+
+      if (shouldToggleSelection) {
+        const { x, y } = getCanvasPoint(event, canvas);
+        const regionId = resolveRegionFromPoint(x, y);
+        setHovered(regionId);
+        if (regionId) {
+          setSelected((current) => (current === regionId ? null : regionId));
+        }
+      }
+
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+      pointersRef.current.delete(event.pointerId);
+      if (panRef.current?.pointerId === event.pointerId) {
+        panRef.current = null;
+      }
+      if (tapRef.current?.pointerId === event.pointerId) {
+        tapRef.current = null;
+      }
+      if (pointersRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+      if (event.pointerType === "touch" && pointersRef.current.size === 0) {
+        setHovered(null);
+      }
+    },
+    [resolveRegionFromPoint],
+  );
+
+  const handlePointerCancel = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (canvas?.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+      pointersRef.current.delete(event.pointerId);
+      if (panRef.current?.pointerId === event.pointerId) {
+        panRef.current = null;
+      }
+      if (tapRef.current?.pointerId === event.pointerId) {
+        tapRef.current = null;
+      }
+      if (pointersRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<HTMLCanvasElement>) => {
+      if (!event.ctrlKey && viewportRef.current.scale <= MIN_SCALE) return;
+      event.preventDefault();
+
+      const delta = event.deltaY < 0 ? 1.12 : 0.9;
+      updateViewport((prev) => ({
+        scale: clamp(prev.scale * delta, MIN_SCALE, MAX_SCALE),
+        x: prev.x,
+        y: prev.y,
+      }));
+    },
+    [updateViewport],
+  );
+
   return (
     <div
-      className={`relative h-[400px] overflow-hidden rounded-[28px] border border-slate-200 bg-gray-50 shadow-xl ${className}`}
+      className={`relative h-[360px] overflow-hidden rounded-[28px] bg-transparent sm:h-[400px] ${className}`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.95),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(191,219,254,0.35),transparent_35%),linear-gradient(135deg,#f8fafc,#eef2ff_45%,#f8fafc)]" />
+      <div className="absolute inset-0 rounded-[28px] bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.16),transparent_32%),radial-gradient(circle_at_80%_18%,rgba(129,140,248,0.10),transparent_28%)]" />
 
-      <canvas
-        ref={canvasRef}
-        width={VIEW_WIDTH}
-        height={VIEW_HEIGHT}
-        className="relative z-10 h-full w-full touch-manipulation"
-        style={{ cursor: hovered ? "pointer" : "default" }}
-        role="img"
-        aria-label="Brain Intelligence Map"
-        onPointerMove={handlePointerMove}
-        onPointerLeave={() => setHovered(null)}
-        onPointerDown={handlePointerDown}
-      />
+      <div className="absolute inset-0 z-10 flex items-center justify-center p-2 sm:p-3">
+        <canvas
+          ref={canvasRef}
+          width={VIEW_WIDTH}
+          height={VIEW_HEIGHT}
+          className="relative block h-auto w-full max-w-full select-none"
+          style={{
+            cursor: viewport.scale > MIN_SCALE + 0.001 ? "grab" : hovered ? "pointer" : "default",
+            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`,
+            transformOrigin: "center center",
+            touchAction: "none",
+            background: "transparent",
+          }}
+          role="img"
+          aria-label="Brain Intelligence Map"
+          onPointerMove={handlePointerMove}
+          onPointerLeave={() => setHovered(null)}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onWheel={handleWheel}
+        />
+      </div>
+
+      {viewport.scale > MIN_SCALE + 0.001 && (
+        <button
+          type="button"
+          onClick={() => setViewport({ scale: MIN_SCALE, x: 0, y: 0 })}
+          className="absolute right-3 top-3 z-20 rounded-full bg-white/88 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur"
+        >
+          Reset zoom
+        </button>
+      )}
 
       {!ready && (
-        <div className="absolute inset-0 z-0 animate-pulse bg-slate-100" />
+        <div className="absolute inset-0 z-0 animate-pulse rounded-[28px] bg-white/35" />
       )}
 
       <BrainTooltip hoveredId={hovered} scores={scores} />

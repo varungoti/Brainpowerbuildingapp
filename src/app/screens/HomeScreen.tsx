@@ -1,4 +1,5 @@
 import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from "../context/AppContext";
+import { SeasonalBanner } from "../../components/seasonal/SeasonalBanner";
 import { INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { getExecutableYearPlan, getExecutableYearPlanProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
 import React, { useState } from "react";
@@ -393,6 +394,9 @@ export function HomeScreen() {
             </div>
           </div>
         </button>
+
+        {/* Seasonal banner */}
+        <SeasonalBanner onExplore={() => navigate("seasonal_library")} />
 
         {/* Quick actions */}
         <div>

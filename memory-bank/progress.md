@@ -15,28 +15,31 @@
 - Richer activity metadata, adaptive outcome-pillar focus, and AGE simulation script
 - Prompt/media orchestration scaffolding and content validation tooling
 - Release, threat-model, performance-budget, moat, and offline docs
-- Provided colorful brain image is now integrated into the brain map visualization and milestone tracker summary card
-- The same colorful brain-progress language now extends into the home year-plan card and year-plan hero/progress surfaces
-- The anatomical brain tracker now uses a muted base image with image-matched attribute colors and animated zone fills that reveal as activity-linked scores increase
-- The brain tracker boundaries are now path-based rather than ellipse-based, so attribute regions are demarcated by explicit shape masks tied more closely to the source artwork
-- The color-area mapping was tightened again so attribute masks track the visible colored segments more closely, with updated anchors and palette sync in the brain map UI
-- The source brain artwork now also serves as a low-opacity segmentation guide under the grayscale layer so the real color areas remain visually legible during idle states and QA
-- The brain screen now has a modular interactive SVG system with separate `BrainInteractive`, `BrainConnections`, `BrainTooltip`, and `BrainPanel` components plus an AI insight generator
-- Brain-region path metadata is now consumed directly for hover, selection, heatmap fill, and animated connection rendering instead of relying only on the older anatomical-brain component
-- The brain panel now opens a structured AI Parenting Coach flow with summary, strengths, improvement areas, daily plans, weekly focus, and follow-up chat
-- Shared coach prompt/fallback logic now lives in `src/lib/coach`, and the existing Supabase server function exposes a `/coach` endpoint with OpenAI-backed or deterministic fallback responses
-- A Next-compatible `app/api/coach/route.ts` was added as a bridge artifact, while the current live app continues using the shared Vite/Supabase architecture
-- The existing live Supabase function slug `make-server-76b0ba9a` was updated and remotely smoke-tested with a successful `200` response from `/coach`
-- CI now enforces `content:validate` and `age:report` in addition to typecheck, lint, unit tests, build, and Playwright
-- Playwright now covers offline AI/paywall messaging and milestone completion persistence in addition to onboarding, generation, activity detail, and backup flows
-- The server function now restricts CORS to localhost plus explicit `ALLOWED_ORIGINS` entries and applies basic KV-backed rate limits to analytics, AI counselor, and payment routes
-- Packaging metadata no longer uses the starter package name and now identifies the app as `neurospark`
+- Brain map interactive visualization with SVG, AI insights, coaching panel, canvas rendering
+- Brain-canvas responsive pan/pinch zoom
+- **Ultra Features (10 modules):**
+  - AI Activity Adaptation (on-device adaptive engine, integrated into AGE scoring and logActivity)
+  - Weekly Intelligence Report (15-region coverage report, data builder, PDF-ready screen)
+  - Sibling Collaboration Mode (multi-child activity matching, role assignment, collab logging)
+  - Voice Instruction Mode (Web Speech API narration for activities, per-step and full narration)
+  - 10-Language Support (i18n context/provider, 10 locale JSON files + English, language settings screen)
+  - Creation Portfolio (image capture, compression, auto-tagging, developmental stage inference, gallery screen)
+  - Parent Coaching Mode (activity-level coaching overlay with timer, region-based guidance, /coach endpoint extension)
+  - Seasonal Activity Library (season detection, seasonal scoring in AGE, seasonal banner on home, dedicated screen)
+  - Sensory Modification Engine (sensory profiles, condition-based material/instruction adaptation, settings screen)
+  - Community Activity Ratings (client scorer, CommunityBadge, AGE integration, Postgres aggregation migration)
 
 ## Remaining major areas
 - External deployment, secrets, real payment/provider configuration, and legal sign-off remain out of scope.
+- Premium TTS endpoint for voice mode (currently Web Speech only).
+- Google Translate integration for dynamic i18n (currently static locale files).
+- Email-based report sharing (currently download/share only).
+- Capacitor camera plugin for native portfolio capture (currently web file input).
 
 ## Current state
-- `pnpm run verify`, `pnpm run verify:full`, `pnpm run age:report`, and `pnpm run content:validate` are available.
-- Latest local verification is green for `pnpm run verify` after the interactive brain-map refactor.
-- Latest local verification is also green after the AI coach integration; lint still has only older unrelated warnings in `HistoryScreen.tsx` and `feedStorage.ts`.
-- The repo is materially closer to production-ready within local-only constraints.
+- `pnpm run verify` passes: typecheck + lint (0 warnings) + 81 tests + build.
+- `pnpm run age:report` and `pnpm run content:validate` pass.
+- 34 new unit tests covering: adaptive engine, weekly report, sibling matcher, voice prompt builder, sensory adapter, season detector, community scorer.
+- All 10 ultra modules have screens, engines, and components wired into the app router, profile screen, home screen, and activity detail screen.
+- Supabase migration `00005_community_ratings.sql` is ready for `db push`.
+- Server `/coach` endpoint extended with `activity-coaching` mode.

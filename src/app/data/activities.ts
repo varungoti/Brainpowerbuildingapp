@@ -43,6 +43,13 @@ export interface Activity {
   milestoneIds?: string[];
   reviewStatus?: "draft" | "reviewed";
   progression?: ActivityProgression;
+  collaborationType?: "parallel" | "sequential" | "joint";
+  siblingRoles?: { younger: string; older: string };
+  sensoryTags?: string[];
+  sensoryModifications?: Record<string, { instructions: string[]; materials: string[] }>;
+  parentCoaching?: { keyInteractions: string[]; deepeningTips: string[]; observeFor: string[] };
+  seasonalTags?: string[];
+  voiceNarrationHint?: string;
 }
 
 const RAW_ACTIVITIES: Activity[] = [
@@ -987,7 +994,18 @@ export interface AGEGeneratorOptions {
   focusPillars?: OutcomePillar[];
   /** Extra brain regions/intelligences to prioritize for targeted packs */
   priorityIntelligences?: string[];
+  adaptiveModel?: import("../context/AppContext").AdaptiveModel | null;
+  communityRatings?: Record<string, { avg: number; count: number }>;
+  currentSeason?: string;
 }
+
+const SEASONAL_TAG_MAP: Record<string, string[]> = {
+  summer: ["outdoor", "water-play", "shade-activities", "summer"],
+  monsoon: ["indoor", "rainy-day", "sensory-water", "monsoon"],
+  autumn: ["nature-walk", "harvest", "leaf-crafts", "autumn"],
+  winter: ["cozy", "warm-activities", "holiday-crafts", "winter"],
+  spring: ["garden", "nature", "outdoor", "spring"],
+};
 
 // ─── AGE Algorithm ─────────────────────────────────────────────────────────────
 export function runAGE(
@@ -1036,6 +1054,21 @@ export function runAGE(
     if (options?.priorityIntelligences?.length) {
       const matchedPriority = act.intelligences.filter((intel) => options.priorityIntelligences?.includes(intel)).length;
       score += matchedPriority * 14;
+    }
+    if (options?.adaptiveModel) {
+      const w = options.adaptiveModel.regionWeights[act.region] ?? 1.0;
+      const rec = options.adaptiveModel.recommendations[act.region];
+      let adBonus = (w - 1.0) * 15;
+      if (rec) { adBonus += (3 - Math.abs(act.difficulty - rec.recommendedTier)) * 5 * rec.confidenceScore; }
+      score += Math.round(adBonus);
+    }
+    if (options?.communityRatings) {
+      const entry = options.communityRatings[act.id];
+      if (entry && entry.count >= 3) score += Math.round((entry.avg - 3) * 4);
+    }
+    if (options?.currentSeason && act.seasonalTags?.length) {
+      const sTags = SEASONAL_TAG_MAP[options.currentSeason];
+      if (sTags) { score += act.seasonalTags.filter(t => sTags.includes(t)).length * 8; }
     }
     score += Math.random() * 18;
     return { act, score };
