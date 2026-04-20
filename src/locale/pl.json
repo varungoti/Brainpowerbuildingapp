@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Start",
+  "nav.today": "Dziś",
+  "nav.brain": "Mózg",
+  "nav.aiHelp": "Pomoc AI",
+  "nav.profile": "Profil",
+  "home.greeting": "Cześć, {name}!",
+  "home.streakLabel": "Seria {count} dni",
+  "common.save": "Zapisz",
+  "common.cancel": "Anuluj",
+  "common.back": "Wstecz",
+  "common.next": "Dalej",
+  "common.done": "Gotowe",
+  "common.loading": "Ładowanie...",
+  "common.error": "Coś poszło nie tak",
+  "common.premium": "Funkcja Premium"
+}

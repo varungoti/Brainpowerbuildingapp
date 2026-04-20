@@ -1,20 +1,28 @@
 import React, { useRef } from "react";
+import { validateImageFile } from "../../utils/fileValidation";
 
 interface Props {
   onCapture: (dataUrl: string) => void;
+  onError?: (message: string) => void;
   disabled?: boolean;
 }
 
-export function CaptureButton({ onCapture, disabled }: Props) {
+export function CaptureButton({ onCapture, onError, disabled }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
+    const check = validateImageFile(file);
+    if (!check.ok) {
+      onError?.(check.reason ?? "Invalid image.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => onCapture(reader.result as string);
+    reader.onerror = () => onError?.("Could not read the selected file.");
     reader.readAsDataURL(file);
-    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (

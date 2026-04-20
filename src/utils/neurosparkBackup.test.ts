@@ -26,6 +26,14 @@ const minimalState = (): AppPersistedState => ({
   locale: "en",
   sensoryProfiles: {},
   communityRatingCache: null,
+  routineConfig: null,
+  quests: [],
+  enhancedStreak: null,
+  notificationPrefs: null,
+  usagePattern: null,
+  caregivers: [],
+  bondingScores: [],
+  narrativeCache: {},
 });
 
 describe("neurosparkBackup", () => {

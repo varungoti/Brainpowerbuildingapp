@@ -1,0 +1,13 @@
+neurospark:
+  target: prod
+  outputs:
+    prod:
+      type: postgres
+      host: "{{ env_var('NEON_HOST') }}"
+      user: "{{ env_var('NEON_USER') }}"
+      password: "{{ env_var('NEON_PASSWORD') }}"
+      port: 5432
+      dbname: "{{ env_var('NEON_DB', 'analytics') }}"
+      schema: marts
+      threads: 4
+      sslmode: require

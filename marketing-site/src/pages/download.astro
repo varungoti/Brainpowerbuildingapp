@@ -1,0 +1,43 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+
+const ios = import.meta.env.PUBLIC_APP_DOWNLOAD_IOS ?? "#";
+const android = import.meta.env.PUBLIC_APP_DOWNLOAD_ANDROID ?? "#";
+const web = import.meta.env.PUBLIC_APP_WEB_URL ?? "#";
+---
+<Site title="Download" description="Get NeuroSpark on iOS, Android, or open the web app instantly. Free tier available.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">Download</span>
+      <h1 class="mt-4 text-5xl max-w-2xl">Pick your platform. We'll keep it consistent across all of them.</h1>
+    </Reveal>
+
+    <div class="mt-12 grid md:grid-cols-3 gap-6">
+      <Reveal>
+        <a href={ios} target="_blank" class="block rounded-3xl border border-ink/5 p-8 hover:bg-white transition">
+          <div class="text-4xl"></div>
+          <div class="mt-4 text-2xl font-display font-extrabold">iOS</div>
+          <p class="mt-2 text-sm text-ink/70">Universal binary for iPhone + iPad.</p>
+          <span class="mt-6 inline-block text-spark-600 font-semibold">App Store →</span>
+        </a>
+      </Reveal>
+      <Reveal delay={0.1}>
+        <a href={android} target="_blank" class="block rounded-3xl border border-ink/5 p-8 hover:bg-white transition">
+          <div class="text-4xl">▾</div>
+          <div class="mt-4 text-2xl font-display font-extrabold">Android</div>
+          <p class="mt-2 text-sm text-ink/70">Phone + tablet, with offline packs.</p>
+          <span class="mt-6 inline-block text-spark-600 font-semibold">Google Play →</span>
+        </a>
+      </Reveal>
+      <Reveal delay={0.2}>
+        <a href={web} class="block rounded-3xl border border-ink/5 bg-ink text-white p-8 hover:bg-ink/90 transition">
+          <div class="text-4xl">◐</div>
+          <div class="mt-4 text-2xl font-display font-extrabold">Web app</div>
+          <p class="mt-2 text-sm text-white/70">Open instantly. No install.</p>
+          <span class="mt-6 inline-block text-glow font-semibold">app.neurospark.com →</span>
+        </a>
+      </Reveal>
+    </div>
+  </section>
+</Site>

@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Home",
+  "nav.today": "Vandaag",
+  "nav.brain": "Brein",
+  "nav.aiHelp": "AI Hulp",
+  "nav.profile": "Profiel",
+  "home.greeting": "Hallo, {name}!",
+  "home.streakLabel": "{count} dagen reeks",
+  "common.save": "Opslaan",
+  "common.cancel": "Annuleren",
+  "common.back": "Terug",
+  "common.next": "Volgende",
+  "common.done": "Klaar",
+  "common.loading": "Laden...",
+  "common.error": "Er ging iets mis",
+  "common.premium": "Premium functie"
+}

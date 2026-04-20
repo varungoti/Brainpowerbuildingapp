@@ -4,6 +4,10 @@
 
 import { MILESTONES } from "./milestones";
 import type { OutcomePillar } from "./outcomeChecklist";
+import {
+  inferCompetencyTags,
+  type AIAgeCompetencyId,
+} from "../../lib/competencies/aiAgeCompetencies";
 
 export interface ActivityDurationVariants {
   quick: number;
@@ -50,6 +54,19 @@ export interface Activity {
   parentCoaching?: { keyInteractions: string[]; deepeningTips: string[]; observeFor: string[] };
   seasonalTags?: string[];
   voiceNarrationHint?: string;
+  /**
+   * AI-Age Readiness competencies this activity develops. If omitted, derived
+   * from `intelligences` + `method` + `skillTags` + `mechanismTags` by
+   * `inferCompetencyTags`. Author overrides always win.
+   */
+  competencyTags?: AIAgeCompetencyId[];
+  /**
+   * Phase E (FUTURE_ROADMAP §0.5) — short, citation-grounded paragraph the
+   * parent reads BEFORE the activity, so they understand the strategic
+   * intent and naturally reinforce it during play. Surfaced on the
+   * Activity Detail screen for AI-age authored activities.
+   */
+  whyAIAge?: string;
 }
 
 const RAW_ACTIVITIES: Activity[] = [
@@ -637,6 +654,302 @@ const RAW_ACTIVITIES: Activity[] = [
     parentTip:"Galileo's discovery that mass doesn't affect fall rate is counter-intuitive and directly testable by children. Hands-on refutation of intuition is the strongest foundation for scientific thinking.",
     moodTags:["focus","high"],
   },
+
+  // ─── AI-Age Readiness seed activities (a71–a75) ──────────────────────────
+  // These cover dimensions the legacy catalogue under-served: long-horizon
+  // agency, metacognitive self-direction, ethical judgment, deeper AI co-
+  // creation, and lateral source evaluation. Each cites the research it
+  // operationalises in the parent tip.
+
+  { id:"a71", name:"Three-Day Maker Mission", emoji:"🛠️", regionEmoji:"🌍", region:"Western",
+    description:"A multi-day mini-project: child picks something to invent or improve at home, plans across three days, and presents the result. Builds the long-horizon goal-pursuit muscle that LLMs lack.",
+    instructions:["Day 1: child picks a real problem (e.g. 'shoes get muddled at the door') and sketches 3 possible solutions","Day 1: pick one, list materials, set tomorrow's first step","Day 2: build the prototype; note what didn't work and revise","Day 3: test with the family, then present in 60 seconds: problem → idea → what changed → what next","Parent acts as gentle coach, never as builder"],
+    duration:25, materials:["Paper","Pencils / Crayons","Tape"],
+    intelligences:["Executive Function","Creative","Logical-Mathematical","Intrapersonal"], method:"Project-Based Learning", ageTiers:[4,5], difficulty:4,
+    parentTip:"OECD Learning Compass anticipation→action→reflection cycle. HeroBench (2025) shows LLMs fail at >35k-token, multi-step tasks; multi-day human projects build exactly that durable edge.",
+    moodTags:["focus","high"],
+    competencyTags:["long-horizon-agency","metacognitive-self-direction","creative-generation","executive-function"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"AI excels at one-shot answers and collapses on multi-day work (HeroBench 2025). Rehearsing the plan→build→revise→present arc IS the durable edge. Your job here is to refuse to help build — only to ask 'what's next?' and 'what would you change?'",
+  },
+
+  { id:"a72", name:"Plan-Do-Review Daily Loop", emoji:"📋", regionEmoji:"🇺🇸", region:"Western",
+    description:"A 10-minute metacognitive ritual: at the start of an activity child predicts how it will go, monitors mid-way, then reflects after. The strongest evidence-base in the entire learning toolkit.",
+    instructions:["Before the activity: child says one thing they expect to find easy, one hard","Mid-way: pause for 30 seconds — 'How is it going? Anything to change?'","After: 'What worked? What was harder than I thought? What will I do differently next time?'","Parent writes / draws answers in a small notebook over the week","Look back together every Friday: spot one growth"],
+    duration:10, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Intrapersonal","Executive Function","Linguistic"], method:"Metacognitive Talk", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"EEF Toolkit ranks metacognition and self-regulation as +7 months progress — the highest evidence-to-cost ratio of any teaching strategy. Embed in any subject; do not teach 'thinking skills' in isolation.",
+    moodTags:["calm","focus"],
+    competencyTags:["metacognitive-self-direction","executive-function"],
+    whyAIAge:"When AI removes external structure, the only remaining floor is the child's internal monitor: 'Is this answer good? Am I done? What did I miss?' This 10-minute ritual builds exactly that monitor. Resist the urge to evaluate FOR the child — let the wrong-but-honest answers stand.",
+  },
+
+  { id:"a73", name:"What Should the Robot Do?", emoji:"⚖️", regionEmoji:"🇺🇸", region:"Western",
+    description:"A short ethics dilemma starring a helpful robot. Child weighs competing values (kindness vs honesty, helpfulness vs privacy) and explains their choice. Builds the should-we judgement that AI cannot replace.",
+    instructions:["Tell a 60-second story: 'A friendly robot is asked by a child to read a sister's diary out loud — to be helpful'","Ask: 'What should the robot do? Who would be happy? Who would be hurt?'","Brainstorm 3 things the robot could do instead","Vote together on the kindest choice","Try a second story with a new tension (truth vs feelings)"],
+    duration:12, materials:[],
+    intelligences:["Existential","Interpersonal","Linguistic","Emotional"], method:"Philosophy for Children", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"OECD Learning Compass: 'Reconciling tensions and dilemmas' is one of three transformative competencies for 2030. UNESCO's AI Competency Framework lists ethics as the #1 student competency.",
+    moodTags:["calm","focus"],
+    competencyTags:["ethical-judgment","social-attunement","ai-literacy-cocreation"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"AI can recite ethical theories perfectly but cannot make value trade-offs in your kid's specific situation. The 'should-we' judgement is a permanent human job. Lean into 'who would be hurt?' more than 'what's the rule?' — the felt-sense of harm is the cognitive engine here.",
+  },
+
+  { id:"a74", name:"Co-Write a Story with the AI Helper", emoji:"📖", regionEmoji:"🌍", region:"Western",
+    description:"Child writes the first paragraph; an adult uses an AI tool to draft a continuation; child critiques and rewrites the ending in their own words. Models supervised co-creation, not passive consumption.",
+    instructions:["Child writes (or dictates) a short story opening: 5 sentences","Parent reads it into a chosen AI tool and asks: 'Continue this story for 5 sentences in the same style'","Together read the AI's suggestion. Mark with ✓ what you'd keep and ✗ what feels wrong, boring, or untrue to the character","Child writes the real ending — keeping only the bits they actually liked","Discuss: 'Where did the AI help? Where did it miss what we meant?'"],
+    duration:25, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Linguistic","Creative","Digital-Technological","Executive Function"], method:"Human–Tool Communication", ageTiers:[4,5], difficulty:4,
+    parentTip:"UNESCO AI Competency Framework: students should become ethical co-creators, not passive users. Microsoft Research (2025): scaffolded critique of AI output protects critical thinking; unscaffolded use erodes it.",
+    moodTags:["focus","calm"],
+    competencyTags:["ai-literacy-cocreation","creative-generation","metacognitive-self-direction","lateral-source-evaluation"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"The biggest predictor of healthy AI literacy is whether a child can say 'no, that's not what I meant' to a tool. Critique-with-rewrite is a 25-minute inoculation against passive consumption. The AI is a junior collaborator, never the author.",
+  },
+
+  { id:"a75", name:"Three-Source Truth Check", emoji:"🔎", regionEmoji:"🌍", region:"Western",
+    description:"A claim-checking ritual: take any 'fact' overheard today and triangulate it across three different sources. The Stanford Civic Online Reasoning move adapted for kids.",
+    instructions:["Pick one surprising claim from the day (a video, a friend, an AI assistant, a kids' magazine)","Source 1: where you first heard it — note who said it and how they'd know","Source 2: open a different reputable source (book, encyclopedia, trusted site) — does it agree?","Source 3: ask a knowledgeable adult or check a third independent place","Write a one-sentence verdict: 'Probably true / Probably not / Still not sure — and why'"],
+    duration:20, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Digital-Technological","Linguistic","Executive Function"], method:"Media Literacy (unplugged)", ageTiers:[4,5], difficulty:4,
+    parentTip:"Stanford SHEG / Wineburg et al. (2022): lateral reading — leaving a source to triangulate — beats deep reading-within-one-source by a wide margin. The new floor of literacy in an AI-saturated world.",
+    moodTags:["focus","calm"],
+    competencyTags:["lateral-source-evaluation","metacognitive-self-direction","ai-literacy-cocreation"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"When generating plausible-sounding lies costs zero cents, the only defense is the habit of leaving a source. Verification-as-ritual builds an automatic 'do I trust this?' check. Make it normal and slightly fun — never a punishment for being curious.",
+  },
+
+  // ─── AI-Age Phase C content expansion (a76–a90) ──────────────────────────
+  // Fifteen authored activities to lift the four under-served dimensions to
+  // the FUTURE_ROADMAP §0.5 Phase C target counts. Every entry cites the
+  // study it operationalises and includes a Phase E `whyAIAge` paragraph.
+  // -----------------------------------------------------------------------
+
+  // long-horizon-agency (need 5 more → a76, a77, a78, a79, a80)
+  { id:"a76", name:"Two-Week Garden Patch", emoji:"🌱", regionEmoji:"🌍", region:"Western",
+    description:"Plant 3 fast-growing seeds (radish, basil, beans) and tend them daily across two weeks. Predict what will happen, log what actually happens, adapt the plan when reality disagrees.",
+    instructions:["Day 1: child draws what they expect each plant to look like at Day 14 — height, leaves, colour","Daily: water + 30-second observation; note one change in a tiny notebook (or photo)","Day 7: review predictions vs reality — which were wrong? Why?","Day 14: harvest / measure; compare final to Day-1 drawing","Plan one thing they'd change on the next planting cycle"],
+    duration:15, materials:["Seeds","Soil","Cups / Glasses","Paper","Pencils / Crayons"],
+    intelligences:["Naturalist","Executive Function","Logical-Mathematical","Intrapersonal"], method:"Project-Based Learning", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"OECD Learning Compass anticipation→action→reflection cycle, embedded in real biological time the child cannot rush. The mismatch between Day-1 drawing and Day-14 reality IS the cognitive content.",
+    moodTags:["calm","focus"],
+    competencyTags:["long-horizon-agency","metacognitive-self-direction","executive-function","deep-knowledge-retrieval"],
+    whyAIAge:"AI gives instant gratification; biology refuses to. A two-week project teaches the child that some valuable things only reveal themselves over time and only to people who showed up daily. That patience is a strategic advantage when shortcuts are ubiquitous.",
+  },
+
+  { id:"a77", name:"Save-Up Goal Jar", emoji:"🫙", regionEmoji:"🇮🇳", region:"Asian",
+    description:"Pick a real, modest goal (a book, a family treat). Plan the daily contribution, track for two weeks, decide whether to redirect mid-way. Builds delayed gratification and live re-planning.",
+    instructions:["Together pick the goal + total cost; child draws it on the jar's label","Calculate days needed at a daily contribution; child says yes/no to the rate","Each day: child adds the agreed amount + writes the running total","Day 7: review — is it still the goal? Allowed to swap once with reasoning","Day of purchase: child counts, transacts, reflects — was it worth what it cost?"],
+    duration:8, materials:["Jar / Container","Coins (real or pretend)","Paper","Pencils / Crayons"],
+    intelligences:["Executive Function","Logical-Mathematical","Intrapersonal"], method:"Project-Based Learning", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"Mischel marshmallow paradigm in slow motion + EEF self-regulation evidence. The freedom to swap mid-way models adult re-planning, not blind perseverance.",
+    moodTags:["calm","focus"],
+    competencyTags:["long-horizon-agency","executive-function","metacognitive-self-direction"],
+    whyAIAge:"Most decisions worth making are not single-step. AI is excellent at the single step. Living inside a two-week trade-off — and being allowed to change your mind once — is exactly the muscle that's getting rare.",
+  },
+
+  { id:"a78", name:"Family Recipe Mini-Restaurant", emoji:"🍳", regionEmoji:"🇮🇹", region:"Western",
+    description:"Plan, shop, prep, and serve a one-dish 'restaurant night' across 3 days. Child is head-chef; parent is sous-chef.",
+    instructions:["Day 1: child picks a familiar dish, lists ingredients, checks pantry, draws a shopping list","Day 2: shop together; child crosses items off; budget check at the end","Day 3 morning: prep — chopping, mixing, plating per child's plan","Evening: serve the family with a 30-second 'today's special' speech","After dinner: 1-minute review — what would you change next time?"],
+    duration:35, materials:["Bowls / Plates","Spoons","Cooking Pots / Lids","Paper","Pencils / Crayons"],
+    intelligences:["Bodily-Kinesthetic","Executive Function","Logical-Mathematical","Interpersonal"], method:"Project-Based Learning", ageTiers:[4,5], difficulty:4,
+    parentTip:"Multi-step embodied work that builds executive function (Diamond & Ling 2016) AND long-horizon agency in the same sitting. Embodied skill cannot be off-loaded to AI.",
+    moodTags:["high","focus"],
+    competencyTags:["long-horizon-agency","embodied-mastery","executive-function","social-attunement"],
+    whyAIAge:"AI has no body and no taste buds. Cooking is permanently human territory. Three-day projects also rehearse the skill of remembering what you committed to yesterday — which is exactly what 'agency' means as adults.",
+  },
+
+  { id:"a79", name:"My Real Book — Make It in 4 Days", emoji:"📕", regionEmoji:"🌍", region:"Western",
+    description:"Author, illustrate, bind, and dedicate a tiny 8-page book over four days. Real cover, real spine, real reader.",
+    instructions:["Day 1: storyboard 8 frames on a planning sheet — beginning, middle, end","Day 2: write the words for each page (1-3 sentences); read aloud, edit","Day 3: illustrate each page; design the cover and back-cover blurb","Day 4: assemble, dedicate to a real person, present a 'first reading' to the family"],
+    duration:25, materials:["Paper","Pencils / Crayons","Tape","Scissors"],
+    intelligences:["Linguistic","Creative","Executive Function","Bodily-Kinesthetic"], method:"Project-Based Learning", ageTiers:[3,4,5], difficulty:4,
+    parentTip:"Hayes-Flower writing model in miniature: planning → drafting → revising → presenting. The 4-day arc shows the child their own future-self thinking.",
+    moodTags:["focus","calm"],
+    competencyTags:["long-horizon-agency","creative-generation","metacognitive-self-direction","executive-function"],
+    whyAIAge:"AI can produce a polished book in 4 seconds. Yours took 4 days. That difference — what it cost the child to make it — is the only thing that will still feel meaningful in 10 years. Resist the urge to 'help' the writing.",
+  },
+
+  { id:"a80", name:"Five-Day Bug Watch", emoji:"🐞", regionEmoji:"🌍", region:"Western",
+    description:"Pick one outdoor spot (a tree, a corner of the balcony) and observe it 5 minutes daily for 5 days. Notice patterns. Form a tiny hypothesis.",
+    instructions:["Day 1: sit silently 5 minutes; sketch and tally every living thing you see","Day 2: same spot, same time; circle anything that's the same as yesterday","Day 3: ask 'why might this be?' — write one guess","Day 4: change the time of day if possible; compare findings","Day 5: present the strongest pattern you found, plus what you'd want to know next"],
+    duration:10, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Naturalist","Executive Function","Linguistic"], method:"Inquiry-Based Learning", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Repeated noticing in the same place across days is the original scientific method. Skene et al. (2022): guided play with explicit reflection beats both rote and free play.",
+    moodTags:["calm","focus"],
+    competencyTags:["long-horizon-agency","deep-knowledge-retrieval","metacognitive-self-direction"],
+    whyAIAge:"Pattern-seeing across time is a permanent human edge — it requires having been there yesterday. AI can describe ecology in general but cannot tell you what changed on YOUR balcony this week. That noticing is irreplaceable.",
+  },
+
+  // ethical-judgment (need 4 more → a81, a82, a83, a84)
+  { id:"a81", name:"Two Friends, One Cookie", emoji:"🍪", regionEmoji:"🌍", region:"Western",
+    description:"A short fairness dilemma: one cookie left, two best friends, both tired and hungry. Child solves out loud; parent gently introduces a complication.",
+    instructions:["Set the scene: 'Two best friends. One cookie left. Both very hungry. What do they do?'","Listen quietly to the child's first answer; do NOT correct it","Add complication 1: 'One of them shared their lunch yesterday'","Add complication 2: 'The other has a tummy ache today'","Ask: 'Has your answer changed? Why? What feels fair now?'"],
+    duration:10, materials:[],
+    intelligences:["Existential","Interpersonal","Linguistic","Emotional"], method:"Philosophy for Children", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"P4C dialogue tradition: the question is always better than your answer. The cognitive content is the moment the child changes their mind under new information.",
+    moodTags:["calm","focus"],
+    competencyTags:["ethical-judgment","social-attunement","metacognitive-self-direction"],
+    whyAIAge:"Static rules collapse the moment context shifts. Watching the child's verdict change as new facts appear teaches them that ethics is reasoning, not recall. AI can fetch you a rule; only humans can weigh THIS situation.",
+  },
+
+  { id:"a82", name:"The Rule That Doesn't Fit", emoji:"📜", regionEmoji:"🌍", region:"Western",
+    description:"Pick a real household rule. Invent a story where following it produces a clearly bad outcome. Discuss what to do with rules in unusual cases.",
+    instructions:["Together name a household rule (e.g. 'always tell the truth')","Invent a 60-second story where that rule causes harm (e.g. a friend's surprise party)","Ask: 'Does the rule still apply? Should we change the rule? Or keep it but make a careful exception?'","Brainstorm a phrase the child could actually say in that moment","Reflect: 'When else might a rule need an exception?'"],
+    duration:12, materials:[],
+    intelligences:["Existential","Linguistic","Interpersonal"], method:"Philosophy for Children", ageTiers:[4,5], difficulty:3,
+    parentTip:"Kohlberg's stages → conventional rule-following gives way to principle-based reasoning around age 5–7. Surfacing 'rule-vs-principle' early makes it a lifelong question, not a one-time confusion.",
+    moodTags:["calm","focus"],
+    competencyTags:["ethical-judgment","metacognitive-self-direction","social-attunement"],
+    whyAIAge:"AI is brilliant at applying rules and terrible at noticing the unusual case where the rule shouldn't apply. Your job is to teach the human noticing — the small flag that says 'wait, this case is different'. Worth more than any taught rule.",
+  },
+
+  { id:"a83", name:"The Helpful Lie Test", emoji:"🤔", regionEmoji:"🌍", region:"Western",
+    description:"A short dilemma starring kindness vs honesty. Child practices a phrase that's both true AND kind — the under-rated third option.",
+    instructions:["Scene: 'Grandma made you a meal you really don't like. She asks: do you like it?'","Ask the child for their honest first instinct","Ask for their kindest first instinct — NOTE: not the same answer","Together find a sentence that is BOTH true AND kind (e.g. 'Thank you so much for cooking — the bread part is my favourite')","Practice the sentence twice; commit to using it next time"],
+    duration:10, materials:[],
+    intelligences:["Linguistic","Interpersonal","Emotional","Existential"], method:"Philosophy for Children", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"Bronfenbrenner: moral skill = navigating the gap between principles in real conversation. Practicing the actual phrase moves it from theory to muscle memory.",
+    moodTags:["calm","focus"],
+    competencyTags:["ethical-judgment","social-attunement","emotional-resilience"],
+    whyAIAge:"Real ethics happens in dinner-table sentences, not in essays. Helping a child author a sentence that is BOTH true AND kind is the kind of nuance no model can teach in the abstract. They have to feel the trade-off.",
+  },
+
+  { id:"a84", name:"What the Other Person Sees", emoji:"👀", regionEmoji:"🌍", region:"Western",
+    description:"Take a recent disagreement and have the child argue the OTHER person's case as if they meant well. Builds steel-manning, the antidote to outrage.",
+    instructions:["Pick a real, recent small disagreement (with a sibling, a friend, a parent)","Child briefly states their own side (1 sentence)","Child now argues the other person's side as if that person had a good reason — best-case interpretation","Parent asks: 'Now that you've said it that way, does anything change in how you'd respond?'","Optional: child writes a one-sentence apology, request, or thank-you to the other person"],
+    duration:10, materials:[],
+    intelligences:["Interpersonal","Emotional","Linguistic","Existential"], method:"Philosophy for Children", ageTiers:[4,5], difficulty:3,
+    parentTip:"Steel-manning (Eemeren & Grootendorst's pragma-dialectics) is the rarest cognitive move on social media; teaching it at 4–5 makes it a default. Charity > cleverness.",
+    moodTags:["calm","focus"],
+    competencyTags:["ethical-judgment","social-attunement","metacognitive-self-direction","emotional-resilience"],
+    whyAIAge:"Outrage is the cheapest cognitive product the algorithm can ship a child. Charitable interpretation is its opposite — and slightly subversive. Ten minutes of this a week shapes a different kind of adult.",
+  },
+
+  // lateral-source-evaluation (need 4 more → a85, a86, a87, a88)
+  { id:"a85", name:"Where Did You Hear That?", emoji:"❓", regionEmoji:"🌍", region:"Western",
+    description:"Daily 5-minute ritual: pick one 'fact' the child shared today and trace its source. Build the habit of citing in conversation.",
+    instructions:["Listen for a confident factual claim from the child today","Without judgement, ask: 'Where did you hear that?'","Together rate the source: 'Friend who knows', 'Video', 'Book', 'AI helper', 'Made up?'","Decide together: should we double-check, or are we OK trusting this one?","If checking: pick one different source and look it up; reconcile"],
+    duration:5, materials:[],
+    intelligences:["Linguistic","Executive Function","Digital-Technological"], method:"Media Literacy (unplugged)", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Stanford SHEG: the single most useful habit is asking 'where did this come from?' before deep-reading. Make it a warm question, never a 'gotcha'.",
+    moodTags:["calm","focus"],
+    competencyTags:["lateral-source-evaluation","metacognitive-self-direction"],
+    whyAIAge:"The cheap question — 'where did you hear that?' — is the strongest defense against confident misinformation. Making it routine in dinner conversation now means it's automatic at 14. Ask warmly; never embarrass.",
+  },
+
+  { id:"a86", name:"Picture-Caption Truth Game", emoji:"🖼️", regionEmoji:"🌍", region:"Western",
+    description:"You show a photo + a caption. Child decides if the caption matches the picture, doesn't match, or 'we can't tell from this picture alone'. Practices the third answer.",
+    instructions:["Find or print 5 photos with captions (news, magazines, the back of a cereal box)","For each: child says — Match? Mismatch? OR can't-tell?","For 'can't-tell': discuss what extra information would resolve it","Try writing a misleading-but-not-false caption together for one photo","Reflect: 'Why might someone caption a true picture in a misleading way?'"],
+    duration:15, materials:["Magazines","Paper","Pencils / Crayons"],
+    intelligences:["Linguistic","Visual-Spatial","Digital-Technological"], method:"Media Literacy (unplugged)", ageTiers:[4,5], difficulty:3,
+    parentTip:"Wineburg/SHEG civic online reasoning: the 'true but misleading' category is the hardest to teach and the most weaponised. Naming it explicitly is the entire intervention.",
+    moodTags:["focus","calm"],
+    competencyTags:["lateral-source-evaluation","ethical-judgment","ai-literacy-cocreation"],
+    whyAIAge:"AI-generated images and captions will be ubiquitous and often technically true but contextually misleading. Practicing 'can't tell from this alone' protects the child from confident-sounding nonsense for life.",
+  },
+
+  { id:"a87", name:"The Two-Second Pause", emoji:"⏸️", regionEmoji:"🌍", region:"Western",
+    description:"Tiny breath-held habit: before forwarding or repeating any 'wow really?' fact, count two seconds, then ask one of three questions. Embedding the pause IS the lesson.",
+    instructions:["Teach the three questions: 'Who said it?' / 'Could it be true?' / 'Why am I about to share it?'","Practice 5 fake examples (parent invents) — 'Octopuses have 9 brains!' / 'Cats can do math!' — child runs the pause","Decide together: which feel checkable, which feel made up?","Real test: next time the child wants to retell something exciting, parent gently says 'two seconds' and waits","Celebrate the pause itself, not the answer"],
+    duration:8, materials:[],
+    intelligences:["Executive Function","Linguistic","Intrapersonal"], method:"Habit-Formation Routine", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Behavioural science: tiny implementation intentions ('when X, then Y') outperform big motivational pushes. The pause is the behaviour-change vehicle for media literacy.",
+    moodTags:["calm","focus"],
+    competencyTags:["lateral-source-evaluation","executive-function","metacognitive-self-direction"],
+    whyAIAge:"Speed is the algorithm's weapon. A two-second pause flips the asymmetry. This is small enough that a 4-year-old can install the habit and use it for the rest of their life — including in adulthood arguments on the internet.",
+  },
+
+  { id:"a88", name:"Same Story, Two Tellers", emoji:"📰", regionEmoji:"🌍", region:"Western",
+    description:"Read the same event from two different sources (two news sites, two friends, a book + a video). Spot what's the same, what's different, what's missing from each.",
+    instructions:["Pick one event in the news (or a school happening) the child knows about","Find or summarise two different tellings of it (parent reads aloud)","Make a 3-column chart: SAME, DIFFERENT, MISSING","Discuss: which feels more complete? What would a third source likely add?","Conclude: write one sentence the child believes is most true after seeing both"],
+    duration:18, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Linguistic","Logical-Mathematical","Executive Function"], method:"Media Literacy (unplugged)", ageTiers:[4,5], difficulty:4,
+    parentTip:"Lateral reading at child scale. The MISSING column does the heavy cognitive lifting — most disinformation is omission, not invention.",
+    moodTags:["focus","calm"],
+    competencyTags:["lateral-source-evaluation","metacognitive-self-direction","ethical-judgment"],
+    whyAIAge:"AI-summarised news will increasingly be one teller. Building the instinct to ask 'what's the OTHER teller saying?' is the single most important media literacy habit for the next decade.",
+  },
+
+  // metacognitive-self-direction (need 5 more → a89, a90; we'll round to two more)
+  { id:"a89", name:"Confidence-Meter Quiz", emoji:"📊", regionEmoji:"🌍", region:"Western",
+    description:"Before answering each question, the child rates their confidence (sure / maybe / guess). Calibration over correctness.",
+    instructions:["Pick 5 quick recall questions on something the child has been learning","For each: child says answer + a confidence: 'sure', 'maybe', 'guess'","Mark each: correct / wrong","Look at the pattern: were the 'sure' answers more correct than 'guess' answers? By how much?","Discuss: 'When you said sure but were wrong — what made you so sure?'"],
+    duration:12, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Logical-Mathematical","Intrapersonal","Linguistic"], method:"Metacognitive Talk", ageTiers:[4,5], difficulty:3,
+    parentTip:"Calibration is the strongest predictor of expert thinking (Tetlock 2015 on superforecasters). Building it in childhood is hugely under-rated.",
+    moodTags:["calm","focus"],
+    competencyTags:["metacognitive-self-direction","executive-function","deep-knowledge-retrieval"],
+    whyAIAge:"AI is famously over-confident — it states wrong answers with the same tone as right ones. A child who can say 'I'm not sure' is building the rarest cognitive skill in the AI era: knowing what they don't know.",
+  },
+
+  { id:"a90", name:"Did I Predict That?", emoji:"🎯", regionEmoji:"🌍", region:"Western",
+    description:"Make 1 prediction every morning (weather, what's for dinner, who'll text first). Check at bedtime. Track accuracy over a week.",
+    instructions:["Morning: child writes one specific prediction in a tiny notebook","Bedtime: tick / cross / partial","Day 7: count: 'How often was I right? When was I most confident — and was I right?'","Notice patterns: 'I'm bad at guessing weather but good at guessing dinner' — celebrate the noticing, not the score","Pick one prediction type to improve next week"],
+    duration:5, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Logical-Mathematical","Intrapersonal","Executive Function"], method:"Metacognitive Talk", ageTiers:[3,4,5], difficulty:2,
+    parentTip:"Brier-scoring made tiny: tracking your own forecasting accuracy is the quickest way to install epistemic humility (Tetlock).",
+    moodTags:["calm"],
+    competencyTags:["metacognitive-self-direction","executive-function","long-horizon-agency"],
+    whyAIAge:"AI will make countless confident predictions in your child's adult life. The single skill that protects them is the muscle of comparing their OWN predictions to reality — daily, on small things, until it's automatic.",
+  },
+
+  // ─── AI-Age Phase C — supervised AI co-creation (a91–a94) ────────────────
+  // FUTURE_ROADMAP §0.5 set ai-literacy-cocreation (deep) target = 5
+  // "supervised co-creation projects". Pre-existing: a74. These four close
+  // the gap with genuine end-to-end co-creation rituals (not just topic
+  // mentions). Each ends with a child-owned artefact and an explicit "where
+  // did the AI miss what we meant?" debrief.
+  // -------------------------------------------------------------------------
+
+  { id:"a91", name:"Co-Design a Birthday Card with the AI Helper", emoji:"💌", regionEmoji:"🌍", region:"Western",
+    description:"Child decides who the card is for, what feeling to land, and the message. The AI tool generates a draft illustration brief; child critiques, redirects, and re-prompts until the picture matches what THEY meant — then hand-finishes the card.",
+    instructions:["Child names the recipient + the one feeling the card should give them ('Auntie Maya should feel proud')","Child dictates a 2-line message in their own words. Parent types it into a chosen image-AI tool with: 'A simple birthday card illustration that feels [feeling]. The recipient is [who]. Style: gentle, child-drawn'","Look at the AI's first try together. Child says one thing they like, one thing they'd change","Re-prompt twice with the child's specific change ('the cat should be smaller', 'the colour should be warmer')","Print or trace the chosen draft. Child adds one element by hand the AI couldn't get right","Debrief: 'Where did the AI help? Where did it miss what we meant?'"],
+    duration:30, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Creative","Linguistic","Digital-Technological","Interpersonal"], method:"Human–Tool Communication", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"UNESCO AI Competency Framework (2024): the 'co-creator' tier requires the child to direct and revise, not just accept. Microsoft Research (2025): the act of saying 'no, change this' is what protects critical thinking from erosion.",
+    moodTags:["focus","calm"],
+    competencyTags:["ai-literacy-cocreation","creative-generation","social-attunement","metacognitive-self-direction"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"The first AI-co-creation experience a child has becomes the template for the next thousand. Direct it once, redirect it twice, hand-finish the result — this is the loop you want them to default to forever.",
+  },
+
+  { id:"a92", name:"Build a Real Lego Model from an AI Plan", emoji:"🧱", regionEmoji:"🌍", region:"Western",
+    description:"Child describes a thing they want to build out loud (a moon-base, a tiny zoo). Parent types it into an AI tool, asks for a step-by-step Lego plan, then child builds it — flagging every step where the plan is wrong, missing pieces, or just plain bad. Logs the corrections.",
+    instructions:["Child describes their build idea in 2 sentences. Parent prompts an AI tool: 'Step-by-step plan for a 7-year-old to build [idea] with about 50 standard Lego bricks. 6 steps. Number each step'","Read the plan together. Before building, child predicts: 'Which step do you think won't work?'","Build step-by-step. At each step that goes wrong (wrong colour assumed, missing piece, instruction unclear) write 'AI miss #X' on a sticky note","Finish the build any way that works in real life (you may diverge from the plan)","Count the AI misses. Discuss: 'Why did the AI think this would work? What did it not know about our actual bricks?'","Optional: re-prompt with one specific correction the child suggests, see if v2 is better"],
+    duration:35, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Spatial-Visual","Logical-Mathematical","Bodily-Kinesthetic","Digital-Technological"], method:"Human–Tool Communication", ageTiers:[2,3,4,5], difficulty:3,
+    parentTip:"Embodied verification — touching the bricks the AI didn't know about — is the strongest cure for AI-as-oracle thinking. Diamond & Ling (2016) on EF: physical manipulation outperforms screen-only practice for working memory consolidation.",
+    moodTags:["focus","movement"],
+    competencyTags:["ai-literacy-cocreation","embodied-mastery","metacognitive-self-direction","lateral-source-evaluation"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"AI plans look authoritative on the screen and fall apart in physical reality. A child who has counted the AI's misses on a real Lego build never again confuses 'sounds right' with 'is right'.",
+  },
+
+  { id:"a93", name:"Co-Compose a 30-Second Song with the AI Helper", emoji:"🎵", regionEmoji:"🌍", region:"Western",
+    description:"Child picks a feeling and a real moment from their week. Together you co-write a 4-line song with an AI tool — child writes line 1, AI suggests line 2, child rejects/rewrites, and so on. Final performance is the child's, no AI voice.",
+    instructions:["Child names the feeling + the moment ('proud, when I finally tied my shoes')","Child writes line 1 in their own words","Parent prompts the AI: 'Suggest 3 possible 8-word continuations of this kid's song line about [feeling]: \"[child's line 1]\"' — AI gives 3 options","Child picks one, rewrites it in their own voice, OR rejects all 3 and writes their own","Repeat for line 3 and line 4","Sing or chant the final 4 lines together. The AI does NOT perform — only the child does","Debrief: 'Which AI lines felt true? Which ones felt fake?'"],
+    duration:20, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Musical","Linguistic","Creative","Intrapersonal"], method:"Human–Tool Communication", ageTiers:[3,4,5], difficulty:3,
+    parentTip:"Music + language together is the cleanest evidence-base in the early-childhood EF literature (meta-analysis k=46, n=3,530, g=.35). Layering AI co-creation on top trains taste — the child is judging which lines are TRUE for them.",
+    moodTags:["calm","focus"],
+    competencyTags:["ai-literacy-cocreation","creative-generation","emotional-resilience","metacognitive-self-direction"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"The most valuable thing a creative human will do in 2030 is reject 9 AI suggestions to keep the 1 that's true. Practice the rejection muscle on tiny things — songs, doodles, captions — before it matters professionally.",
+  },
+
+  { id:"a94", name:"Plan a Real Outing with an AI Travel Helper", emoji:"🗺️", regionEmoji:"🌍", region:"Western",
+    description:"Child plans a real Saturday outing (park, museum, walk) by interviewing an AI tool together. Child writes the brief, asks 3 specific questions, and decides which of the AI's suggestions are realistic for THIS family — then walks the plan in the real world and notes what the AI got wrong.",
+    instructions:["Child writes the brief: where we are, how long we have, who is coming, one preference ('we don't like crowds')","Together prompt an AI: 'Suggest 3 short outings near [place] for a [age]-year-old that match this brief: [brief]. For each, list one thing that might go wrong'","Read the 3 options. Child rates each: 🟢 yes / 🟡 maybe / 🔴 no — and says WHY in one sentence","Pick one. Ask the AI ONE follow-up question the child invents ('What should we bring?')","Actually do the outing","Back home: child writes ONE sentence: 'The AI was right that ___, but it didn't know that ___'"],
+    duration:30, materials:["Paper","Pencils / Crayons"],
+    intelligences:["Naturalistic","Linguistic","Interpersonal","Digital-Technological","Executive Function"], method:"Human–Tool Communication", ageTiers:[3,4,5], difficulty:4,
+    parentTip:"OECD Learning Compass 2030: 'reconciling tensions and dilemmas' — practising on real outings (with budgets, weather, sibling moods) is far more transferable than on hypothetical scenarios. The post-outing 'didn't know that' line is the key learning moment, not the AI's plan itself.",
+    moodTags:["movement","focus"],
+    competencyTags:["ai-literacy-cocreation","long-horizon-agency","social-attunement","lateral-source-evaluation"],
+    skillTags:["ai-literacy"],
+    whyAIAge:"AI is great at average advice and bad at YOUR family. Building the habit of asking, doing, then naming what the AI didn't know — weekly, on real outings — is the single best inoculation against treating AI advice as ground truth.",
+  },
 ];
 
 // ─── Supporting Data ──────────────────────────────────────────────────────────
@@ -804,15 +1117,22 @@ function inferProgression(act: Activity): ActivityProgression {
 }
 
 function enrichActivity(act: Activity): Activity {
-  return {
+  // Compute mechanismTags first so `inferCompetencyTags` sees the same enriched
+  // signal that the rest of the engine sees.
+  const mechanismTags = act.mechanismTags ?? inferMechanismTags(act);
+  const enrichedSoFar: Activity = {
     ...act,
-    mechanismTags: act.mechanismTags ?? inferMechanismTags(act),
+    mechanismTags,
     contraindications: act.contraindications ?? inferContraindications(act),
     durationVariants: act.durationVariants ?? inferDurationVariants(act.duration),
     goalPillars: act.goalPillars ?? inferGoalPillars(act),
     milestoneIds: act.milestoneIds ?? inferMilestoneIds(act),
     reviewStatus: act.reviewStatus ?? "reviewed",
     progression: act.progression ?? inferProgression(act),
+  };
+  return {
+    ...enrichedSoFar,
+    competencyTags: enrichedSoFar.competencyTags ?? inferCompetencyTags(enrichedSoFar),
   };
 }
 
@@ -997,7 +1317,32 @@ export interface AGEGeneratorOptions {
   adaptiveModel?: import("../context/AppContext").AdaptiveModel | null;
   communityRatings?: Record<string, { avg: number; count: number }>;
   currentSeason?: string;
+  /**
+   * AI-Age Readiness competencies to emphasize. Typically the child's two
+   * weakest dimensions (`pickPriorityCompetencies(child.competencyScores)`),
+   * but can also be set manually for a "today let's work on resilience" mode.
+   */
+  priorityCompetencies?: AIAgeCompetencyId[];
+  /**
+   * Sleep × Cognition Loop (Survivor 4). 0..1 — exponentially-weighted 7-day
+   * sleep-debt score derived from `sleepDebtFactor()`. When > 0 we throttle
+   * working-memory-loaded regions (Logical-Mathematical, Linguistic,
+   * Spatial-Visual, Digital-Technological) so a sleep-debted child gets a
+   * lighter cognitive load that day.
+   */
+  sleepDebt?: number;
 }
+
+/** Brain regions whose activities are most working-memory-loaded — used by the
+ * sleep-debt modifier. Kept here (not in src/lib/sleep) so that activities.ts
+ * has zero deps on lib/. The lib re-exports the same constant for callers.
+ */
+const WM_HEAVY_REGIONS_FOR_AGE = new Set([
+  "Logical-Mathematical",
+  "Linguistic",
+  "Spatial-Visual",
+  "Digital-Technological",
+]);
 
 const SEASONAL_TAG_MAP: Record<string, string[]> = {
   summer: ["outdoor", "water-play", "shade-activities", "summer"],
@@ -1060,6 +1405,20 @@ export function runAGE(
       const rec = options.adaptiveModel.recommendations[act.region];
       let adBonus = (w - 1.0) * 15;
       if (rec) { adBonus += (3 - Math.abs(act.difficulty - rec.recommendedTier)) * 5 * rec.confidenceScore; }
+      // Phase D: small competency-engagement nudge from learned weights.
+      if (act.competencyTags?.length && options.adaptiveModel.competencyWeights) {
+        const weights = options.adaptiveModel.competencyWeights;
+        let cWeightSum = 0;
+        let cCount = 0;
+        for (const tag of act.competencyTags) {
+          const cw = weights[tag];
+          if (typeof cw === "number") {
+            cWeightSum += cw - 1.0;
+            cCount += 1;
+          }
+        }
+        if (cCount > 0) adBonus += (cWeightSum / cCount) * 12;
+      }
       score += Math.round(adBonus);
     }
     if (options?.communityRatings) {
@@ -1069,6 +1428,23 @@ export function runAGE(
     if (options?.currentSeason && act.seasonalTags?.length) {
       const sTags = SEASONAL_TAG_MAP[options.currentSeason];
       if (sTags) { score += act.seasonalTags.filter(t => sTags.includes(t)).length * 8; }
+    }
+    // AI-age priority competencies: gently boost activities that develop the
+    // child's currently-weakest dimensions. +12 per match keeps it in the same
+    // ballpark as `priorityIntelligences` (+14) without overpowering mood/tier.
+    if (options?.priorityCompetencies?.length && act.competencyTags?.length) {
+      const matched = act.competencyTags.filter((id) =>
+        options.priorityCompetencies?.includes(id),
+      ).length;
+      score += matched * 12;
+    }
+    // Sleep × Cognition Loop: throttle working-memory-loaded regions when
+    // the child is sleep-debted. Multiplier in [0.85, 1.0]; -22 at the floor
+    // sits in the same range as +14 priorityIntelligences so it never
+    // overpowers mood/tier but materially nudges away from heavy regions.
+    if (options?.sleepDebt && options.sleepDebt > 0 && WM_HEAVY_REGIONS_FOR_AGE.has(act.region)) {
+      const debt = Math.max(0, Math.min(1, options.sleepDebt));
+      score -= debt * 22;
     }
     score += Math.random() * 18;
     return { act, score };

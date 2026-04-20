@@ -5,6 +5,10 @@ import { MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
 import { usePwaInstallPrompt } from "@/utils/pwaInstall";
 import { canAccessBlueprint } from "@/utils/adminAccess";
 import { TEXT_SCALE_PRESETS, persistTextScale, readTextScaleFromLocalStorage } from "@/utils/textScale";
+import { validateBackupFile } from "@/utils/fileValidation";
+import { VoiceSettingsCard } from "@/components/voice/VoiceSettingsCard";
+import { NotificationSettingsCard } from "@/components/notifications/NotificationSettingsCard";
+import { CloudSyncCard } from "@/components/sync/CloudSyncCard";
 
 const INNOVATION_IDEAS = [
   { emoji:"🤖", title:"AI Activity Adaptation",       desc:"On-device ML adapts difficulty based on rolling engagement ratings across all families (privacy-first).", color:"#4361EE" },
@@ -146,6 +150,11 @@ export function ProfileScreen() {
                   e.target.value = "";
                   if (!file) return;
                   setImportError(null);
+                  const check = validateBackupFile(file);
+                  if (!check.ok) {
+                    setImportError(check.reason ?? "Invalid backup file.");
+                    return;
+                  }
                   const reader = new FileReader();
                   reader.onload = () => {
                     const text = typeof reader.result === "string" ? reader.result : "";
@@ -293,39 +302,60 @@ export function ProfileScreen() {
           </div>
         </Section>
 
-        {/* Innovation Lab */}
-        <Section title="💡 Innovation Lab" icon="">
-          <p className="text-gray-500 text-xs mb-3">
-            <span className="inline-block mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-              style={{ background: "rgba(67,97,238,0.12)", color: "#4361EE" }}>
-              Coming soon
-            </span>
-            Ideas we may ship — not available in the app yet:
-          </p>
-          <button onClick={() => setShowInnovation(s=>!s)}
-            className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200 mb-2">
-            <span className="text-gray-700 text-sm">{showInnovation?"Hide":"Show"} 10 innovation ideas</span>
-            <span className="text-gray-400">{showInnovation?"▲":"▼"}</span>
-          </button>
-          {showInnovation && (
-            <div className="space-y-2 animate-slide-up">
-              {INNOVATION_IDEAS.map((idea, i) => (
-                <div key={i} className="bg-white rounded-2xl p-3.5 border border-gray-100 animate-slide-up"
-                  style={{ animationDelay:`${i*0.06}s` }}>
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
-                      style={{ background:`${idea.color}18` }}>{idea.emoji}</div>
-                    <span className="font-bold text-gray-800 text-sm flex-1 min-w-0">{idea.title}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
-                      Planned
-                    </span>
-                  </div>
-                  <p className="text-gray-500 text-xs leading-relaxed">{idea.desc}</p>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Voice & Conversation */}
+        <Section title="Voice & Conversation" icon="🎙️">
+          <VoiceSettingsCard />
         </Section>
+
+        {/* Notifications */}
+        <Section title="Notifications" icon="🔔">
+          <NotificationSettingsCard />
+        </Section>
+
+        {/* Cloud Sync */}
+        <Section title="Cloud Sync" icon="☁️">
+          <CloudSyncCard />
+        </Section>
+
+        {/* Innovation Lab — admin-only.
+            Hidden from public users; the previously-shipped items now live in
+            the "Tools & Features" section below, and remaining roadmap items
+            are tracked in docs/FUTURE_ROADMAP.md so we don't leak unshipped
+            promises into the consumer app. */}
+        {showAdminDocs && (
+          <Section title="💡 Innovation Lab (admin)" icon="">
+            <p className="text-gray-500 text-xs mb-3">
+              <span className="inline-block mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                style={{ background: "rgba(245,158,11,0.18)", color: "#B45309" }}>
+                Internal preview
+              </span>
+              Visible only to allowlisted admin accounts. Ideas we may ship — not available to the public yet:
+            </p>
+            <button onClick={() => setShowInnovation(s=>!s)}
+              className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-200 mb-2">
+              <span className="text-gray-700 text-sm">{showInnovation?"Hide":"Show"} 10 innovation ideas</span>
+              <span className="text-gray-400">{showInnovation?"▲":"▼"}</span>
+            </button>
+            {showInnovation && (
+              <div className="space-y-2 animate-slide-up">
+                {INNOVATION_IDEAS.map((idea, i) => (
+                  <div key={i} className="bg-white rounded-2xl p-3.5 border border-gray-100 animate-slide-up"
+                    style={{ animationDelay:`${i*0.06}s` }}>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
+                        style={{ background:`${idea.color}18` }}>{idea.emoji}</div>
+                      <span className="font-bold text-gray-800 text-sm flex-1 min-w-0">{idea.title}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 border border-gray-200 rounded-full px-2 py-0.5 shrink-0">
+                        Planned
+                      </span>
+                    </div>
+                    <p className="text-gray-500 text-xs leading-relaxed">{idea.desc}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        )}
 
         {/* Ultra Features */}
         <Section title="Tools & Features" icon="🧠">
@@ -335,8 +365,18 @@ export function ProfileScreen() {
               { icon:"👨‍👩‍👧‍👦", label:"Sibling Collaboration Mode", fn:() => navigate("sibling_mode") },
               { icon:"📸", label:"Creation Portfolio", fn:() => navigate("portfolio") },
               { icon:"🌦️", label:"Seasonal Activity Library", fn:() => navigate("seasonal_library") },
+              { icon:"🏆", label:"Quests & Challenges", fn:() => navigate("quests") },
+              { icon:"💛", label:"Bonding Journey", fn:() => navigate("bonding") },
+              { icon:"⏰", label:"Daily Routine Optimizer", fn:() => navigate("routine") },
+              { icon:"👨‍👩‍👧", label:"Caregivers", fn:() => navigate("caregivers") },
               { icon:"🌏", label:"Language", fn:() => navigate("settings_language") },
               { icon:"🧩", label:"Sensory Settings", fn:() => navigate("settings_sensory") },
+              { icon:"🔔", label:"Notifications", fn:() => navigate("settings_notifications") },
+              { icon:"🔒", label:"AI privacy & consent", fn:() => navigate("ai_privacy") },
+              { icon:"💭", label:"Coach long memory", fn:() => navigate("coach_memory") },
+              { icon:"😴", label:"Sleep × cognition", fn:() => navigate("sleep_log") },
+              { icon:"🩺", label:"Well-child snapshot", fn:() => navigate("snapshot") },
+              { icon:"🔗", label:"Pediatrician share links", fn:() => navigate("snapshot_shares") },
             ].map((item) => (
               <button key={item.label} onClick={item.fn}
                 className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white border border-gray-100 text-left">

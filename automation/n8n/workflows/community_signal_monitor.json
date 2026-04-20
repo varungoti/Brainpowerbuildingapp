@@ -1,0 +1,63 @@
+{
+  "name": "Community Signal Monitor (Twitter + Bluesky + Reddit)",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "*/30 * * * *" }] } },
+      "id": "every-30m", "name": "Every 30m",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.twitter.com/2/tweets/search/recent?query=(neurospark OR \"brain power building app\")&max_results=20",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.TWITTER_BEARER_TOKEN }}" }]}
+      },
+      "id": "tw", "name": "Twitter search",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, -150]
+    },
+    {
+      "parameters": {
+        "url": "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=neurospark&limit=25"
+      },
+      "id": "bsky", "name": "Bluesky search",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/search.json?q=neurospark+OR+%22brain+power+building+app%22&sort=new&limit=25",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "user-agent", "value": "neurospark-listener/1.0" }]}
+      },
+      "id": "rd", "name": "Reddit search",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 150]
+    },
+    {
+      "parameters": {
+        "functionCode": "const seen = $getWorkflowStaticData('node').seen ||= {};\nconst items = [];\nfor (const t of ($('Twitter search').first().json?.data || [])) {\n  if (seen[`tw_${t.id}`]) continue; seen[`tw_${t.id}`] = true;\n  items.push({ source: 'twitter', text: t.text, url: `https://twitter.com/i/web/status/${t.id}` });\n}\nfor (const p of ($('Bluesky search').first().json?.posts || [])) {\n  if (seen[`bs_${p.uri}`]) continue; seen[`bs_${p.uri}`] = true;\n  items.push({ source: 'bluesky', text: p.record?.text, url: `https://bsky.app/profile/${p.author?.handle}/post/${p.uri.split('/').pop()}` });\n}\nfor (const c of ($('Reddit search').first().json?.data?.children || [])) {\n  const d = c.data;\n  if (seen[`rd_${d.id}`]) continue; seen[`rd_${d.id}`] = true;\n  items.push({ source: 'reddit', text: `${d.title}\\n${d.selftext || ''}`.slice(0, 600), url: `https://reddit.com${d.permalink}` });\n}\nreturn items.map(json => ({ json }));"
+      },
+      "id": "merge", "name": "Dedupe + normalize",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-280, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:satellite_antenna: New mention on *{{ $json.source }}* — {{ $json.url }}\n> {{ $json.text }}"
+      },
+      "id": "slack", "name": "Notify Slack",
+      "type": "n8n-nodes-base.slack", "typeVersion": 2.2, "position": [-60, 0]
+    }
+  ],
+  "connections": {
+    "Every 30m": { "main": [[
+      { "node": "Twitter search", "type": "main", "index": 0 },
+      { "node": "Bluesky search", "type": "main", "index": 0 },
+      { "node": "Reddit search", "type": "main", "index": 0 }
+    ]]},
+    "Twitter search": { "main": [[{ "node": "Dedupe + normalize", "type": "main", "index": 0 }]] },
+    "Bluesky search": { "main": [[{ "node": "Dedupe + normalize", "type": "main", "index": 0 }]] },
+    "Reddit search":  { "main": [[{ "node": "Dedupe + normalize", "type": "main", "index": 0 }]] },
+    "Dedupe + normalize": { "main": [[{ "node": "Notify Slack", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "monitoring" }]
+}

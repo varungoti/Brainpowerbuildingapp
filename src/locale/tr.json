@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Ana Sayfa",
+  "nav.today": "Bugün",
+  "nav.brain": "Beyin",
+  "nav.aiHelp": "AI Yardım",
+  "nav.profile": "Profil",
+  "home.greeting": "Merhaba, {name}!",
+  "home.streakLabel": "{count} günlük seri",
+  "common.save": "Kaydet",
+  "common.cancel": "İptal",
+  "common.back": "Geri",
+  "common.next": "İleri",
+  "common.done": "Tamam",
+  "common.loading": "Yükleniyor...",
+  "common.error": "Bir şeyler yanlış gitti",
+  "common.premium": "Premium Özellik"
+}

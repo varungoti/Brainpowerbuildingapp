@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "ਹੋਮ",
+  "nav.today": "ਅੱਜ",
+  "nav.brain": "ਦਿਮਾਗ",
+  "nav.aiHelp": "AI ਮਦਦ",
+  "nav.profile": "ਪ੍ਰੋਫਾਈਲ",
+  "home.greeting": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, {name}!",
+  "home.streakLabel": "{count} ਦਿਨ ਦੀ ਸਟ੍ਰੀਕ",
+  "common.save": "ਸੇਵ",
+  "common.cancel": "ਰੱਦ",
+  "common.back": "ਪਿੱਛੇ",
+  "common.next": "ਅੱਗੇ",
+  "common.done": "ਹੋ ਗਿਆ",
+  "common.loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+  "common.error": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ",
+  "common.premium": "ਪ੍ਰੀਮੀਅਮ ਫੀਚਰ"
+}

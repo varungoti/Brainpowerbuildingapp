@@ -23,9 +23,26 @@ export function applyTextScale(scale: number): void {
   document.documentElement.style.setProperty("--ns-text-scale", String(clamp(scale)));
 }
 
+function safeGetLocalStorage(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetLocalStorage(key: string, value: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    /* private mode / quota exceeded / disabled storage — non-fatal */
+  }
+}
+
 export function readTextScaleFromLocalStorage(): number {
-  if (typeof window === "undefined") return 1;
-  const raw = localStorage.getItem(TEXT_SCALE_STORAGE_KEY);
+  const raw = safeGetLocalStorage(TEXT_SCALE_STORAGE_KEY);
   if (!raw) return 1;
   const n = parseFloat(raw);
   return Number.isFinite(n) ? clamp(n) : 1;
@@ -45,7 +62,7 @@ export async function hydrateTextScaleFromNativePreferences(): Promise<void> {
     const n = parseFloat(value);
     if (!Number.isFinite(n)) return;
     const clamped = clamp(n);
-    localStorage.setItem(TEXT_SCALE_STORAGE_KEY, String(clamped));
+    safeSetLocalStorage(TEXT_SCALE_STORAGE_KEY, String(clamped));
     applyTextScale(clamped);
   } catch {
     /* ignore */
@@ -55,7 +72,7 @@ export async function hydrateTextScaleFromNativePreferences(): Promise<void> {
 export async function persistTextScale(scale: number): Promise<void> {
   const clamped = clamp(scale);
   applyTextScale(clamped);
-  localStorage.setItem(TEXT_SCALE_STORAGE_KEY, String(clamped));
+  safeSetLocalStorage(TEXT_SCALE_STORAGE_KEY, String(clamped));
   if (Capacitor.isNativePlatform()) {
     try {
       await Preferences.set({ key: NATIVE_PREF_KEY, value: String(clamped) });

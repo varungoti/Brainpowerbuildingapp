@@ -1,12 +1,14 @@
 import React, { useState, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { compressImageDataUrl, inferDevelopmentalStage, filterByChild } from "../../lib/portfolio/portfolioStore";
+import { validateImageFile } from "../../utils/fileValidation";
 
 export function PortfolioScreen() {
   const { activeChild, portfolioEntries, addPortfolioEntry, removePortfolioEntry } = useApp();
   const fileRef = useRef<HTMLInputElement>(null);
   const [caption, setCaption] = useState("");
   const [capturing, setCapturing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const entries = activeChild
     ? filterByChild(portfolioEntries, activeChild.id)
@@ -14,7 +16,15 @@ export function PortfolioScreen() {
 
   const handleCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (fileRef.current) fileRef.current.value = "";
     if (!file || !activeChild) return;
+
+    const check = validateImageFile(file);
+    if (!check.ok) {
+      setError(check.reason ?? "Invalid image.");
+      return;
+    }
+    setError(null);
 
     setCapturing(true);
     try {
@@ -36,9 +46,10 @@ export function PortfolioScreen() {
         includeInReport: true,
       });
       setCaption("");
+    } catch {
+      setError("Could not process the image. Try a different photo.");
     } finally {
       setCapturing(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
@@ -74,6 +85,11 @@ export function PortfolioScreen() {
         >
           {capturing ? "Processing..." : "Capture Creation"}
         </button>
+        {error && (
+          <p role="alert" className="mt-2 text-xs text-red-600">
+            {error}
+          </p>
+        )}
       </div>
 
       {entries.length === 0 ? (

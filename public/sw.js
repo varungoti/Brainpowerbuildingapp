@@ -16,6 +16,24 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || typeof data !== "object") return;
+  if (data.type === "PREFETCH_PACK_ASSETS" && Array.isArray(data.urls)) {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) =>
+        Promise.all(
+          data.urls.slice(0, 50).map((u) =>
+            fetch(u, { mode: "no-cors" })
+              .then((resp) => cache.put(u, resp))
+              .catch(() => undefined),
+          ),
+        ),
+      ),
+    );
+  }
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;

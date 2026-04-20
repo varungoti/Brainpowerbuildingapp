@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Beranda",
+  "nav.today": "Hari Ini",
+  "nav.brain": "Otak",
+  "nav.aiHelp": "Bantuan AI",
+  "nav.profile": "Profil",
+  "home.greeting": "Halo, {name}!",
+  "home.streakLabel": "Streak {count} hari",
+  "common.save": "Simpan",
+  "common.cancel": "Batal",
+  "common.back": "Kembali",
+  "common.next": "Berikutnya",
+  "common.done": "Selesai",
+  "common.loading": "Memuat...",
+  "common.error": "Terjadi kesalahan",
+  "common.premium": "Fitur Premium"
+}

@@ -1,0 +1,101 @@
+{
+  "name": "YouTube Auto-Clipper (Opus Clip → Postiz)",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 * * * *" }] } },
+      "id": "hourly", "name": "Hourly",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "part", "value": "id,snippet" },
+          { "name": "channelId", "value": "={{ $env.YOUTUBE_CHANNEL_ID }}" },
+          { "name": "order", "value": "date" },
+          { "name": "maxResults", "value": "5" },
+          { "name": "type", "value": "video" },
+          { "name": "key", "value": "={{ $env.YOUTUBE_API_KEY }}" }
+        ]},
+        "options": {}
+      },
+      "id": "list", "name": "List recent videos",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const seen = $getWorkflowStaticData('node').seen ||= {};\nconst out = [];\nfor (const item of ($json.items || [])) {\n  const vid = item.id?.videoId;\n  if (!vid || seen[vid]) continue;\n  seen[vid] = true;\n  out.push({ json: { videoId: vid, title: item.snippet.title, url: `https://www.youtube.com/watch?v=${vid}` }});\n}\nreturn out;"
+      },
+      "id": "dedupe", "name": "Dedupe seen",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.opus.pro/v1/clips",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.OPUS_CLIP_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"video_url\": \"{{ $json.url }}\",\n  \"clip_count\": 5,\n  \"aspect_ratio\": \"9:16\",\n  \"caption_style\": \"bold-pop\"\n}",
+        "options": {}
+      },
+      "id": "clip", "name": "Send to Opus Clip",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-160, 0]
+    },
+    {
+      "parameters": { "amount": 8, "unit": "minutes" },
+      "id": "wait-clip", "name": "Wait 8 min for clips",
+      "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.opus.pro/v1/clips/{{ $('Send to Opus Clip').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.OPUS_CLIP_API_KEY }}" }]},
+        "options": {}
+      },
+      "id": "fetch-clips", "name": "Fetch clip URLs",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "clips",
+        "options": {}
+      },
+      "id": "split", "name": "Split each clip",
+      "type": "n8n-nodes-base.itemLists", "typeVersion": 3, "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const caption = `${$json.title}\\n\\n${$env.PUBLIC_APP_WEB_URL}?utm_source=youtube_clip&utm_medium=short&utm_campaign=auto_clipper`;\nconst mediaUrls = $json.url ? [$json.url] : [];\nconst posts = [\n  { provider: 'instagram', channelId: $env.POSTIZ_CHANNEL_INSTAGRAM, content: caption, mediaUrls, settings: { __type: 'instagram', post_type: 'reel' } },\n  { provider: 'tiktok',    channelId: $env.POSTIZ_CHANNEL_TIKTOK,    content: caption, mediaUrls },\n  { provider: 'youtube',   channelId: $env.POSTIZ_CHANNEL_YOUTUBE,   content: caption, mediaUrls, settings: { __type: 'youtube', type: 'short', title: ($json.title || 'NeuroSpark clip').slice(0, 95), selfDeclaredMadeForKids: false } }\n].filter((p) => !!p.channelId);\nreturn [{ json: { posts, tags: ['source:opusclip'] } }];"
+      },
+      "id": "build-postiz", "name": "Build Postiz fan-out",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [580, 0]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "name", "value": "lib/postiz_publish" },
+        "options": {}
+      },
+      "id": "postiz", "name": "Publish via Postiz",
+      "type": "n8n-nodes-base.executeWorkflow", "typeVersion": 1.1, "position": [760, 0]
+    }
+  ],
+  "connections": {
+    "Hourly":            { "main": [[{ "node": "List recent videos", "type": "main", "index": 0 }]] },
+    "List recent videos":{ "main": [[{ "node": "Dedupe seen", "type": "main", "index": 0 }]] },
+    "Dedupe seen":       { "main": [[{ "node": "Send to Opus Clip", "type": "main", "index": 0 }]] },
+    "Send to Opus Clip": { "main": [[{ "node": "Wait 8 min for clips", "type": "main", "index": 0 }]] },
+    "Wait 8 min for clips":{ "main": [[{ "node": "Fetch clip URLs", "type": "main", "index": 0 }]] },
+    "Fetch clip URLs":   { "main": [[{ "node": "Split each clip", "type": "main", "index": 0 }]] },
+    "Split each clip":   { "main": [[{ "node": "Build Postiz fan-out", "type": "main", "index": 0 }]] },
+    "Build Postiz fan-out": { "main": [[{ "node": "Publish via Postiz", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "video" }]
+}

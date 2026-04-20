@@ -1,0 +1,227 @@
+{
+  "$schema": "https://standard.neurospark.app/schema/ai-age-v1.json",
+  "version": "1.0.0",
+  "publishedAt": "2026-04-17",
+  "governance": {
+    "license": "MIT",
+    "body": "Open AI-Age Standard Working Group (forming 2027)",
+    "breakingChangeWindowDays": 90
+  },
+  "competencies": [
+    {
+      "id": "executive-function",
+      "label": "Executive Function",
+      "shortLabel": "EF",
+      "category": "foundational",
+      "definition": "Working memory, inhibitory control, and cognitive flexibility — the mental controller that turns intent into action.",
+      "whyAIAge": "When AI removes external structure, internal self-direction becomes the foundation for everything else.",
+      "ageGuidance": [
+        { "ageRangeMonths": [36, 84], "note": "Highest leverage at 3-7. Train through whole-environment activities (dramatic play, complex sport, dance) not isolated brain-training games." }
+      ],
+      "observableBehaviours": [
+        "self-correction", "delayed-gratification", "rule-switching", "holding-multi-step-instructions",
+        "tower-building-with-target", "wait-your-turn"
+      ],
+      "evidence": [
+        { "citation": "Diamond & Ling (2016) Conclusions about interventions, programs, and approaches for improving executive functions. Dev. Cogn. Neurosci.", "doi": "10.1016/j.dcn.2015.11.005" },
+        { "citation": "Lehto, Juujarvi, Kooistra & Pulkkinen (2003) Dimensions of executive functioning: Evidence from children. Br. J. Dev. Psychol.", "doi": "10.1348/026151003321164627" },
+        { "citation": "Cortes Pascual, Moyano & Robres (2019) The relationship between executive functions and academic performance in primary education. Front. Psychol.", "doi": "10.3389/fpsyg.2019.01582" }
+      ]
+    },
+    {
+      "id": "metacognitive-self-direction",
+      "label": "Metacognitive Self-Direction",
+      "shortLabel": "Meta",
+      "category": "foundational",
+      "definition": "Knowing what you know, what you don't, and what to do about it.",
+      "whyAIAge": "When the model can answer anything, knowing whether to trust your gut or check is the meta-skill that beats it.",
+      "ageGuidance": [
+        { "ageRangeMonths": [48, 144], "note": "From 4 onward. Train via 'how do you know?' prompts and explicit 'I'm confused / let me check' modelling." }
+      ],
+      "observableBehaviours": [
+        "asks-how-do-you-know", "says-i-dont-know", "rechecks-own-work", "verbalises-strategy", "predicts-confidence"
+      ],
+      "evidence": [
+        { "citation": "Education Endowment Foundation (2018) Metacognition and Self-Regulated Learning Guidance Report.", "url": "https://educationendowmentfoundation.org.uk/education-evidence/guidance-reports/metacognition" },
+        { "citation": "Whitebread et al. (2009) The development of two observational tools for assessing metacognition and self-regulated learning in young children. Metacognition and Learning.", "doi": "10.1007/s11409-008-9033-1" }
+      ]
+    },
+    {
+      "id": "long-horizon-agency",
+      "label": "Long-Horizon Agency",
+      "shortLabel": "Agency",
+      "category": "foundational",
+      "definition": "Persisting through multi-day projects with a self-set goal.",
+      "whyAIAge": "AI removes friction; agency is the muscle that decides what to spend the friction-budget on.",
+      "ageGuidance": [
+        { "ageRangeMonths": [60, 144], "note": "From 5 onward via week-long building projects, garden plots, music pieces. Sub-goals + visible progress." }
+      ],
+      "observableBehaviours": [
+        "returns-to-multi-day-project", "sub-goal-setting", "asks-for-resources", "reviews-yesterdays-work"
+      ],
+      "evidence": [
+        { "citation": "Duckworth & Quinn (2009) Development and validation of the Short Grit Scale. Journal of Personality Assessment.", "doi": "10.1080/00223890802634290" },
+        { "citation": "Eskreis-Winkler et al. (2018) Using wise interventions to motivate deliberate practice. Journal of Personality and Social Psychology.", "doi": "10.1037/pspa0000125" }
+      ]
+    },
+    {
+      "id": "embodied-mastery",
+      "label": "Embodied Mastery",
+      "shortLabel": "Body",
+      "category": "foundational",
+      "definition": "Fine and gross motor skills tuned by deliberate, varied practice.",
+      "whyAIAge": "Cognition is grounded in the body; AI can't replace the wiring laid down by sport, music, dance, craft.",
+      "ageGuidance": [
+        { "ageRangeMonths": [12, 144], "note": "Lifelong. Highest neuroplasticity 1-12. Music training shows clean causal EF transfer (g=.35; ≥12wk @ 3x/wk @ 20-40min)." }
+      ],
+      "observableBehaviours": [
+        "fine-motor-precision", "gross-motor-coordination", "rhythm-keeping", "balance", "instrument-play"
+      ],
+      "evidence": [
+        { "citation": "Diamond (2015) Effects of Physical Exercise on Executive Functions. Annals of Sports Medicine and Research.", "doi": "10.1016/j.bandc.2014.09.001" },
+        { "citation": "Sala & Gobet (2017) Does Far Transfer Exist? Negative Evidence From Chess, Music, and Working Memory Training. Current Directions in Psychological Science.", "doi": "10.1177/0963721417712760" },
+        { "citation": "Frontiers Psychology (2025) Music training and executive functions in children: a meta-analysis (k=46, n=3,530, g=.35).", "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2025.1659927" }
+      ]
+    },
+    {
+      "id": "deep-knowledge-retrieval",
+      "label": "Deep Knowledge Retrieval",
+      "shortLabel": "Recall",
+      "category": "knowledge-mechanics",
+      "definition": "Strong, durable factual knowledge that supports flexible reasoning.",
+      "whyAIAge": "Generative reasoning requires a knowledge base to ground it; you can't think with facts you don't own.",
+      "ageGuidance": [
+        { "ageRangeMonths": [36, 144], "note": "Spaced retrieval > re-reading; varied retrieval > blocked. Begin from 3 with songs, books, naming." }
+      ],
+      "observableBehaviours": [
+        "spontaneous-recall", "transfers-knowledge-across-contexts", "retrieves-without-prompt"
+      ],
+      "evidence": [
+        { "citation": "Karpicke & Roediger (2008) The critical importance of retrieval for learning. Science.", "doi": "10.1126/science.1152408" }
+      ]
+    },
+    {
+      "id": "guided-curiosity",
+      "label": "Guided Curiosity",
+      "shortLabel": "Curiosity",
+      "category": "knowledge-mechanics",
+      "definition": "Asking better and better questions, with adult-guided depth.",
+      "whyAIAge": "Prompt quality is downstream of question quality; curiosity is the input to all AI co-creation.",
+      "ageGuidance": [
+        { "ageRangeMonths": [24, 144], "note": "From 2. Adults model 'I wonder…', protect 'why' questions, point to information sources." }
+      ],
+      "observableBehaviours": [
+        "open-ended-questions", "follow-up-questions", "what-if-questions", "asks-about-source"
+      ],
+      "evidence": [
+        { "citation": "Engel (2011) Children's Need to Know: Curiosity in Schools. Harvard Educational Review.", "doi": "10.17763/haer.81.4.h054131316473115" }
+      ]
+    },
+    {
+      "id": "ai-literacy-cocreation",
+      "label": "AI Literacy & Co-Creation",
+      "shortLabel": "AI",
+      "category": "ai-era",
+      "definition": "Working *with* AI as a collaborator: prompting, evaluating, iterating, refining.",
+      "whyAIAge": "The defining workplace skill of 2036. Builds the muscle of ask + verify + decide.",
+      "ageGuidance": [
+        { "ageRangeMonths": [60, 144], "note": "From 5 in age-appropriate sandboxes. Always parent-mediated under 8. Frame AI as a tool, never a 'friend'." }
+      ],
+      "observableBehaviours": [
+        "iterates-prompts", "evaluates-output", "rejects-bad-output", "asks-ai-to-explain", "uses-ai-then-checks"
+      ],
+      "evidence": [
+        { "citation": "OECD (2026) Digital Education Outlook.", "url": "https://www.oecd.org/en/publications/oecd-digital-education-outlook-2026" },
+        { "citation": "EC + OECD + Code.org (2025) AI Literacy Framework for Primary and Secondary Education.", "url": "https://www.computingatschool.org.uk/resources/2025/august/an-ai-literacy-framework-for-primary-and-secondary-education" }
+      ]
+    },
+    {
+      "id": "lateral-source-evaluation",
+      "label": "Lateral Source Evaluation",
+      "shortLabel": "Verify",
+      "category": "ai-era",
+      "definition": "Checking claims by leaving the page and triangulating across sources.",
+      "whyAIAge": "Hallucinations and synthetic media make 'who said this and who else confirms it' the survival skill.",
+      "ageGuidance": [
+        { "ageRangeMonths": [84, 144], "note": "From 7. Train via fact-check exercises and 'who else says this?' prompts." }
+      ],
+      "observableBehaviours": [
+        "checks-second-source", "asks-who-said-this", "distinguishes-opinion-from-fact"
+      ],
+      "evidence": [
+        { "citation": "Wineburg & McGrew (2019) Lateral Reading and the Nature of Expertise. Teachers College Record.", "url": "https://stanford.io/3oXsKpV" }
+      ]
+    },
+    {
+      "id": "creative-generation",
+      "label": "Creative Generation",
+      "shortLabel": "Create",
+      "category": "ai-era",
+      "definition": "Originating things — stories, hypotheses, music, images, plans — that didn't exist before.",
+      "whyAIAge": "AI is a force multiplier for creators; in 2036, taste + originality are the irreducible human contribution.",
+      "ageGuidance": [
+        { "ageRangeMonths": [24, 144], "note": "From 2. Open-ended materials, time pressure removed, judgement deferred." }
+      ],
+      "observableBehaviours": [
+        "originates-novel-output", "combines-unrelated-ideas", "iterates-on-own-work", "expresses-taste"
+      ],
+      "evidence": [
+        { "citation": "Brynjolfsson, Li & Raymond (2025) Generative AI at Work. Quarterly Journal of Economics.", "doi": "10.1093/qje/qjae045" }
+      ]
+    },
+    {
+      "id": "social-attunement",
+      "label": "Social Attunement",
+      "shortLabel": "Social",
+      "category": "human-moat",
+      "definition": "Reading, anticipating, and influencing other minds — theory of mind in action.",
+      "whyAIAge": "Care, persuasion, leadership — the work least exposed to AI substitution. Predicts thought/attention outcomes through age 10.",
+      "ageGuidance": [
+        { "ageRangeMonths": [36, 144], "note": "ToM crystallises 3-5; effortful control + ToM at 6 predict thought/attention problems through 10." }
+      ],
+      "observableBehaviours": [
+        "predicts-others-feelings", "false-belief-understanding", "perspective-taking", "repair-after-conflict"
+      ],
+      "evidence": [
+        { "citation": "Wellman, Cross & Watson (2001) Meta-analysis of theory-of-mind development. Child Development.", "doi": "10.1111/1467-8624.00304" },
+        { "citation": "Sci. Reports (2025) Theory of mind and effortful control at 6 predict 6-10 thought/attention problems (n=214 longitudinal).", "doi": "10.1038/s41598-025-24007-6" }
+      ]
+    },
+    {
+      "id": "emotional-resilience",
+      "label": "Emotional Resilience",
+      "shortLabel": "Resilience",
+      "category": "human-moat",
+      "definition": "Recovering from setback, regulating arousal, and persisting through uncomfortable feeling.",
+      "whyAIAge": "AI compresses feedback loops; without recovery muscle, kids burn out. Parent-child neural synchrony predicts internalising trajectories over 1.5 years.",
+      "ageGuidance": [
+        { "ageRangeMonths": [12, 144], "note": "Co-regulation 1-5; self-regulation scaffolded 5-12. Sleep is the strongest known mediator (glymphatic clearance ~10.9% of variance in cognition)." }
+      ],
+      "observableBehaviours": [
+        "recovers-from-setback", "names-feelings", "self-soothes", "tries-again-after-fail", "co-regulates-with-adult"
+      ],
+      "evidence": [
+        { "citation": "Skene et al. (2022) Parent-child interactions and child outcomes: A meta-analysis.", "doi": "10.1038/s41539-022-00120-3" },
+        { "citation": "Frontiers Hum. Neurosci. (2025) Reduced glymphatic ALPS index in ADHD linked to language delay.", "url": "https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2025.1612997/full" },
+        { "citation": "ABCD cohort (2025) Sleep mediates ~10.9% of cognition outcome via perivascular-space burden (n≈6,800).", "url": "https://pubmed.ncbi.nlm.nih.gov/41415604" }
+      ]
+    },
+    {
+      "id": "ethical-judgment",
+      "label": "Ethical Judgment",
+      "shortLabel": "Ethics",
+      "category": "human-moat",
+      "definition": "Distinguishing right from wrong with reasons; resisting manipulation by systems and other people.",
+      "whyAIAge": "Algorithmic systems will optimise for engagement against children; ethical judgment is the firewall.",
+      "ageGuidance": [
+        { "ageRangeMonths": [36, 144], "note": "Begin 3 with fairness games; deepen to consequentialist + deontic reasoning by 8-10." }
+      ],
+      "observableBehaviours": [
+        "calls-out-unfair", "explains-why-not-fair", "resists-manipulation", "considers-consequences"
+      ],
+      "evidence": [
+        { "citation": "Bloom (2014) Just Babies: The Origins of Good and Evil. Crown.", "url": "https://en.wikipedia.org/wiki/Just_Babies" }
+      ]
+    }
+  ]
+}

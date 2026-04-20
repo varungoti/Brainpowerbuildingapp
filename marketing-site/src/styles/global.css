@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background: theme(colors.mist);
+    color: theme(colors.ink);
+  }
+  body {
+    @apply font-body antialiased selection:bg-spark-500/20 selection:text-spark-600;
+  }
+  h1, h2, h3, h4 { @apply font-display font-extrabold tracking-tight; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-full bg-spark-500 px-6 py-3 font-semibold text-white shadow-[0_8px_30px_-8px_rgba(255,107,71,0.6)] transition hover:bg-spark-600 hover:shadow-[0_12px_36px_-6px_rgba(255,107,71,0.7)];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-5 py-3 font-semibold text-ink backdrop-blur transition hover:bg-white;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-full bg-deep-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-deep-500;
+  }
+  .container-tight {
+    @apply mx-auto w-full max-w-6xl px-6 lg:px-10;
+  }
+  .grid-bg {
+    background-image: radial-gradient(rgba(14,19,32,.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* Respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0ms !important; transition-duration: 0ms !important; }
+}

@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import type { FeedChannel, FeedPost } from "@/app/data/feedTypes";
 import { DEFAULT_COMMUNITY_ID } from "@/app/data/feedTypes";
-import { saveFeedPosts, seedFeedPostsIfEmpty } from "@/utils/feedStorage";
+import { loadFeedPosts, saveFeedPosts, seedFeedPostsIfEmpty } from "@/utils/feedStorage";
 import { canModifyFeedPost, type FeedUserRef } from "@/utils/feedPermissions";
 import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 import {
@@ -61,13 +61,21 @@ export function FeedProvider({ children }: { children: ReactNode }) {
 
     if (remote) {
       setRemoteLoading(true);
+      // Hydrate from the last-good local cache immediately so users are never
+      // shown an empty feed while the network call is in flight or fails.
+      const cached = loadFeedPosts();
+      if (cached.length > 0) setPosts(cached);
+
       const refetch = async () => {
         try {
           const list = await listFeedPosts(client!);
-          if (!cancelled) setPosts(list);
+          if (cancelled) return;
+          setPosts(list);
+          saveFeedPosts(list);
         } catch (e) {
-          console.error("[feeds] remote list failed", e);
-          if (!cancelled) setPosts([]);
+          console.error("[feeds] remote list failed; keeping last-good cache", e);
+          // Intentionally do NOT clear posts on failure — the cached entries remain
+          // visible so a transient network error doesn't wipe the feed UI.
         } finally {
           if (!cancelled && !firstRemoteDone) {
             firstRemoteDone = true;

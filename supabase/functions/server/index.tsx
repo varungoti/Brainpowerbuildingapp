@@ -2,6 +2,7 @@
 import { Hono, type Context } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
+import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 import * as kv from "./kv_store.tsx";
 import {
   buildCoachFallback,
@@ -10,8 +11,54 @@ import {
   type CoachChildProfile,
   type CoachResponse,
 } from "./coach_shared.ts";
+import { registerAdminRoutes } from "./admin.tsx";
 
 const app = new Hono();
+
+/**
+ * requireUser verifies the Supabase Auth JWT on the incoming request.
+ * Returns a Response (to short-circuit the handler) on failure, otherwise
+ * returns the resolved userId. Callers MUST check the return type.
+ */
+async function requireUser(
+  c: Context,
+): Promise<{ userId: string } | Response> {
+  const authHeader = c.req.header("authorization") ?? c.req.header("Authorization");
+  const token = authHeader?.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token) return c.json({ error: "unauthorized" }, 401);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const verifyKey = serviceKey ?? anonKey;
+  if (!url || !verifyKey) {
+    console.error("requireUser: Supabase env not configured");
+    return c.json({ error: "server_misconfigured" }, 500);
+  }
+
+  try {
+    const client = createClient(url, verifyKey);
+    const { data, error } = await client.auth.getUser(token);
+    if (error || !data?.user?.id) return c.json({ error: "unauthorized" }, 401);
+    return { userId: data.user.id };
+  } catch (e) {
+    console.error("requireUser: verification failed", e);
+    return c.json({ error: "unauthorized" }, 401);
+  }
+}
+
+function clampNumber(n: unknown, min: number, max: number): number | null {
+  if (typeof n !== "number" || !Number.isFinite(n)) return null;
+  return Math.max(min, Math.min(max, n));
+}
+
+function truncateString(s: unknown, max: number): string {
+  if (typeof s !== "string") return "";
+  const cleaned = s.replace(/[\u0000-\u001f\u007f]/g, " ");
+  return cleaned.length > max ? cleaned.slice(0, max) : cleaned;
+}
 
 const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
 
@@ -44,9 +91,11 @@ async function enforceRateLimit(
   bucket: string,
   limit: number,
   windowSeconds: number,
+  scopedKey?: string,
 ) {
   const windowId = Math.floor(Date.now() / (windowSeconds * 1000));
-  const key = `rate:${bucket}:${getClientKey(c)}:${windowId}`;
+  const identity = scopedKey ?? getClientKey(c);
+  const key = `rate:${bucket}:${identity}:${windowId}`;
   const record = (await kv.get(key)) as { count?: number } | null;
   const count = (record?.count ?? 0) + 1;
   await kv.set(key, { count, ts: Date.now() });
@@ -106,40 +155,81 @@ app.post("/make-server-76b0ba9a/analytics/event", async (c) => {
 });
 
 // ─── Community Ratings ─────────────────────────────────────────────────────────
-app.post("/make-server-76b0ba9a/rate-activity", async (c) => {
-  try {
-    const { activityId, rating, userId } = await c.req.json();
-    if (!activityId || !rating || !userId) return c.json({ error: "Missing fields" }, 400);
-    const key = `rating:${activityId}`;
-    const existing = await kv.get(key) as { total: number; count: number; votes: Record<string, number> } | null;
-    const votes = existing?.votes ?? {};
-    const wasRated = votes[userId] ?? 0;
-    const newTotal = (existing?.total ?? 0) - wasRated + rating;
-    const newCount = wasRated ? (existing?.count ?? 0) : (existing?.count ?? 0) + 1;
-    votes[userId] = rating;
-    await kv.set(key, { total: newTotal, count: newCount, votes });
-    return c.json({ success: true, avg: newTotal / newCount, count: newCount });
-  } catch (e) {
-    console.log("rate-activity error:", e);
-    return c.json({ error: String(e) }, 500);
-  }
-});
+const ACTIVITY_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
 
-app.get("/make-server-76b0ba9a/activity-ratings", async (c) => {
+async function postRateActivity(c: Context) {
   try {
-    const ids = c.req.query("ids")?.split(",") ?? [];
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "rate-activity", 30, 60, userId);
+    if (rateLimit) return rateLimit;
+
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+    const activityId = typeof body.activityId === "string" ? body.activityId : "";
+    const rating = body.rating;
+    if (!ACTIVITY_ID_RE.test(activityId)) {
+      return c.json({ error: "invalid_activity_id" }, 400);
+    }
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      return c.json({ error: "invalid_rating" }, 400);
+    }
+
+    const userVoteKey = `rating:${activityId}:user:${userId}`;
+    const aggKey = `rating:${activityId}`;
+
+    const prevVote = (await kv.get(userVoteKey)) as { rating: number } | null;
+    const existing = (await kv.get(aggKey)) as { total: number; count: number } | null;
+
+    const prevRating = prevVote?.rating ?? 0;
+    const prevTotal = existing?.total ?? 0;
+    const prevCount = existing?.count ?? 0;
+    const newTotal = prevTotal - prevRating + rating;
+    const newCount = prevRating ? prevCount : prevCount + 1;
+
+    await kv.set(userVoteKey, { rating, ts: Date.now() });
+    await kv.set(aggKey, { total: newTotal, count: newCount });
+
+    return c.json({
+      success: true,
+      avg: newCount > 0 ? newTotal / newCount : 0,
+      count: newCount,
+    });
+  } catch (e) {
+    console.error("rate-activity error:", e);
+    return c.json({ error: "rate_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/rate-activity", postRateActivity);
+app.post("/rate-activity", postRateActivity);
+
+async function getActivityRatings(c: Context) {
+  try {
+    const ids = (c.req.query("ids") ?? "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => ACTIVITY_ID_RE.test(id))
+      .slice(0, 100);
     const result: Record<string, { avg: number; count: number }> = {};
     for (const id of ids) {
       const key = `rating:${id}`;
-      const data = await kv.get(key) as { total: number; count: number } | null;
+      const data = (await kv.get(key)) as { total: number; count: number } | null;
       if (data && data.count > 0) result[id] = { avg: data.total / data.count, count: data.count };
     }
     return c.json({ success: true, ratings: result });
   } catch (e) {
-    console.log("activity-ratings error:", e);
-    return c.json({ error: String(e) }, 500);
+    console.error("activity-ratings error:", e);
+    return c.json({ error: "ratings_failed" }, 500);
   }
-});
+}
+
+app.get("/make-server-76b0ba9a/activity-ratings", getActivityRatings);
+app.get("/activity-ratings", getActivityRatings);
 
 // ─── AI Parent Counselor ────────────────────────────────────────────────────────
 const DEMO_RESPONSES: Record<string, object> = {
@@ -982,6 +1072,8 @@ type CoachRequestBody = {
   question?: string;
   messages?: CoachChatMessage[];
   isPremium?: boolean;
+  /** Survivor 1: identifies which child's long memory to inject. Optional. */
+  childId?: string;
   mode?: "brain-map" | "activity-coaching";
   activityContext?: {
     name?: string;
@@ -1060,10 +1152,35 @@ async function postCoach(c: Context) {
         ? `Parent asks: ${question}`
         : "Give me coaching guidance for this specific activity.";
     } else {
+      // Survivor 1: pull long memory for this child from coach_memory.
+      // Best-effort; we never fail the coach call because of memory I/O.
+      let longMemory: Array<{ observation: string; topic: string; weight: number; created_at: string }> = [];
+      try {
+        const auth = await requireUser(c);
+        if (!(auth instanceof Response) && body.childId) {
+          const url = Deno.env.get("SUPABASE_URL");
+          const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+          if (url && serviceKey) {
+            const sb = createClient(url, serviceKey);
+            const memRes = await sb
+              .from("coach_memory")
+              .select("observation, topic, weight, created_at")
+              .eq("user_id", auth.userId)
+              .eq("child_id", String(body.childId).slice(0, 64))
+              .order("created_at", { ascending: false })
+              .limit(40);
+            longMemory = (memRes.data ?? []) as typeof longMemory;
+          }
+        }
+      } catch (e) {
+        console.warn("coach long-memory fetch failed", e);
+      }
+
       systemPrompt = generateCoachPrompt(profile, scores, {
         question,
         isPremium,
         messages,
+        longMemory,
       });
       userMessage = question?.trim()
         ? `Parent follow-up: ${question}`
@@ -1138,6 +1255,263 @@ async function postCoach(c: Context) {
 app.post("/make-server-76b0ba9a/coach", postCoach);
 app.post("/coach", postCoach);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Companion Coach Memory — Survivor 1.
+// Long-memory parent partner. Append-only observations the coach reads
+// back when answering. Strictly RLS-isolated by child + user.
+// ═══════════════════════════════════════════════════════════════════════════
+const COACH_MEMORY_TOPICS = new Set([
+  "sleep", "meltdown", "rupture-repair", "milestone", "language",
+  "social", "sibling", "school", "health", "emotion", "curiosity", "other",
+]);
+
+async function postCoachMemory(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "coach-memory-write", 60, 60, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = (await c.req.json()) as {
+    childId?: string; observation?: string; topic?: string; weight?: number;
+  };
+  const childId = typeof body.childId === "string" ? body.childId.slice(0, 64) : "";
+  const observation = truncateString(body.observation, 800);
+  const topic = typeof body.topic === "string" && COACH_MEMORY_TOPICS.has(body.topic) ? body.topic : "other";
+  const weight = clampNumber(body.weight, 1, 5) ?? 1;
+  if (!childId || !observation) return c.json({ error: "invalid_payload" }, 400);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  const { data, error } = await sb
+    .from("coach_memory")
+    .insert({ user_id: userId, child_id: childId, observation, topic, weight })
+    .select("id, created_at")
+    .maybeSingle();
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ id: data?.id, createdAt: data?.created_at });
+}
+
+async function getCoachMemory(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+  const childId = c.req.query("childId");
+  if (!childId) return c.json({ error: "childId required" }, 400);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  const { data, error } = await sb
+    .from("coach_memory")
+    .select("id, observation, topic, weight, created_at")
+    .eq("user_id", userId)
+    .eq("child_id", childId)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data });
+}
+
+async function deleteCoachMemory(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+  const id = c.req.param("id");
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  const { error } = await sb
+    .from("coach_memory")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+}
+
+app.post("/make-server-76b0ba9a/coach/memory", postCoachMemory);
+app.post("/coach/memory", postCoachMemory);
+app.get("/make-server-76b0ba9a/coach/memory", getCoachMemory);
+app.get("/coach/memory", getCoachMemory);
+app.delete("/make-server-76b0ba9a/coach/memory/:id", deleteCoachMemory);
+app.delete("/coach/memory/:id", deleteCoachMemory);
+
+// ─── Rupture-and-repair mode ─────────────────────────────────────────────
+// Curated, latency-optimised endpoint for the "my child just had a meltdown,
+// what do I do in the next 90 seconds?" voice flow. Returns scripted dyadic
+// breathing + parent script + a recovery reframe in <2s. Always free
+// (no premium gate) — this is a safety + retention surface.
+async function postCoachRupture(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "coach-rupture", 30, 600, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = (await c.req.json()) as {
+    childAgeMonths?: number; childId?: string; trigger?: string; childName?: string;
+  };
+  const ageMonths = clampNumber(body.childAgeMonths, 6, 240) ?? 60;
+  const trigger = truncateString(body.trigger, 300);
+  const childName = truncateString(body.childName, 40) || "your child";
+
+  // Curated micro-script for the next 90 seconds. Format chosen so the
+  // narration layer can stream sentence-by-sentence to TTS.
+  const script = ageMonths < 36
+    ? [
+        `Get to ${childName}'s eye level. Soften your voice.`,
+        `Breathe with them: in for four, out for six. Do it twice.`,
+        `Name what you see: "You're really upset right now. That's okay."`,
+        `Offer two simple choices when their breathing slows: "Hug or quiet space?"`,
+        `Once they're regulated, validate first. Problem-solving comes after.`,
+      ]
+    : ageMonths < 84
+    ? [
+        `Pause. Don't try to fix yet. Just be present at their level.`,
+        `Breathe slowly together: in for four, out for six. Twice.`,
+        `Name the feeling without judging it. "I see you're really frustrated."`,
+        `Offer one boundary AND one choice. "We can't throw — but we can stomp or squeeze."`,
+        `When they're calm, ask: "What was the hardest part?" Listen, don't lecture.`,
+        `Repair: "I'm sorry that was so hard. I'm glad we got through it together."`,
+      ]
+    : [
+        `Pause and breathe. Don't match their energy.`,
+        `Box-breathe with them: in 4, hold 4, out 4, hold 4. Twice.`,
+        `Validate the feeling specifically. "Sounds like that felt really unfair."`,
+        `Ask, don't tell: "What do you need right now?"`,
+        `If they need space, give it — but stay nearby.`,
+        `When calm, repair together: "What could we both do differently next time?"`,
+      ];
+
+  // Best-effort: log a memory observation so the next coach session knows.
+  if (body.childId) {
+    try {
+      const url = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (url && serviceKey) {
+        const sb = createClient(url, serviceKey);
+        await sb.from("coach_memory").insert({
+          user_id: userId,
+          child_id: String(body.childId).slice(0, 64),
+          observation: `Rupture-and-repair session. Trigger: ${trigger || "unspecified"}.`,
+          topic: "rupture-repair",
+          weight: 3,
+        });
+      }
+    } catch (e) {
+      console.warn("rupture memory log failed", e);
+    }
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      title: "Rupture & Repair — next 90 seconds",
+      script,
+      followUpAfterCalm: [
+        "Sit with them quietly for 60 seconds.",
+        "Offer water.",
+        "Name one specific thing they did well during the recovery.",
+      ],
+      disclaimer: "This is in-the-moment co-regulation guidance, not a clinical intervention. If meltdowns are frequent or self-harming, please consult a pediatrician.",
+    },
+  });
+}
+
+app.post("/make-server-76b0ba9a/coach/rupture", postCoachRupture);
+app.post("/coach/rupture", postCoachRupture);
+
+// ─── Sleep × Cognition (Survivor 4) ───────────────────────────────────────
+// Append-only nightly bucket per child. Conflict-resolution = UNION on
+// (user_id, child_id, night_date); a re-log overwrites the prior bucket
+// for that night (parent corrects yesterday's manual entry).
+async function postSleepLog(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+  const rateLimit = await enforceRateLimit(c, "sleep-log", 120, 600, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = (await c.req.json()) as {
+    childId?: string; nightDate?: string; bucket?: string; source?: string;
+    minutesSlept?: number; awakenings?: number; tzOffsetMin?: number;
+  };
+  const childId = truncateString(body.childId, 64);
+  const nightDate = truncateString(body.nightDate, 10);
+  const bucket = String(body.bucket ?? "");
+  const source = String(body.source ?? "manual");
+  if (!childId || !nightDate) return c.json({ error: "missing_fields" }, 400);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nightDate)) return c.json({ error: "bad_date" }, 400);
+  if (!["excellent", "adequate", "short", "deficient"].includes(bucket)) return c.json({ error: "bad_bucket" }, 400);
+  if (!["healthkit", "health-connect", "fitbit", "oura", "manual", "imported"].includes(source)) return c.json({ error: "bad_source" }, 400);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  const { error } = await sb
+    .from("child_sleep_signal")
+    .upsert(
+      {
+        user_id: userId,
+        child_id: childId,
+        night_date: nightDate,
+        bucket,
+        source,
+        tz_offset_min: typeof body.tzOffsetMin === "number" ? Math.round(body.tzOffsetMin) : null,
+      },
+      { onConflict: "user_id,child_id,night_date" },
+    );
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+}
+
+async function getSleepList(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+  const childId = truncateString(c.req.query("childId"), 64);
+  const limit = Math.min(60, Math.max(1, Number(c.req.query("limit") ?? 14) | 0));
+  if (!childId) return c.json({ error: "missing_childId" }, 400);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  const { data, error } = await sb
+    .from("child_sleep_signal")
+    .select("child_id, night_date, bucket, source")
+    .eq("user_id", userId)
+    .eq("child_id", childId)
+    .order("night_date", { ascending: false })
+    .limit(limit);
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({
+    data: (data ?? []).map((r: { child_id: string; night_date: string; bucket: string; source: string }) => ({
+      childId: r.child_id,
+      nightDate: r.night_date,
+      bucket: r.bucket,
+      source: r.source,
+    })),
+  });
+}
+
+app.post("/make-server-76b0ba9a/sleep/log", postSleepLog);
+app.post("/sleep/log", postSleepLog);
+app.get("/make-server-76b0ba9a/sleep/list", getSleepList);
+app.get("/sleep/list", getSleepList);
+
 // ─── Remote config (feature flags, no secrets) ───────────────────────────────
 async function getRemoteConfig(c: Context) {
   const rateLimit = await enforceRateLimit(c, "remote-config", 120, 300);
@@ -1173,57 +1547,104 @@ app.get("/make-server-76b0ba9a/remote-config", getRemoteConfig);
 app.get("/remote-config", getRemoteConfig);
 
 // ─── Razorpay Payment ──────────────────────────────────────────────────────────
+const RAZORPAY_ID_RE = /^[A-Za-z0-9_]{1,64}$/;
+const RAZORPAY_SIG_RE = /^[a-f0-9]{64}$/;
+
 async function postRazorpayCreateOrder(c: Context) {
   try {
-    const rateLimit = await enforceRateLimit(c, "razorpay-create-order", 10, 600);
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "razorpay-create-order", 10, 600, userId);
     if (rateLimit) return rateLimit;
-    const { amount } = await c.req.json();
-    if (!amount || typeof amount !== "number") return c.json({ error: "Invalid amount" }, 400);
+
+    const bodyRaw = await c.req.json().catch(() => null);
+    const amount = bodyRaw ? clampNumber((bodyRaw as { amount?: unknown }).amount, 1, 1_000_000) : null;
+    if (amount === null) return c.json({ error: "invalid_amount" }, 400);
+
     const keyId     = Deno.env.get("RAZORPAY_KEY_ID");
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
-    if (!keyId || !keySecret) return c.json({ error: "Razorpay keys not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to Supabase secrets." }, 500);
-    const auth = btoa(`${keyId}:${keySecret}`);
+    if (!keyId || !keySecret) {
+      console.error("razorpay: keys not configured");
+      return c.json({ error: "payments_unavailable" }, 503);
+    }
+    const basic = btoa(`${keyId}:${keySecret}`);
     const res = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
-      headers: { "Authorization": `Basic ${auth}`, "Content-Type": "application/json" },
+      headers: { "Authorization": `Basic ${basic}`, "Content-Type": "application/json" },
       body: JSON.stringify({ amount: Math.round(amount * 100), currency: "INR", receipt: `ns_${Date.now()}` }),
     });
     if (!res.ok) {
-      const errText = await res.text();
-      console.log("Razorpay create order error:", errText);
-      return c.json({ error: `Razorpay error: ${errText}` }, 400);
+      const errText = await res.text().catch(() => "");
+      console.error("razorpay create order non-OK:", res.status, errText);
+      return c.json({ error: "create_order_failed" }, 502);
     }
     const order = await res.json();
     return c.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId });
   } catch (e) {
-    console.log("razorpay create-order error:", e);
-    return c.json({ error: String(e) }, 500);
+    console.error("razorpay create-order error:", e);
+    return c.json({ error: "create_order_failed" }, 500);
   }
+}
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 async function postRazorpayVerifyPayment(c: Context) {
   try {
-    const rateLimit = await enforceRateLimit(c, "razorpay-verify-payment", 20, 600);
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "razorpay-verify-payment", 20, 600, userId);
     if (rateLimit) return rateLimit;
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await c.req.json();
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature)
-      return c.json({ error: "Missing payment verification fields" }, 400);
-    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
-    if (!keySecret) return c.json({ error: "Razorpay secret not configured" }, 500);
-    const body    = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const encoder = new TextEncoder();
-    const key     = await crypto.subtle.importKey("raw", encoder.encode(keySecret), { name:"HMAC", hash:"SHA-256" }, false, ["sign"]);
-    const sig     = await crypto.subtle.sign("HMAC", key, encoder.encode(body));
-    const hexSig  = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,"0")).join("");
-    if (hexSig !== razorpay_signature) {
-      console.log("Razorpay signature mismatch:", { expected: hexSig, received: razorpay_signature });
-      return c.json({ error: "Payment signature verification failed — possible tampering" }, 400);
+
+    const bodyRaw = await c.req.json().catch(() => null);
+    if (!bodyRaw || typeof bodyRaw !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
     }
-    await kv.set(`payment:${razorpay_payment_id}`, { orderId: razorpay_order_id, paymentId: razorpay_payment_id, ts: Date.now() });
+    const body = bodyRaw as Record<string, unknown>;
+    const razorpay_order_id = typeof body.razorpay_order_id === "string" ? body.razorpay_order_id : "";
+    const razorpay_payment_id = typeof body.razorpay_payment_id === "string" ? body.razorpay_payment_id : "";
+    const razorpay_signature = typeof body.razorpay_signature === "string" ? body.razorpay_signature : "";
+
+    if (!RAZORPAY_ID_RE.test(razorpay_order_id) ||
+        !RAZORPAY_ID_RE.test(razorpay_payment_id) ||
+        !RAZORPAY_SIG_RE.test(razorpay_signature)) {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+
+    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    if (!keySecret) {
+      console.error("razorpay: secret not configured");
+      return c.json({ error: "payments_unavailable" }, 503);
+    }
+
+    const payload = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey("raw", encoder.encode(keySecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+    const hexSig = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    if (!timingSafeEqualHex(hexSig, razorpay_signature)) {
+      console.warn(`razorpay signature mismatch for user ${userId.slice(0, 8)}…`);
+      return c.json({ error: "signature_verification_failed" }, 400);
+    }
+    await kv.set(`payment:${razorpay_payment_id}`, {
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      userId,
+      ts: Date.now(),
+    });
     return c.json({ success: true, paymentId: razorpay_payment_id });
   } catch (e) {
-    console.log("razorpay verify-payment error:", e);
-    return c.json({ error: String(e) }, 500);
+    console.error("razorpay verify-payment error:", e);
+    return c.json({ error: "verify_failed" }, 500);
   }
 }
 
@@ -1231,5 +1652,1280 @@ app.post("/make-server-76b0ba9a/razorpay/create-order", postRazorpayCreateOrder)
 app.post("/razorpay/create-order", postRazorpayCreateOrder);
 app.post("/make-server-76b0ba9a/razorpay/verify-payment", postRazorpayVerifyPayment);
 app.post("/razorpay/verify-payment", postRazorpayVerifyPayment);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /narrative/generate — AI progress narrative
+// ═══════════════════════════════════════════════════════════════════════════
+async function postNarrativeGenerate(c: Context) {
+  try {
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "narrative-generate", 10, 3600, userId);
+    if (rateLimit) return rateLimit;
+
+    const bodyRaw = await c.req.json().catch(() => null);
+    if (!bodyRaw || typeof bodyRaw !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+    const body = bodyRaw as Record<string, unknown>;
+
+    const childName = truncateString(body.childName, 32).trim();
+    const weekStart = truncateString(body.weekStart, 32);
+    if (!childName || !weekStart) return c.json({ error: "missing_fields" }, 400);
+
+    const childAge = clampNumber(body.childAge, 0, 18) ?? 0;
+    const ageTier = clampNumber(body.ageTier, 1, 6) ?? 1;
+    const activityCount = clampNumber(body.activityCount, 0, 10_000) ?? 0;
+    const bpEarned = clampNumber(body.bpEarned, 0, 1_000_000) ?? 0;
+    const streak = clampNumber(body.streak, 0, 10_000) ?? 0;
+
+    const regionDeltas = Array.isArray(body.regionDeltas)
+      ? (body.regionDeltas as unknown[])
+          .slice(0, 20)
+          .map((r): { name: string; before: number; after: number; trend: string } | null => {
+            if (!r || typeof r !== "object") return null;
+            const item = r as Record<string, unknown>;
+            return {
+              name: truncateString(item.name, 48),
+              before: clampNumber(item.before, -1e6, 1e6) ?? 0,
+              after: clampNumber(item.after, -1e6, 1e6) ?? 0,
+              trend: truncateString(item.trend, 16),
+            };
+          })
+          .filter((x): x is { name: string; before: number; after: number; trend: string } => !!x)
+      : [];
+    const milestonesChecked = Array.isArray(body.milestonesChecked)
+      ? (body.milestonesChecked as unknown[])
+          .slice(0, 32)
+          .map((m) => truncateString(m, 80))
+          .filter((m) => !!m)
+      : [];
+
+    const openaiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiKey) {
+      return c.json({
+        narrative: `${childName} had a wonderful week with ${activityCount} activities completed. ` +
+          `They earned ${bpEarned} brain points and are on a ${streak}-day streak. Keep up the great work!`,
+        generatedAt: new Date().toISOString(),
+        model: "fallback",
+        cached: false,
+      });
+    }
+
+    const deltaText = regionDeltas
+      .map((r) => `${r.name}: ${r.before} → ${r.after} (${r.trend})`)
+      .join("\n");
+
+    const prompt = truncateString(
+      `You are a warm, insightful early childhood development educator writing a weekly progress note.
+
+Child: ${childName}, age ${childAge} (tier ${ageTier})
+This week: ${activityCount} activities completed, ${bpEarned} brain points earned.
+Streak: ${streak} days.
+
+Score changes:\n${deltaText}
+
+Milestones: ${milestonesChecked.join(", ") || "none this week"}
+
+Write exactly:
+1. A warm opening paragraph (2-3 sentences)
+2. A specific insight about their strongest growth area (3-4 sentences)
+3. Forward-looking suggestions for next week (2-3 sentences)
+
+Tone: warm, specific, encouraging but honest. Use ${childName} naturally. Max 200 words.`,
+      2048,
+    );
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${openaiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: prompt }], max_tokens: 400 }),
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("narrative generate: OpenAI non-OK:", res.status, errText);
+      return c.json({ error: "narrative_unavailable" }, 502);
+    }
+    const data = await res.json();
+    const narrative = data.choices?.[0]?.message?.content?.trim() ?? "Unable to generate narrative.";
+    return c.json({ narrative, generatedAt: new Date().toISOString(), model: "gpt-4o-mini", cached: false });
+  } catch (e) {
+    console.error("narrative generate error:", e);
+    return c.json({ error: "narrative_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/narrative/generate", postNarrativeGenerate);
+app.post("/narrative/generate", postNarrativeGenerate);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /ml/aggregate — Federated ML weight aggregation
+// ═══════════════════════════════════════════════════════════════════════════
+const MAX_ML_WEIGHT_KEYS = 64;
+const MAX_ML_SAMPLE_COUNT = 5000;
+const ML_WEIGHT_KEY_RE = /^[a-zA-Z0-9_-]{1,32}$/;
+
+async function postMLAggregate(c: Context) {
+  try {
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "ml-aggregate", 10, 600, userId);
+    if (rateLimit) return rateLimit;
+
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+    const regionWeightsRaw = (body as { regionWeights?: unknown }).regionWeights;
+    const sampleCountRaw = (body as { sampleCount?: unknown }).sampleCount;
+
+    const sampleCount = clampNumber(sampleCountRaw, 0, MAX_ML_SAMPLE_COUNT);
+    if (sampleCount === null || !regionWeightsRaw || typeof regionWeightsRaw !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+
+    const sanitized: Record<string, number> = {};
+    const entries = Object.entries(regionWeightsRaw as Record<string, unknown>).slice(0, MAX_ML_WEIGHT_KEYS);
+    for (const [key, value] of entries) {
+      if (!ML_WEIGHT_KEY_RE.test(key)) continue;
+      const clamped = clampNumber(value, -10, 10);
+      if (clamped === null) continue;
+      sanitized[key] = clamped;
+    }
+
+    const globalKey = "ml:global_weights";
+    const existing = (await kv.get(globalKey)) as { weights: Record<string, number>; totalSamples: number } | null;
+    const prevWeights = existing?.weights ?? {};
+    const prevSamples = existing?.totalSamples ?? 0;
+    const totalSamples = prevSamples + sampleCount;
+
+    const merged: Record<string, number> = {};
+    const allKeys = new Set([...Object.keys(prevWeights), ...Object.keys(sanitized)]);
+    for (const key of allKeys) {
+      const prev = prevWeights[key] ?? 0.5;
+      const incoming = sanitized[key] ?? 0.5;
+      merged[key] = prevSamples > 0 && totalSamples > 0
+        ? (prev * prevSamples + incoming * sampleCount) / totalSamples
+        : incoming;
+    }
+
+    await kv.set(globalKey, { weights: merged, totalSamples });
+    return c.json({ globalWeights: merged, totalSamples });
+  } catch (e) {
+    console.error("ml aggregate error:", e);
+    return c.json({ error: "aggregate_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/ml/aggregate", postMLAggregate);
+app.post("/ml/aggregate", postMLAggregate);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /report/email — Email weekly report
+// ═══════════════════════════════════════════════════════════════════════════
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+async function postReportEmail(c: Context) {
+  try {
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "report-email", 5, 3600, userId);
+    if (rateLimit) return rateLimit;
+
+    const bodyRaw = await c.req.json().catch(() => null);
+    if (!bodyRaw || typeof bodyRaw !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+    const body = bodyRaw as Record<string, unknown>;
+    const recipientEmail = truncateString(body.recipientEmail, 254).trim();
+    const childName = truncateString(body.childName, 32).trim();
+    const senderName = truncateString(body.senderName, 64).trim();
+    const weekLabel = truncateString(body.weekLabel, 64).trim();
+
+    if (!EMAIL_RE.test(recipientEmail) || !childName) {
+      return c.json({ error: "invalid_email" }, 400);
+    }
+
+    console.log(`[report/email] queued for user ${userId.slice(0, 8)}…, child ${childName}, week ${weekLabel}, sender ${senderName || "n/a"}`);
+    return c.json({ sent: true, messageId: `msg_${Date.now()}` });
+  } catch (e) {
+    console.error("report email error:", e);
+    return c.json({ error: "report_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/report/email", postReportEmail);
+app.post("/report/email", postReportEmail);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /voice/turn — SSE-streamed voice conversation turn
+// ───────────────────────────────────────────────────────────────────────────
+// The web/native client posts a single user utterance + minimal context;
+// we stream the assistant reply token-by-token via SSE so the client TTS
+// can start speaking before generation finishes (latency ~600ms vs 3s).
+//
+// Privacy: we never persist the utterance unless the user has retainTranscripts
+// turned on (signalled by `retain: true` in the payload).
+// ═══════════════════════════════════════════════════════════════════════════
+const VOICE_AGENT_PROMPTS: Record<string, string> = {
+  coach:
+    "You are a calm, practical parenting coach for a child-development app. Reply in 1-3 sentences. Never claim certainty about a child's future. End with a single concrete next step.",
+  counselor:
+    "You are an empathic counselor for parents. Reflect their feeling first, then offer one gentle reframing. Reply in 2-4 sentences. Never give medical or psychiatric advice.",
+  narrator:
+    "You are a hands-free activity narrator. Read the next instruction aloud in plain language a 4-year-old can follow. Keep each turn under 20 words.",
+};
+
+async function postVoiceTurn(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "voice-turn", 60, 60, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = await c.req.json().catch(() => null);
+  if (!body || typeof body !== "object") return c.json({ error: "invalid_payload" }, 400);
+
+  const utterance = truncateString((body as Record<string, unknown>).utterance, 500).trim();
+  const agent = String((body as Record<string, unknown>).agent ?? "coach");
+  const locale = truncateString((body as Record<string, unknown>).locale, 8) || "en";
+  const systemPrompt = VOICE_AGENT_PROMPTS[agent] ?? VOICE_AGENT_PROMPTS.coach;
+  if (!utterance) return c.json({ error: "empty_utterance" }, 400);
+
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) return c.json({ error: "voice_unavailable" }, 503);
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const enc = new TextEncoder();
+      const send = (event: string, data: unknown) =>
+        controller.enqueue(enc.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+
+      try {
+        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            stream: true,
+            messages: [
+              { role: "system", content: `${systemPrompt}\nReply in ${locale}.` },
+              { role: "user", content: utterance },
+            ],
+          }),
+        });
+        if (!resp.ok || !resp.body) {
+          send("error", { message: "upstream_error" });
+          controller.close();
+          return;
+        }
+
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let buf = "";
+        let assembled = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const parts = buf.split("\n\n");
+          buf = parts.pop() ?? "";
+          for (const p of parts) {
+            const line = p.trim();
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const json = JSON.parse(payload) as {
+                choices?: { delta?: { content?: string } }[];
+              };
+              const tok = json.choices?.[0]?.delta?.content ?? "";
+              if (tok) {
+                assembled += tok;
+                send("token", { t: tok });
+              }
+            } catch {
+              /* skip malformed line */
+            }
+          }
+        }
+        send("done", { text: assembled });
+        controller.close();
+      } catch (e) {
+        console.error("voice/turn stream error:", e);
+        send("error", { message: "stream_failed" });
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
+
+app.post("/make-server-76b0ba9a/voice/turn", postVoiceTurn);
+app.post("/voice/turn", postVoiceTurn);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST/GET /sync/state — Per-user JSON state blob with optimistic versioning
+// ───────────────────────────────────────────────────────────────────────────
+// We deliberately do not interpret the blob — the client is the source of
+// truth on schema. Conflict signal is best-effort: if the version supplied
+// is stale, we still write the new value but flag conflict=true so the
+// client can prompt the user.
+//
+// Storage: Postgres `public.user_sync_state` (00009_sync_state.sql) is the
+// primary store. Edge KV is consulted as a one-time fallback so devices that
+// last synced under the KV-only path don't lose their blob; on the first
+// successful Postgres write we leave the KV row in place (cheap, not on the
+// hot path) and rely on natural eviction. The wire contract — `{version,
+// conflict}` for writes and `{version, state}` for reads — is unchanged so
+// `cloudSync.ts` + its tests keep passing.
+// ═══════════════════════════════════════════════════════════════════════════
+const MAX_SYNC_BYTES = 512 * 1024;
+
+type SyncRow = { version: number; state: unknown; device_id: string | null; updated_at: string };
+
+async function readSyncFromPostgres(userId: string): Promise<SyncRow | null> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return null;
+  try {
+    const sb = createClient(url, serviceKey);
+    const { data, error } = await sb
+      .from("user_sync_state")
+      .select("version, state, device_id, updated_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as SyncRow;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSyncToPostgres(
+  userId: string,
+  version: number,
+  state: unknown,
+  deviceId: string | null,
+): Promise<boolean> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return false;
+  try {
+    const sb = createClient(url, serviceKey);
+    const { error } = await sb
+      .from("user_sync_state")
+      .upsert({
+        user_id: userId,
+        state,
+        version,
+        device_id: deviceId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+async function postSyncState(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "sync-push", 60, 60, userId);
+  if (rateLimit) return rateLimit;
+
+  const raw = await c.req.text();
+  if (!raw || raw.length > MAX_SYNC_BYTES) {
+    return c.json({ error: "payload_too_large" }, 413);
+  }
+  const body = (() => {
+    try { return JSON.parse(raw) as Record<string, unknown>; } catch { return null; }
+  })();
+  if (!body || typeof body !== "object") return c.json({ error: "invalid_payload" }, 400);
+
+  // Resolve "previous version" from Postgres first, then KV (legacy).
+  const pgPrev = await readSyncFromPostgres(userId);
+  const key = `sync:state:${userId}`;
+  const kvPrev = pgPrev ? null : ((await kv.get(key)) as { version?: number } | null);
+  const prevVersion = pgPrev?.version ?? kvPrev?.version ?? 0;
+  const newVersion = prevVersion + 1;
+
+  const clientVersion = typeof (body as { clientVersion?: unknown }).clientVersion === "number"
+    ? ((body as { clientVersion: number }).clientVersion)
+    : null;
+  const conflict = clientVersion != null && clientVersion < prevVersion;
+
+  const state = (body as { state?: unknown }).state ?? null;
+  const deviceId = truncateString((body as { deviceId?: unknown }).deviceId, 64) ?? null;
+
+  const pgOk = await writeSyncToPostgres(userId, newVersion, state, deviceId);
+  if (!pgOk) {
+    // Postgres unreachable / mis-configured — fall back to KV so the client
+    // still gets a durable write. Keeps single-region availability.
+    await kv.set(key, {
+      version: newVersion,
+      state,
+      deviceId,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  return c.json({ version: newVersion, conflict });
+}
+
+async function getSyncState(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "sync-pull", 60, 60, userId);
+  if (rateLimit) return rateLimit;
+
+  const pg = await readSyncFromPostgres(userId);
+  if (pg) return c.json({ version: pg.version, state: pg.state });
+
+  // Lazy migration: Postgres empty → consult KV, hydrate Postgres if found.
+  const key = `sync:state:${userId}`;
+  const stored = (await kv.get(key)) as { version?: number; state?: unknown; deviceId?: string | null } | null;
+  if (!stored) return c.json({ version: 0, state: null });
+
+  const version = stored.version ?? 0;
+  if (version > 0) {
+    // Best-effort backfill — if it fails we still return the KV value so the
+    // client never sees a regression.
+    void writeSyncToPostgres(userId, version, stored.state ?? null, stored.deviceId ?? null);
+  }
+  return c.json({ version, state: stored.state ?? null });
+}
+
+app.post("/make-server-76b0ba9a/sync/state", postSyncState);
+app.post("/sync/state", postSyncState);
+app.get("/make-server-76b0ba9a/sync/state", getSyncState);
+app.get("/sync/state", getSyncState);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Caregivers — invite + accept (FUTURE_ROADMAP.md §0.6)
+// ───────────────────────────────────────────────────────────────────────────
+// • POST /caregivers/invite  { childId, scope, email? } → { token }
+// • POST /caregivers/accept  { token }                   → { ok, childId, scope }
+//
+// Tokens are random 32-char strings stored in kv with a 7-day TTL.
+// Scope is one of: "view", "log_only", "co_parent".
+// ═══════════════════════════════════════════════════════════════════════════
+const ALLOWED_SCOPES = new Set(["view", "log_only", "co_parent"]);
+
+async function postCaregiverInvite(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "caregiver-invite", 10, 3600, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = await c.req.json().catch(() => null);
+  if (!body || typeof body !== "object") return c.json({ error: "invalid_payload" }, 400);
+  const childId = truncateString((body as Record<string, unknown>).childId, 64);
+  const scope = String((body as Record<string, unknown>).scope ?? "view");
+  if (!childId) return c.json({ error: "invalid_child_id" }, 400);
+  if (!ALLOWED_SCOPES.has(scope)) return c.json({ error: "invalid_scope" }, 400);
+
+  const token = crypto.randomUUID().replace(/-/g, "");
+  const inviteKey = `caregiver:invite:${token}`;
+  await kv.set(inviteKey, {
+    inviterUserId: userId,
+    childId,
+    scope,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+  });
+  return c.json({ token, expiresInDays: 7 });
+}
+
+async function postCaregiverAccept(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "caregiver-accept", 30, 3600, userId);
+  if (rateLimit) return rateLimit;
+
+  const body = await c.req.json().catch(() => null);
+  const token = truncateString((body as Record<string, unknown> | null)?.token, 64);
+  if (!token) return c.json({ error: "invalid_token" }, 400);
+
+  const inviteKey = `caregiver:invite:${token}`;
+  const invite = (await kv.get(inviteKey)) as
+    | { inviterUserId: string; childId: string; scope: string; expiresAt: string }
+    | null;
+  if (!invite) return c.json({ error: "invalid_token" }, 404);
+  if (new Date(invite.expiresAt).getTime() < Date.now()) {
+    return c.json({ error: "invite_expired" }, 410);
+  }
+  if (invite.inviterUserId === userId) {
+    return c.json({ error: "cannot_accept_own_invite" }, 400);
+  }
+
+  const linkKey = `caregiver:link:${invite.inviterUserId}:${invite.childId}:${userId}`;
+  await kv.set(linkKey, {
+    childId: invite.childId,
+    scope: invite.scope,
+    acceptedAt: new Date().toISOString(),
+  });
+  await kv.set(inviteKey, { ...invite, acceptedBy: userId, acceptedAt: new Date().toISOString() });
+
+  return c.json({ ok: true, childId: invite.childId, scope: invite.scope });
+}
+
+app.post("/make-server-76b0ba9a/caregivers/invite", postCaregiverInvite);
+app.post("/caregivers/invite", postCaregiverInvite);
+app.post("/make-server-76b0ba9a/caregivers/accept", postCaregiverAccept);
+app.post("/caregivers/accept", postCaregiverAccept);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GET /billing/entitlement — single source of truth for premium state
+// ───────────────────────────────────────────────────────────────────────────
+// Reads the user's current entitlement (if any) from kv. Mobile clients
+// will call this on launch + after restorePurchases. The Razorpay verify
+// handler already persists the entitlement when a payment succeeds.
+// ═══════════════════════════════════════════════════════════════════════════
+async function getBillingEntitlement(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+
+  const rateLimit = await enforceRateLimit(c, "entitlement", 60, 60, userId);
+  if (rateLimit) return rateLimit;
+
+  const key = `billing:entitlement:${userId}`;
+  const stored = (await kv.get(key)) as
+    | { plan?: string; expiresAt?: string; source?: string }
+    | null;
+  const isActive = stored?.expiresAt ? new Date(stored.expiresAt).getTime() > Date.now() : false;
+
+  return c.json({
+    isActive,
+    plan: stored?.plan ?? null,
+    expiresAt: stored?.expiresAt ?? null,
+    source: stored?.source ?? null,
+  });
+}
+
+app.get("/make-server-76b0ba9a/billing/entitlement", getBillingEntitlement);
+app.get("/billing/entitlement", getBillingEntitlement);
+
+registerAdminRoutes(app);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Open AI-Age Standard — public, unauthenticated, rate-limited.
+// Survivor 5 of the 2026-04-17 ideation: anyone can score against the spec.
+// Lives at /standard/score and /standard/spec. CORS is wide-open for these
+// two endpoints because the entire point is that third parties can hit them.
+// ═══════════════════════════════════════════════════════════════════════════
+const AI_AGE_SPEC_VERSION = "1.0.0";
+
+type StandardScoreInput = {
+  ageMonths: number;
+  durationSec: number;
+  modality: "voice" | "screen" | "tactile" | "audio-only" | "outdoor" | "mixed";
+  observed?: string[];
+  explicitCompetencies?: string[];
+  transcript?: Array<{ from: "child" | "adult" | "ai"; text: string }>;
+  product?: string;
+};
+
+const STANDARD_AGE_RANGES: Record<string, [number, number]> = {
+  "executive-function": [36, 84],
+  "metacognitive-self-direction": [48, 144],
+  "long-horizon-agency": [60, 144],
+  "embodied-mastery": [12, 144],
+  "deep-knowledge-retrieval": [36, 144],
+  "guided-curiosity": [24, 144],
+  "ai-literacy-cocreation": [60, 144],
+  "lateral-source-evaluation": [84, 144],
+  "creative-generation": [24, 144],
+  "social-attunement": [36, 144],
+  "emotional-resilience": [12, 144],
+  "ethical-judgment": [36, 144],
+};
+
+const STANDARD_OBS_MAP: Record<string, string> = {
+  "self-correction": "executive-function",
+  "delayed-gratification": "executive-function",
+  "rule-switching": "executive-function",
+  "holding-multi-step-instructions": "executive-function",
+  "tower-building-with-target": "executive-function",
+  "wait-your-turn": "executive-function",
+  "asks-how-do-you-know": "metacognitive-self-direction",
+  "says-i-dont-know": "metacognitive-self-direction",
+  "rechecks-own-work": "metacognitive-self-direction",
+  "verbalises-strategy": "metacognitive-self-direction",
+  "predicts-confidence": "metacognitive-self-direction",
+  "returns-to-multi-day-project": "long-horizon-agency",
+  "sub-goal-setting": "long-horizon-agency",
+  "asks-for-resources": "long-horizon-agency",
+  "reviews-yesterdays-work": "long-horizon-agency",
+  "fine-motor-precision": "embodied-mastery",
+  "gross-motor-coordination": "embodied-mastery",
+  "rhythm-keeping": "embodied-mastery",
+  "balance": "embodied-mastery",
+  "instrument-play": "embodied-mastery",
+  "spontaneous-recall": "deep-knowledge-retrieval",
+  "transfers-knowledge-across-contexts": "deep-knowledge-retrieval",
+  "retrieves-without-prompt": "deep-knowledge-retrieval",
+  "open-ended-questions": "guided-curiosity",
+  "follow-up-questions": "guided-curiosity",
+  "what-if-questions": "guided-curiosity",
+  "asks-about-source": "guided-curiosity",
+  "iterates-prompts": "ai-literacy-cocreation",
+  "evaluates-output": "ai-literacy-cocreation",
+  "rejects-bad-output": "ai-literacy-cocreation",
+  "asks-ai-to-explain": "ai-literacy-cocreation",
+  "uses-ai-then-checks": "ai-literacy-cocreation",
+  "checks-second-source": "lateral-source-evaluation",
+  "asks-who-said-this": "lateral-source-evaluation",
+  "distinguishes-opinion-from-fact": "lateral-source-evaluation",
+  "originates-novel-output": "creative-generation",
+  "combines-unrelated-ideas": "creative-generation",
+  "iterates-on-own-work": "creative-generation",
+  "expresses-taste": "creative-generation",
+  "predicts-others-feelings": "social-attunement",
+  "false-belief-understanding": "social-attunement",
+  "perspective-taking": "social-attunement",
+  "repair-after-conflict": "social-attunement",
+  "recovers-from-setback": "emotional-resilience",
+  "names-feelings": "emotional-resilience",
+  "self-soothes": "emotional-resilience",
+  "tries-again-after-fail": "emotional-resilience",
+  "co-regulates-with-adult": "emotional-resilience",
+  "calls-out-unfair": "ethical-judgment",
+  "explains-why-not-fair": "ethical-judgment",
+  "resists-manipulation": "ethical-judgment",
+  "considers-consequences": "ethical-judgment",
+};
+
+function standardModalityMul(competencyId: string, modality: StandardScoreInput["modality"]): number {
+  if (competencyId === "embodied-mastery") {
+    if (modality === "tactile" || modality === "outdoor") return 1.3;
+    if (modality === "screen") return 0.6;
+  }
+  if (competencyId === "ai-literacy-cocreation") {
+    if (modality === "screen" || modality === "voice") return 1.2;
+    if (modality === "audio-only") return 1.1;
+  }
+  if (competencyId === "social-attunement" || competencyId === "emotional-resilience") {
+    if (modality === "voice" || modality === "outdoor" || modality === "tactile") return 1.2;
+  }
+  if (competencyId === "deep-knowledge-retrieval") {
+    if (modality === "audio-only" || modality === "voice") return 1.1;
+  }
+  return 1.0;
+}
+
+function standardAgeBoost(competencyId: string, ageMonths: number): number {
+  const range = STANDARD_AGE_RANGES[competencyId];
+  if (!range) return 0;
+  return ageMonths >= range[0] && ageMonths <= range[1] ? 1.0 : 0.4;
+}
+
+async function postStandardScore(c: Context) {
+  // Public endpoint — rate-limit by IP, NOT user.
+  const rateLimit = await enforceRateLimit(c, "standard-score", 60, 60);
+  if (rateLimit) return rateLimit;
+
+  let body: StandardScoreInput;
+  try { body = (await c.req.json()) as StandardScoreInput; }
+  catch { return c.json({ error: "invalid_json" }, 400); }
+
+  const ageMonths = clampNumber(body.ageMonths, 0, 240);
+  const durationSec = clampNumber(body.durationSec, 0, 36_000);
+  if (ageMonths === null || durationSec === null) return c.json({ error: "invalid_input" }, 400);
+  const modality = ["voice", "screen", "tactile", "audio-only", "outdoor", "mixed"].includes(body.modality)
+    ? body.modality
+    : "mixed";
+
+  const observed = Array.isArray(body.observed)
+    ? body.observed.filter((b): b is string => typeof b === "string").slice(0, 50)
+    : [];
+  const explicit = Array.isArray(body.explicitCompetencies)
+    ? body.explicitCompetencies.filter((b): b is string => typeof b === "string").slice(0, 12)
+    : [];
+
+  const competencies = Object.keys(STANDARD_AGE_RANGES);
+  const delta: Record<string, number> = {};
+  for (const c of competencies) delta[c] = 0;
+  for (const b of observed) {
+    const id = STANDARD_OBS_MAP[b];
+    if (id) delta[id] += 1.5;
+  }
+  for (const id of explicit) if (id in delta) delta[id] += 1.0;
+
+  // Light transcript scoring — same rules as packages/neurospark-ai-age/score.ts
+  if (Array.isArray(body.transcript)) {
+    const txt = body.transcript
+      .filter((t) => t && typeof t.text === "string")
+      .map((t) => truncateString(t.text, 500).toLowerCase())
+      .join(" ");
+    if (/how do you know|how do we know|why do you think/.test(txt)) {
+      delta["metacognitive-self-direction"] += 1;
+      delta["guided-curiosity"] += 0.5;
+    }
+    if (/i don'?t know|let me check|let me try|i'?m not sure/.test(txt)) {
+      delta["metacognitive-self-direction"] += 0.7;
+    }
+    if (/what if|i wonder|what do you think happens/.test(txt)) {
+      delta["guided-curiosity"] += 1;
+      delta["creative-generation"] += 0.4;
+    }
+    if (/feel|feeling|sad|happy|angry|frustrated|calm down|deep breath/.test(txt)) {
+      delta["emotional-resilience"] += 1;
+      delta["social-attunement"] += 0.4;
+    }
+    if (/fair|unfair|that'?s not right|share/.test(txt)) {
+      delta["ethical-judgment"] += 1;
+      delta["social-attunement"] += 0.3;
+    }
+  }
+
+  const dFactor = durationSec <= 0 ? 0 : Math.min(1.0, Math.sqrt(durationSec / 600));
+  for (const cId of competencies) {
+    delta[cId] *= dFactor * standardModalityMul(cId, modality) * standardAgeBoost(cId, ageMonths);
+    delta[cId] = Math.round(delta[cId] * 100) / 100;
+  }
+
+  // Audit (so we can compute aggregate "this product scores X on average")
+  const product = typeof body.product === "string" ? truncateString(body.product, 80) : null;
+  if (product) {
+    const auditKey = `standard:audit:${product}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+    await kv.set(auditKey, { product, delta, ageMonths, modality, durationSec, ts: Date.now() }).catch(() => {});
+  }
+
+  return c.json({ specVersion: AI_AGE_SPEC_VERSION, delta });
+}
+
+async function getStandardSpec(c: Context) {
+  c.header("cache-control", "public, max-age=3600");
+  return c.json({
+    specVersion: AI_AGE_SPEC_VERSION,
+    repo: "https://github.com/neurospark/neurospark-ai-age",
+    license: "MIT",
+    competencies: Object.keys(STANDARD_AGE_RANGES),
+  });
+}
+
+async function getStandardVerify(c: Context) {
+  const product = c.req.param("product");
+  if (!product || product.length > 80) return c.json({ error: "invalid_product" }, 400);
+  // Aggregate the last 200 audit entries for this product. Best-effort, public.
+  const entries = (await kv.getByPrefix(`standard:audit:${product}:`)) as Array<{
+    delta: Record<string, number>;
+    ts: number;
+  }> | null;
+  const list = (entries ?? []).slice(-200);
+  if (!list.length) {
+    return c.json({ product, status: "self-attested", reportCount: 0, average: null, specVersion: AI_AGE_SPEC_VERSION });
+  }
+  const sum: Record<string, number> = {};
+  for (const e of list) {
+    for (const [k, v] of Object.entries(e.delta)) sum[k] = (sum[k] ?? 0) + (v as number);
+  }
+  const avg: Record<string, number> = {};
+  for (const [k, v] of Object.entries(sum)) avg[k] = Math.round((v / list.length) * 100) / 100;
+  return c.json({
+    product,
+    status: list.length >= 50 ? "audited" : "self-attested",
+    reportCount: list.length,
+    average: avg,
+    specVersion: AI_AGE_SPEC_VERSION,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Coverage-as-a-Protocol — Survivor 7.
+// Public, HMAC-signed credit endpoint that any third-party experience
+// (Roblox plugin, daycare portal, sibling co-play, school iPad app) can call
+// to grant a child brain-region + AI-age-competency coverage credit.
+// Auth model: per-partner HMAC-SHA256 over the request body.
+// ═══════════════════════════════════════════════════════════════════════════
+
+type CoverageCreditBody = {
+  partnerSlug: string;
+  anonToken: string;
+  partnerEventId: string;
+  durationSeconds: number;
+  brainRegion?: string;
+  competencyIds?: string[];
+  modality: string;
+  occurredAt?: string;
+};
+
+const VALID_MODALITIES = new Set(["voice", "screen", "tactile", "audio-only", "outdoor", "mixed"]);
+
+async function hmacSha256Hex(secret: Uint8Array, data: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
+  const bytes = new Uint8Array(sig);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function postCoverageCredit(c: Context) {
+  // Per-IP rate limit prevents bulk fraud even before HMAC check.
+  const rateLimit = await enforceRateLimit(c, "coverage-credit-ip", 120, 60);
+  if (rateLimit) return rateLimit;
+
+  const sigHeader = c.req.header("x-neurospark-signature") ?? "";
+  const tsHeader = c.req.header("x-neurospark-timestamp") ?? "";
+  const tsMs = Number(tsHeader);
+  if (!sigHeader || !Number.isFinite(tsMs) || Math.abs(Date.now() - tsMs) > 5 * 60_000) {
+    return c.json({ error: "invalid_signature_envelope" }, 401);
+  }
+
+  const rawBody = await c.req.text();
+  let body: CoverageCreditBody;
+  try { body = JSON.parse(rawBody) as CoverageCreditBody; }
+  catch { return c.json({ error: "invalid_json" }, 400); }
+
+  if (
+    typeof body.partnerSlug !== "string" || !body.partnerSlug ||
+    typeof body.anonToken !== "string" || !body.anonToken ||
+    typeof body.partnerEventId !== "string" || !body.partnerEventId ||
+    typeof body.durationSeconds !== "number" ||
+    typeof body.modality !== "string" || !VALID_MODALITIES.has(body.modality) ||
+    !(body.durationSeconds >= 1 && body.durationSeconds <= 7200)
+  ) {
+    return c.json({ error: "invalid_payload" }, 400);
+  }
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  const partnerRes = await sb
+    .from("coverage_partners")
+    .select("id, signing_secret, daily_minutes_cap_per_child, rpm_limit, disabled_at")
+    .eq("slug", body.partnerSlug)
+    .maybeSingle();
+  if (partnerRes.error || !partnerRes.data) return c.json({ error: "unknown_partner" }, 404);
+  const partner = partnerRes.data as {
+    id: string;
+    signing_secret: string;
+    daily_minutes_cap_per_child: number;
+    rpm_limit: number;
+    disabled_at: string | null;
+  };
+  if (partner.disabled_at) return c.json({ error: "partner_disabled" }, 403);
+
+  // signing_secret arrives as `\x...` hex (Postgres bytea via PostgREST).
+  // We accept either hex (`\x...`) or raw utf8 (legacy/manual rotations).
+  const secretBytes = partner.signing_secret.startsWith("\\x")
+    ? Uint8Array.from((partner.signing_secret.slice(2).match(/.{1,2}/g) ?? []).map((h) => parseInt(h, 16)))
+    : new TextEncoder().encode(partner.signing_secret);
+
+  const expected = await hmacSha256Hex(secretBytes, `${tsHeader}.${rawBody}`);
+  if (!timingSafeEqualHex(expected, sigHeader.toLowerCase())) {
+    return c.json({ error: "bad_signature" }, 401);
+  }
+
+  // Per-partner RPM rate-limit
+  const rateLimit2 = await enforceRateLimit(c, `coverage-partner:${partner.id}`, partner.rpm_limit, 60, partner.id);
+  if (rateLimit2) return rateLimit2;
+
+  // Resolve anon token → child_id
+  const anonRes = await sb
+    .from("coverage_anon_links")
+    .select("child_id, user_id")
+    .eq("partner_id", partner.id)
+    .eq("anon_token", body.anonToken)
+    .maybeSingle();
+  if (anonRes.error || !anonRes.data) return c.json({ error: "unknown_anon_token" }, 404);
+  const anon = anonRes.data as { child_id: string; user_id: string };
+
+  // Daily cap enforcement
+  const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+  const todayRes = await sb
+    .from("coverage_credits")
+    .select("duration_seconds")
+    .eq("partner_id", partner.id)
+    .eq("child_id", anon.child_id)
+    .gte("signed_at", since);
+  const usedSeconds = (todayRes.data ?? []).reduce((s, r: { duration_seconds: number }) => s + r.duration_seconds, 0);
+  if (usedSeconds + body.durationSeconds > partner.daily_minutes_cap_per_child * 60) {
+    return c.json({ error: "daily_cap_exceeded", usedSeconds, capSeconds: partner.daily_minutes_cap_per_child * 60 }, 429);
+  }
+
+  // Insert (unique partner_id+partner_event_id makes it idempotent)
+  const ip = c.req.header("cf-connecting-ip") ?? c.req.header("x-real-ip") ?? null;
+  const insertRes = await sb
+    .from("coverage_credits")
+    .insert({
+      partner_id: partner.id,
+      child_id: anon.child_id,
+      partner_event_id: body.partnerEventId,
+      duration_seconds: body.durationSeconds,
+      brain_region: body.brainRegion ?? null,
+      competency_ids: Array.isArray(body.competencyIds) ? body.competencyIds.slice(0, 12) : [],
+      modality: body.modality,
+      ip,
+    })
+    .select("id, signed_at")
+    .maybeSingle();
+  if (insertRes.error) {
+    // Likely the unique-violation idempotency case — return 200 with existing.
+    if (String(insertRes.error.code) === "23505") {
+      return c.json({ status: "duplicate" });
+    }
+    console.error("coverage_credit insert failed", insertRes.error);
+    return c.json({ error: "insert_failed" }, 500);
+  }
+
+  return c.json({
+    status: "credited",
+    creditId: insertRes.data?.id,
+    signedAt: insertRes.data?.signed_at,
+  });
+}
+
+app.post("/make-server-76b0ba9a/coverage/credit", postCoverageCredit);
+app.post("/coverage/credit", postCoverageCredit);
+
+/** Survivor 7 — parent-side view of today's external coverage. We RLS through
+ * the user's own anon-link mappings, so parents only see the credits issued
+ * for children they own. Returns per-partner aggregates for the last `hours`. */
+async function getCoverageSummary(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const { userId } = auth;
+  const childId = truncateString(c.req.query("childId"), 64);
+  const hours = Math.min(168, Math.max(1, Number(c.req.query("hours") ?? 24) | 0));
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  // Resolve the children the user owns through anon links (no PII leak: we
+  // never expose other users' data because we filter by user_id first).
+  let linksQ = sb.from("coverage_anon_links").select("child_id").eq("user_id", userId);
+  if (childId) linksQ = linksQ.eq("child_id", childId);
+  const links = await linksQ;
+  const childIds = Array.from(new Set((links.data ?? []).map((l: { child_id: string }) => l.child_id)));
+  if (childIds.length === 0) return c.json({ data: [], totalSeconds: 0, byPartner: [] });
+
+  const since = new Date(Date.now() - hours * 60 * 60_000).toISOString();
+  const credits = await sb
+    .from("coverage_credits")
+    .select("partner_id, child_id, duration_seconds, brain_region, modality, signed_at")
+    .in("child_id", childIds)
+    .gte("signed_at", since)
+    .order("signed_at", { ascending: false })
+    .limit(500);
+  if (credits.error) return c.json({ error: credits.error.message }, 500);
+  const rows = credits.data ?? [];
+
+  const partnerIds = Array.from(new Set(rows.map((r: { partner_id: string }) => r.partner_id)));
+  const partners = partnerIds.length
+    ? (await sb.from("coverage_partners").select("id, slug, display_name").in("id", partnerIds)).data ?? []
+    : [];
+  const byId = new Map(partners.map((p: { id: string; slug: string; display_name: string }) => [p.id, p]));
+
+  const totalSeconds = rows.reduce((s, r: { duration_seconds: number }) => s + r.duration_seconds, 0);
+  const byPartnerMap = new Map<string, { partnerId: string; slug: string; displayName: string; seconds: number; events: number }>();
+  for (const r of rows as Array<{ partner_id: string; duration_seconds: number }>) {
+    const meta = byId.get(r.partner_id);
+    const key = r.partner_id;
+    const cur = byPartnerMap.get(key) ?? {
+      partnerId: r.partner_id,
+      slug: meta?.slug ?? "unknown",
+      displayName: meta?.display_name ?? "Unknown partner",
+      seconds: 0,
+      events: 0,
+    };
+    cur.seconds += r.duration_seconds;
+    cur.events += 1;
+    byPartnerMap.set(key, cur);
+  }
+
+  return c.json({
+    totalSeconds,
+    windowHours: hours,
+    byPartner: Array.from(byPartnerMap.values()).sort((a, b) => b.seconds - a.seconds),
+    data: rows.map((r: { partner_id: string; child_id: string; duration_seconds: number; brain_region: string | null; modality: string; signed_at: string }) => ({
+      partnerId: r.partner_id,
+      partnerName: byId.get(r.partner_id)?.display_name ?? "Unknown",
+      childId: r.child_id,
+      durationSeconds: r.duration_seconds,
+      brainRegion: r.brain_region,
+      modality: r.modality,
+      signedAt: r.signed_at,
+    })),
+  });
+}
+
+app.get("/make-server-76b0ba9a/coverage/summary", getCoverageSummary);
+app.get("/coverage/summary", getCoverageSummary);
+
+app.post("/make-server-76b0ba9a/standard/score", postStandardScore);
+app.post("/standard/score", postStandardScore);
+app.get("/make-server-76b0ba9a/standard/spec", getStandardSpec);
+app.get("/standard/spec", getStandardSpec);
+app.get("/make-server-76b0ba9a/standard/verify/:product", getStandardVerify);
+app.get("/standard/verify/:product", getStandardVerify);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Survivor 6 — Clinical Wedge / partners.neurospark.com integration brief.
+//
+// Public endpoints designed for pediatricians, employer-benefit platforms
+// (Maven, Carrot), and integration partners. Each one is intentionally
+// boring + auditable — the wedge is the *posture*, not the surface.
+//
+// The full snapshot generation (PDF) lives client-side in
+// `src/lib/clinical/wellChildSnapshot.ts`; these endpoints supply the
+// partner-facing contracts: integration brief, clinical-anchor table, and
+// a machine-readable summary that an EHR can ingest.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PARTNERS_INTEGRATION_BRIEF = {
+  product: "NeuroSpark for Clinicians & Employers",
+  posture: "developmental-wellness, not a medical device",
+  compliance: ["COPPA-2.0", "HIPAA-aligned (parent-shared snapshots only)", "EU-AI-Act-Annex-IV"],
+  channels: {
+    pediatric:
+      "Parent generates a one-page well-child snapshot in the app and brings it to the 9/12/15/18/24/30/36/48/60-month visit. PDF is signed by NeuroSpark and includes a posterior + 90% credible interval per milestone.",
+    employer:
+      "Employer benefit platforms (Maven, Carrot, Wellthy) can offer NeuroSpark as a child-development tile with SSO via SAML/OIDC and monthly cohort reporting (de-identified).",
+  },
+  endpoints: {
+    spec: "/standard/spec — open AI-Age competency standard",
+    verify: "/standard/verify/:product — partner ↔ NeuroSpark verification",
+    snapshotSummary: "/partners/snapshot-summary — opt-in, parent-shared",
+    cohortReport: "/partners/cohort-report — employer-benefit, de-identified, monthly",
+  },
+  legal: {
+    bAA: "Available on request for HIPAA-covered partners.",
+    dataResidency: "US (default), EU (opt-in), India (opt-in by 2026 H2).",
+    contactEmail: "partners@neurospark.app",
+  },
+  versionedAt: "2026-04-17",
+};
+
+app.get("/make-server-76b0ba9a/partners/brief", (c) => c.json(PARTNERS_INTEGRATION_BRIEF));
+app.get("/partners/brief", (c) => c.json(PARTNERS_INTEGRATION_BRIEF));
+
+/** Machine-readable summary of a parent-shared snapshot. The parent generates
+ * a `share_token` in-app (revocable, 30-day TTL) and gives it to a partner —
+ * EHR fetches `/partners/snapshot-summary?token=…` and gets the same numbers
+ * the PDF shows. We never expose the underlying activity log. */
+async function getPartnerSnapshotSummary(c: Context) {
+  const token = c.req.query("token") ?? "";
+  if (!token || token.length < 16) return c.json({ error: "missing_or_invalid_token" }, 400);
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+
+  // The `partner_snapshot_shares` table holds the parent-issued token, the
+  // child_id it grants access to, and the revocation flag. Resolution is
+  // intentionally one-way: token → snapshot, never the reverse.
+  const { data: share, error } = await sb
+    .from("partner_snapshot_shares")
+    .select("id, child_id, expires_at, revoked_at")
+    .eq("token", token)
+    .maybeSingle();
+  if (error || !share) return c.json({ error: "not_found" }, 404);
+  if (share.revoked_at) return c.json({ error: "revoked" }, 410);
+  if (share.expires_at && new Date(share.expires_at).getTime() < Date.now()) {
+    return c.json({ error: "expired" }, 410);
+  }
+
+  const { data: snap } = await sb
+    .from("well_child_snapshots")
+    .select("anchor_months, generated_at, posteriors, top_regions, underserved_regions, total_practice_minutes, child_age_months")
+    .eq("child_id", share.child_id)
+    .order("generated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!snap) return c.json({ error: "no_snapshot" }, 404);
+
+  return c.json({
+    anchor: snap.anchor_months,
+    childAgeMonths: snap.child_age_months,
+    generatedAt: snap.generated_at,
+    posteriors: snap.posteriors,
+    topRegions: snap.top_regions,
+    underservedRegions: snap.underserved_regions,
+    totalPracticeMinutes: snap.total_practice_minutes,
+    disclaimer:
+      "Developmental observation, not a clinical diagnosis. Posteriors derived from caregiver-logged activity + a normative age curve.",
+  });
+}
+
+app.get("/make-server-76b0ba9a/partners/snapshot-summary", getPartnerSnapshotSummary);
+app.get("/partners/snapshot-summary", getPartnerSnapshotSummary);
+
+/** Parent-side: create + revoke shareable snapshot tokens. The token is the
+ * only thing the partner sees; revoking it is immediate. */
+async function postPartnerShareToken(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const body = (await c.req.json()) as { childId?: string; ttlDays?: number };
+  if (!body.childId) return c.json({ error: "childId_required" }, 400);
+  const ttl = Math.max(1, Math.min(90, Number(body.ttlDays ?? 30)));
+
+  const tokenBytes = new Uint8Array(32);
+  crypto.getRandomValues(tokenBytes);
+  const token = Array.from(tokenBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  const { error } = await sb.from("partner_snapshot_shares").insert({
+    user_id: auth.userId,
+    child_id: String(body.childId).slice(0, 64),
+    token,
+    expires_at: new Date(Date.now() + ttl * 86400000).toISOString(),
+  });
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ token, expiresInDays: ttl });
+}
+
+async function deletePartnerShareToken(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const token = c.req.param("token");
+  if (!token) return c.json({ error: "token_required" }, 400);
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  const { error } = await sb
+    .from("partner_snapshot_shares")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("user_id", auth.userId)
+    .eq("token", token);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+}
+
+app.post("/make-server-76b0ba9a/partners/share", postPartnerShareToken);
+app.post("/partners/share", postPartnerShareToken);
+app.delete("/make-server-76b0ba9a/partners/share/:token", deletePartnerShareToken);
+app.delete("/partners/share/:token", deletePartnerShareToken);
+
+/** Survivor 6 — parent persists a snapshot. The frontend builds the data
+ * locally (so we avoid round-tripping the activity log), and we cache the
+ * derived numbers so the partners endpoint can serve the same posteriors. */
+async function postSnapshotSave(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const rl = await enforceRateLimit(c, "snapshot-save", 60, 600, auth.userId);
+  if (rl) return rl;
+  const body = (await c.req.json()) as {
+    childId?: string;
+    anchorMonths?: number;
+    childAgeMonths?: number;
+    posteriors?: unknown;
+    topRegions?: unknown;
+    underservedRegions?: unknown;
+    totalPracticeMinutes?: number;
+  };
+  const childId = truncateString(body.childId, 64);
+  const anchor = clampNumber(body.anchorMonths, 0, 240);
+  const ageMonths = clampNumber(body.childAgeMonths, 0, 240);
+  if (!childId || anchor == null || ageMonths == null) return c.json({ error: "missing_fields" }, 400);
+  if (!Array.isArray(body.posteriors) || !Array.isArray(body.topRegions) || !Array.isArray(body.underservedRegions)) {
+    return c.json({ error: "bad_payload" }, 400);
+  }
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  const { data, error } = await sb.from("well_child_snapshots").insert({
+    user_id: auth.userId,
+    child_id: childId,
+    anchor_months: anchor,
+    child_age_months: ageMonths,
+    posteriors: body.posteriors,
+    top_regions: body.topRegions,
+    underserved_regions: body.underservedRegions,
+    total_practice_minutes: Math.max(0, Math.round(body.totalPracticeMinutes ?? 0)),
+  }).select("id, generated_at").single();
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ id: data?.id, generatedAt: data?.generated_at });
+}
+
+async function getSnapshotList(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const childId = truncateString(c.req.query("childId"), 64);
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  let q = sb
+    .from("well_child_snapshots")
+    .select("id, child_id, generated_at, anchor_months, child_age_months, total_practice_minutes")
+    .eq("user_id", auth.userId)
+    .order("generated_at", { ascending: false })
+    .limit(20);
+  if (childId) q = q.eq("child_id", childId);
+  const { data, error } = await q;
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data: data ?? [] });
+}
+
+async function getPartnerShareList(c: Context) {
+  const auth = await requireUser(c);
+  if (auth instanceof Response) return auth;
+  const childId = truncateString(c.req.query("childId"), 64);
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ error: "server_misconfigured" }, 500);
+  const sb = createClient(url, serviceKey);
+  let q = sb
+    .from("partner_snapshot_shares")
+    .select("id, child_id, token, created_at, expires_at, revoked_at")
+    .eq("user_id", auth.userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (childId) q = q.eq("child_id", childId);
+  const { data, error } = await q;
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data: data ?? [] });
+}
+
+app.post("/make-server-76b0ba9a/snapshot/save", postSnapshotSave);
+app.post("/snapshot/save", postSnapshotSave);
+app.get("/make-server-76b0ba9a/snapshot/list", getSnapshotList);
+app.get("/snapshot/list", getSnapshotList);
+app.get("/make-server-76b0ba9a/partners/shares", getPartnerShareList);
+app.get("/partners/shares", getPartnerShareList);
 
 Deno.serve(app.fetch);

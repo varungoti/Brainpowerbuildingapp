@@ -1,0 +1,67 @@
+---
+// Animated SVG "spark orb" hero piece. Built with Anime.js v4 staggered keyframes
+// + GSAP ScrollTrigger for parallax. Falls back to a static gradient under
+// prefers-reduced-motion.
+---
+<div class="relative w-full max-w-md aspect-square mx-auto" id="hero-orb-wrap">
+  <svg id="hero-orb" viewBox="0 0 320 320" class="w-full h-full">
+    <defs>
+      <radialGradient id="g1" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#FFC857" stop-opacity="0.95" />
+        <stop offset="55%" stop-color="#FF6B47" stop-opacity="0.65" />
+        <stop offset="100%" stop-color="#3D3FE8" stop-opacity="0.0" />
+      </radialGradient>
+      <radialGradient id="g2" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#3D3FE8" stop-opacity="0.7" />
+        <stop offset="100%" stop-color="#3D3FE8" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+    <circle cx="160" cy="160" r="140" fill="url(#g2)" class="orb-blob" />
+    <circle cx="160" cy="160" r="100" fill="url(#g1)" class="orb-blob" />
+    {Array.from({ length: 18 }).map((_, i) => (
+      <circle class="orb-spark" cx="160" cy="160" r="2" fill="#0E1320" data-i={i} />
+    ))}
+  </svg>
+</div>
+
+<script>
+  import("animejs").then((mod) => {
+    const anime = (mod as any).default ?? mod;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    anime({
+      targets: ".orb-blob",
+      scale: [1, 1.04, 1],
+      duration: 5200,
+      easing: "easeInOutSine",
+      loop: true,
+      delay: anime.stagger(180),
+    });
+    anime({
+      targets: ".orb-spark",
+      translateX: () => anime.random(-130, 130),
+      translateY: () => anime.random(-130, 130),
+      opacity: [{ value: 0 }, { value: 1, duration: 600 }, { value: 0, duration: 1400 }],
+      scale: [{ value: 0.4 }, { value: 1.6 }],
+      duration: 2400,
+      delay: anime.stagger(120),
+      easing: "easeOutQuad",
+      loop: true,
+    });
+  }).catch(() => undefined);
+
+  import("gsap").then(async ({ default: gsap }) => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const ST = await import("gsap/ScrollTrigger");
+    gsap.registerPlugin(ST.ScrollTrigger);
+    gsap.fromTo(
+      "#hero-orb-wrap",
+      { rotate: 0, y: 0 },
+      {
+        rotate: 12, y: 40,
+        scrollTrigger: { trigger: "#hero-orb-wrap", start: "top 70%", end: "bottom 0%", scrub: 0.6 },
+      },
+    );
+  }).catch(() => undefined);
+</script>

@@ -1,0 +1,57 @@
+{
+  "name": "Reddit Listener (parenting subs) → suggested replies",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "*/15 * * * *" }] } },
+      "id": "every-15", "name": "Every 15m",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/Parenting+toddlers+ScienceParents+homeschool+Mommit+daddit/search.json?q=memory+OR+attention+OR+focus+OR+%22brain+development%22+OR+%22screen+time%22&restrict_sr=on&sort=new&limit=15",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "user-agent", "value": "neurospark-listener/1.0" }]}
+      },
+      "id": "search", "name": "Reddit search",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const seen = $getWorkflowStaticData('node').seen ||= {};\nconst out = [];\nfor (const c of ($json.data?.children || [])) {\n  const d = c.data;\n  if (seen[d.id]) continue; seen[d.id] = true;\n  out.push({ json: {\n    id: d.id,\n    title: d.title,\n    body: (d.selftext || '').slice(0, 1500),\n    url: `https://reddit.com${d.permalink}`,\n    sub: d.subreddit\n  }});\n}\nreturn out;"
+      },
+      "id": "dedupe", "name": "Dedupe",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": \"You are a warm, evidence-backed parenting helper for NeuroSpark. Read the post and write a 4-6 sentence reply that (1) validates the parent, (2) shares one practical micro-activity, (3) ends with a single soft mention of NeuroSpark only if directly relevant. Never spammy. Never recommend if the post is unrelated or in crisis (in that case reply with PASS).\" },\n    { \"role\": \"user\", \"content\": \"r/{{ $json.sub }} — {{ $json.title }}\\n\\n{{ $json.body }}\" }\n  ],\n  \"temperature\": 0.5\n}"
+      },
+      "id": "draft", "name": "Draft reply",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:speech_balloon: r/{{ $('Dedupe').item.json.sub }} — *{{ $('Dedupe').item.json.title }}*\n{{ $('Dedupe').item.json.url }}\n\n>>> {{ $json.choices[0].message.content }}\n\n_(approve to post manually with our brand voice)_"
+      },
+      "id": "slack", "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack", "typeVersion": 2.2, "position": [40, 0]
+    }
+  ],
+  "connections": {
+    "Every 15m":     { "main": [[{ "node": "Reddit search", "type": "main", "index": 0 }]] },
+    "Reddit search": { "main": [[{ "node": "Dedupe", "type": "main", "index": 0 }]] },
+    "Dedupe":        { "main": [[{ "node": "Draft reply", "type": "main", "index": 0 }]] },
+    "Draft reply":   { "main": [[{ "node": "Send to Slack", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "community" }]
+}

@@ -1,0 +1,35 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+---
+<Site title="About" description="NeuroSpark is built by a small team obsessed with kid-first software, privacy, and the developmental neuroscience of the AI age.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">About</span>
+      <h1 class="mt-4 text-5xl max-w-3xl">We're building the brain-builder we wished existed when our kids were born.</h1>
+    </Reveal>
+    <Reveal delay={0.1}>
+      <div class="mt-10 grid md:grid-cols-2 gap-10">
+        <div>
+          <p class="text-ink/70 text-lg leading-relaxed">NeuroSpark started in a Pune apartment when one of us spent ₹40,000 on parenting workshops in a single quarter and realized none of them gave the parent anything to <em>do</em> tomorrow morning. Today we're a remote team of five — three parents, two researchers — building software that respects parents' time, kids' privacy, and the developmental science.</p>
+          <p class="mt-4 text-ink/70 text-lg leading-relaxed">We refuse to:</p>
+          <ul class="mt-2 list-disc list-inside text-ink/70 space-y-1">
+            <li>Run ads (especially to parents).</li>
+            <li>Sell anonymized child data. (We don't even collect it.)</li>
+            <li>Add gamification that triggers compulsion loops.</li>
+          </ul>
+        </div>
+        <div class="rounded-3xl bg-deep-500 text-white p-10 self-start">
+          <h3 class="text-2xl">Our principles</h3>
+          <ol class="mt-4 space-y-3 text-white/90 text-sm">
+            <li><b>1.</b> Privacy is non-negotiable. On-device first.</li>
+            <li><b>2.</b> Five minutes beats an hour you don't have.</li>
+            <li><b>3.</b> Cite the science, in-app, every time.</li>
+            <li><b>4.</b> Kids are not a market segment. They're our co-conspirators.</li>
+            <li><b>5.</b> Build for 2035, not 2015.</li>
+          </ol>
+        </div>
+      </div>
+    </Reveal>
+  </section>
+</Site>

@@ -1,0 +1,38 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+
+const tiers = [
+  { id: "starter", name: "Starter", price: "Free", desc: "Daily routine, 100+ activities, voice mode.", cta: "Download free", features: ["Daily routine", "100+ activities", "Voice mode", "Brain map"] },
+  { id: "family", name: "Family", price: "$6 / mo", desc: "Everything plus Counselor, sibling mode, portfolio.", cta: "Start 14-day trial", features: ["AI Counselor (unlimited)", "Sibling mode", "Portfolio + sharing", "Caregiver invites (5)", "Offline packs", "Weekly intelligence report"] },
+  { id: "pro", name: "Pro & gift", price: "$60 / yr", desc: "Save 17%. Includes a gift voucher.", cta: "Buy now", features: ["Everything in Family", "Gift voucher (1)", "Priority research access", "Early features"] },
+];
+---
+<Site title="Pricing" description="Free for life with a generous tier. Family $6/mo. Pro $60/yr. Education and accessibility plans available.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">Pricing</span>
+      <h1 class="mt-4 text-5xl max-w-2xl">Honest pricing. No tricks. No ads. Ever.</h1>
+    </Reveal>
+
+    <div class="mt-14 grid md:grid-cols-3 gap-6">
+      {tiers.map((t, i) => (
+        <Reveal delay={i * 0.1}>
+          <article class:list={["rounded-3xl p-8 border", t.id === "family" ? "bg-ink text-white border-ink" : "bg-white border-ink/5"]}>
+            <h2 class="text-2xl font-extrabold">{t.name}</h2>
+            <div class="text-4xl font-display font-extrabold mt-2">{t.price}</div>
+            <p class:list={["mt-2 text-sm", t.id === "family" ? "text-white/70" : "text-ink/70"]}>{t.desc}</p>
+            <ul class:list={["mt-6 space-y-2 text-sm", t.id === "family" ? "text-white/90" : "text-ink/80"]}>
+              {t.features.map((f) => <li>· {f}</li>)}
+            </ul>
+            <a href={`/download?plan=${t.id}`} class:list={["mt-8 inline-flex w-full justify-center", t.id === "family" ? "btn-primary" : "btn-ghost"]}>{t.cta}</a>
+          </article>
+        </Reveal>
+      ))}
+    </div>
+
+    <Reveal delay={0.4}>
+      <p class="mt-10 text-sm text-ink/60 max-w-2xl">Education and accessibility families: <a href="mailto:hello@neurospark.com" class="underline">hello@neurospark.com</a>. We offer 100% scholarships, no questions asked, for one of every twenty seats.</p>
+    </Reveal>
+  </section>
+</Site>

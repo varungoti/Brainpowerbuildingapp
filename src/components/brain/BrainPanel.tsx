@@ -8,6 +8,7 @@ import {
   MAX_BRAIN_REGION_SCORE,
 } from "@/lib/brainRegions";
 import { generateInsights } from "@/lib/brainInsights";
+import { useEntitlement } from "@/lib/subscription/useEntitlement";
 
 type Props = {
   selectedId: string | null;
@@ -31,7 +32,11 @@ export function BrainPanel({ selectedId, scores, onClose }: Props) {
       goals: region ? [`Support ${region.name.toLowerCase()} growth`] : undefined,
     };
   }, [activeChild, region]);
-  const isPremium = hasCreditForToday();
+  // Premium = server-issued entitlement OR (offline fallback) a fresh local
+  // pack credit. The server check refreshes on visibility/auth change so a
+  // newly-completed checkout flips this within a few seconds.
+  const entitlement = useEntitlement();
+  const isPremium = entitlement.isActive || hasCreditForToday();
 
   return (
     <AnimatePresence>
@@ -115,6 +120,7 @@ export function BrainPanel({ selectedId, scores, onClose }: Props) {
               scores={scores}
               isPremium={isPremium}
               initialQuestion={`How can I support ${region.name.toLowerCase()} development right now?`}
+              childId={activeChild?.id}
             />
           )}
         </>

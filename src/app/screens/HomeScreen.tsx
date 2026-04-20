@@ -2,13 +2,36 @@ import { useApp, getLevelFromBP, getNextLevelBP, LEVEL_CONFIG, BADGE_DEFS } from
 import { SeasonalBanner } from "../../components/seasonal/SeasonalBanner";
 import { INTEL_COLORS, ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { getExecutableYearPlan, getExecutableYearPlanProgress, MONTH_NAMES_FULL, getCurrentMonth } from "../data/yearPlan";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import brainBase from "../../assets/brain-progress-base.png";
 import { BRAIN_REGIONS, getActiveBrainRegionCount } from "../data/brainRegions";
+import { PredictorCard } from "../../components/milestones/PredictorCard";
+import { predictMilestones } from "../../lib/milestones/milestonePredictor";
+import { QuestBoard } from "../../components/gamification/QuestBoard";
+import { TodaysFocusChip } from "../../components/competency/TodaysFocusChip";
+import type { AIAgeCompetencyId } from "../../lib/competencies/aiAgeCompetencies";
+import { AIHygieneTour } from "../../components/onboarding/AIHygieneTour";
+import { OfflinePackButton } from "../../components/offline/OfflinePackButton";
+import { CoverageTodayCard } from "../../components/coverage/CoverageTodayCard";
 
 export function HomeScreen() {
-  const { activeChild, children, setActiveChild, navigate, activityLogs, generatedPack, credits, hasCreditForToday } = useApp();
+  const { activeChild, children, setActiveChild, navigate, activityLogs, generatedPack, credits, hasCreditForToday, milestoneChecks, quests, setGeneratorIntent } = useApp();
   const [showChildPicker, setShowChildPicker] = useState(false);
+
+  const handlePracticeFocus = (competencyIds: AIAgeCompetencyId[]) => {
+    setGeneratorIntent({
+      source: "ai_age_focus",
+      title: "Today's AI-age focus",
+      note: "Pack tilted toward your child's two priority dimensions.",
+      priorityIntelligences: [],
+      priorityCompetencies: competencyIds,
+    });
+    if (hasCreditForToday()) {
+      navigate("generate");
+    } else {
+      navigate("paywall");
+    }
+  };
 
   if (!activeChild) {
     return (
@@ -156,6 +179,16 @@ export function HomeScreen() {
       </div>
 
       <div className="px-4 space-y-4 pb-6">
+
+        {/* ── Today's AI-Age focus chip ────────────────────────────────── */}
+        <TodaysFocusChip
+          scores={activeChild.competencyScores}
+          childName={activeChild.name}
+          onPracticeNow={handlePracticeFocus}
+        />
+
+        {/* ── Family AI-Hygiene first-run + 30-day tour ────────────────── */}
+        <AIHygieneTour totalActivities={activeChild.totalActivities} />
 
         {/* ── Missed Day Alert ─────────────────────────────────────────── */}
         {missedActivities.length > 0 && completedActivities > 0 && (
@@ -395,8 +428,30 @@ export function HomeScreen() {
           </div>
         </button>
 
+        {/* External coverage credited today (Survivor 7) */}
+        <CoverageTodayCard childId={activeChild.id} />
+
         {/* Seasonal banner */}
         <SeasonalBanner onExplore={() => navigate("seasonal_library")} />
+
+        {/* Milestone Predictor */}
+        <MilestonePredictorWidget
+          child={activeChild}
+          logs={activityLogs}
+          checkedMilestones={milestoneChecks[activeChild.id] ?? []}
+          onViewAll={() => navigate("milestones")}
+        />
+
+        {/* Active Quests */}
+        {quests.length > 0 && (
+          <div>
+            <SectionTitle title="Active Quests" action={{ label: "All →", fn: () => navigate("quests") }} />
+            <QuestBoard quests={quests.slice(0, 3)} />
+          </div>
+        )}
+
+        {/* Offline pack download for school-run / no-internet use */}
+        <OfflinePackButton pack={generatedPack ?? []} childId={activeChild.id} />
 
         {/* Quick actions */}
         <div>
@@ -404,6 +459,9 @@ export function HomeScreen() {
           <div className="grid grid-cols-2 gap-2">
             {[
               { emoji:"⚡", label:"New Activity Pack",  color:"#4361EE", bg:"#EEF1FF", fn:() => hasCreditForToday() ? navigate("generate") : navigate("paywall") },
+              { emoji:"🎧", label:"Audio mode (screen-free)", color:"#3A0CA3", bg:"#EEF0FF", fn:() => navigate("audio_mode") },
+              { emoji:"💞", label:"Rupture & repair (90s)", color:"#F72585", bg:"#FFF0F6", fn:() => navigate("rupture_repair") },
+              { emoji:"😴", label:"Sleep × cognition", color:"#0EA5E9", bg:"#EFF8FF", fn:() => navigate("sleep_log") },
               { emoji:"🗓️", label:"Year Roadmap",       color:"#7209B7", bg:"#F5F0FF", fn:() => navigate("year_plan") },
               { emoji:"🧠", label:"AI Counselor",       color:"#F72585", bg:"#FFF0F6", fn:() => navigate("ai_counselor") },
               { emoji:"📊", label:"Stats & check-in", color:"#06D6A0", bg:"#EDFFF8", fn:() => navigate("stats") },
@@ -453,4 +511,18 @@ function SectionTitle({ title, action }: { title:string; action?:{ label:string;
       {action && <button onClick={action.fn} className="text-xs font-semibold" style={{ color:"#4361EE" }}>{action.label}</button>}
     </div>
   );
+}
+
+function MilestonePredictorWidget({ child, logs, checkedMilestones, onViewAll }: {
+  child: import("../context/AppContext").ChildProfile;
+  logs: import("../context/AppContext").ActivityLog[];
+  checkedMilestones: string[];
+  onViewAll: () => void;
+}) {
+  const predictions = useMemo(
+    () => predictMilestones(child, logs, checkedMilestones),
+    [child, logs, checkedMilestones],
+  );
+  if (predictions.length === 0) return null;
+  return <PredictorCard predictions={predictions} onViewAll={onViewAll} />;
 }

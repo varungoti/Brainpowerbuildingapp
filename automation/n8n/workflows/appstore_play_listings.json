@@ -1,0 +1,59 @@
+{
+  "name": "App Store + Play Listings Sync",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }] } },
+      "id": "weekly", "name": "Weekly Mon 09 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/varundixit/neurospark/main/marketing-site/src/content/store-listing.json",
+        "options": {}
+      },
+      "id": "fetch", "name": "Fetch listing.json",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-380, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.appstoreconnect.apple.com/v1/appStoreVersionLocalizations/{{ $env.APPSTORE_LOCALIZATION_ID }}",
+        "method": "PATCH",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.APPSTORE_JWT }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"data\": {\n    \"id\": \"{{ $env.APPSTORE_LOCALIZATION_ID }}\",\n    \"type\": \"appStoreVersionLocalizations\",\n    \"attributes\": {\n      \"description\": {{ JSON.stringify($json.description) }},\n      \"keywords\": {{ JSON.stringify($json.keywords.join(',')) }},\n      \"promotionalText\": {{ JSON.stringify($json.promo) }}\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "appstore", "name": "Patch App Store",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-200, -100]
+    },
+    {
+      "parameters": {
+        "url": "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.neurospark.app/edits/EDIT_ID/listings/en-US",
+        "method": "PUT",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.PLAY_OAUTH_TOKEN }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"language\": \"en-US\",\n  \"title\": {{ JSON.stringify($json.title) }},\n  \"shortDescription\": {{ JSON.stringify($json.short) }},\n  \"fullDescription\": {{ JSON.stringify($json.description) }}\n}",
+        "options": {}
+      },
+      "id": "play", "name": "Patch Play Console",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-200, 100]
+    }
+  ],
+  "connections": {
+    "Weekly Mon 09 UTC": { "main": [[{ "node": "Fetch listing.json", "type": "main", "index": 0 }]] },
+    "Fetch listing.json": { "main": [[
+      { "node": "Patch App Store", "type": "main", "index": 0 },
+      { "node": "Patch Play Console", "type": "main", "index": 0 }
+    ]]}
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "store" }]
+}

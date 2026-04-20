@@ -3,7 +3,9 @@ import { useApp } from "../context/AppContext";
 import { MATERIAL_OPTIONS, MOOD_OPTIONS, INTEL_COLORS, Activity, runAGE, getAgeTierConfig, buildLastCompletionMap, SKILL_TAG_UI, type AGEPersonalization } from "../data/activities";
 import { buildWhyPickedLines } from "../data/activityWhy";
 import { getOutcomeFocusPillars } from "../data/outcomeChecklist";
+import { pickPriorityCompetencies } from "@/lib/competencies/aiAgeCompetencies";
 import { captureProductEvent } from "@/utils/productAnalytics";
+import { CompetencyBadges } from "@/components/competency/CompetencyBadges";
 
 // ─── Activity image map by primary intelligence ───────────────────────────────
 const INTEL_IMAGES: Record<string, string> = {
@@ -133,12 +135,29 @@ export function GeneratorScreen() {
     setGenerateError(null);
     setStep("generating");
     setTimeout(() => {
+      // Honor explicit priority competencies passed via generatorIntent
+      // (e.g. from HomeScreen's "Practice today's focus" CTA), then fall
+      // back to the child's two weakest dimensions. This keeps the
+      // recommender honest both when the parent picks a focus and when
+      // they don't.
+      const priorityCompetencies =
+        generatorIntent?.priorityCompetencies && generatorIntent.priorityCompetencies.length > 0
+          ? generatorIntent.priorityCompetencies
+          : pickPriorityCompetencies(activeChild?.competencyScores, 2);
+
       const result = runAGE(tier, materialInventory, mood, timeMin, recentIds, personalization, lastCompletionByActivity, {
         boostAILiteracy,
         boostDualTask,
         focusPillars: outcomeFocusPillars,
         priorityIntelligences: generatorIntent?.priorityIntelligences,
+        priorityCompetencies,
       });
+      if (priorityCompetencies.length > 0) {
+        captureProductEvent("competency_priority_set", {
+          competency_ids: priorityCompetencies,
+          surface: generatorIntent?.source === "ai_age_focus" ? "home_focus_cta" : "auto",
+        });
+      }
       setPack(result);
       setGeneratedPack(result);
       setCompletedIds(new Set());
@@ -163,6 +182,7 @@ export function GeneratorScreen() {
       childId: activeChild.id, activityId: act.id, activityName: act.name, emoji: act.emoji,
       intelligences: act.intelligences, method: act.method, region: act.region, regionEmoji: act.regionEmoji,
       duration: act.duration, completed: true, engagementRating: rating, parentNotes: notes,
+      competencyTags: act.competencyTags,
     });
     setEarnedBP(prev => ({ ...prev, [act.id]: bp }));
     setCompletedIds(prev => new Set([...prev, act.id]));
@@ -310,6 +330,12 @@ export function GeneratorScreen() {
                           {intel.split("-")[0]}
                         </span>
                       ))}
+                      {act.competencyTags && act.competencyTags.length > 0 && (
+                        <CompetencyBadges
+                          ids={act.competencyTags}
+                          variant="compact"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

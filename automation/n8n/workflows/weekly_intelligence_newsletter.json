@@ -1,0 +1,60 @@
+{
+  "name": "Weekly Intelligence Newsletter",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 12 * * 0" }] } },
+      "id": "weekly", "name": "Sun 12 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/profiles?email_optin=eq.true&select=id,email,display_name,locale",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+        ]}
+      },
+      "id": "subs", "name": "Fetch opted-in parents",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 0]
+    },
+    {
+      "parameters": { "fieldToSplitOut": "data", "options": {} },
+      "id": "split", "name": "Split per parent",
+      "type": "n8n-nodes-base.itemLists", "typeVersion": 3, "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.EDGE_BASE_URL }}/intelligence/weekly?profileId={{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }]}
+      },
+      "id": "summary", "name": "Build weekly summary",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.resend.com/emails",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.RESEND_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"NeuroSpark <weekly@{{ $env.RESEND_FROM_DOMAIN }}>\",\n  \"to\": [\"{{ $('Split per parent').item.json.email }}\"],\n  \"subject\": \"This week's brain-building snapshot\",\n  \"html\": \"{{ $json.html }}\"\n}",
+        "options": {}
+      },
+      "id": "send", "name": "Send via Resend",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [60, 0]
+    }
+  ],
+  "connections": {
+    "Sun 12 UTC": { "main": [[{ "node": "Fetch opted-in parents", "type": "main", "index": 0 }]] },
+    "Fetch opted-in parents": { "main": [[{ "node": "Split per parent", "type": "main", "index": 0 }]] },
+    "Split per parent": { "main": [[{ "node": "Build weekly summary", "type": "main", "index": 0 }]] },
+    "Build weekly summary": { "main": [[{ "node": "Send via Resend", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "email" }]
+}

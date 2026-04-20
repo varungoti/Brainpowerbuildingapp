@@ -1,0 +1,18 @@
+{
+  "name": "@neurospark/ai-age",
+  "version": "0.1.0",
+  "description": "Open standard for measuring AI-age developmental competencies in children 0-12. Twelve evidence-grounded dimensions with peer-reviewed citations and a reference scoring function.",
+  "license": "MIT",
+  "keywords": ["child-development", "edtech", "ai-literacy", "executive-function", "developmental-psychology", "open-standard"],
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./spec": "./src/spec.json",
+    "./score": "./src/score.ts"
+  },
+  "files": ["src", "README.md", "LICENSE"],
+  "repository": "github:neurospark/neurospark-ai-age",
+  "publishConfig": { "access": "public" },
+  "private": false
+}

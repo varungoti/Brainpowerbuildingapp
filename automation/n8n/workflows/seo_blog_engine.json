@@ -1,0 +1,89 @@
+{
+  "name": "SEO Blog Engine (LLM → review → Postiz multi-publish)",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 14 * * *" }] } },
+      "id": "daily-14utc", "name": "Daily 14 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "values": { "string": [{ "name": "topics", "value": "={{ JSON.stringify([\n  'How to build working memory in toddlers (5 micro-activities)',\n  'AI-age skills your kid needs by 2030',\n  'Why mirror talk during diaper changes builds Broca\\'s area',\n  'Bilingual exposure and executive function: 2024 NIH meta-analysis',\n  'How to handle preschool meltdowns without breaking the bond',\n  'Sensory diet ideas for ADHD kids — 10 evidence-backed activities',\n  'Brain-region coverage: are we accidentally over-developing one area?',\n  'The 4-year-old who asked for the brain game instead of TV (case study)',\n  'Privacy-first parenting tech: a reading list',\n  'Why singing to your baby builds the prefrontal cortex'\n]) }}" }]}
+      },
+      "id": "topics", "name": "Topic pool",
+      "type": "n8n-nodes-base.set", "typeVersion": 3, "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const arr = JSON.parse($json.topics);\nreturn [{ json: { topic: arr[Math.floor(Math.random() * arr.length)] } }];"
+      },
+      "id": "pick", "name": "Pick topic",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-5\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": \"You are a careful, research-backed parenting writer for NeuroSpark. Cite at least 2 peer-reviewed studies, write 800-1200 words, end with one practical micro-activity, and a single CTA paragraph linking to the app at {{ $env.PUBLIC_APP_WEB_URL }}?utm_source=blog. Output JSON: { title, slug, dek, body_md, tags[] }.\" },\n    { \"role\": \"user\", \"content\": \"Topic: {{ $json.topic }}\" }\n  ],\n  \"response_format\": { \"type\": \"json_object\" }\n}",
+        "options": {}
+      },
+      "id": "draft", "name": "Draft post (gpt-5)",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const c = JSON.parse($json.choices[0].message.content);\nreturn [{ json: c }];"
+      },
+      "id": "parse", "name": "Parse JSON",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:writing_hand: Draft ready for review: *{{ $json.title }}*\nApprove with :white_check_mark: in this thread within 2h to publish.\n\n```{{ $json.body_md.slice(0, 1500) }}```",
+        "otherOptions": {}
+      },
+      "id": "slack-approve", "name": "Slack approval gate",
+      "type": "n8n-nodes-base.slack", "typeVersion": 2.2, "position": [240, 0]
+    },
+    {
+      "parameters": { "amount": 2, "unit": "hours" },
+      "id": "wait", "name": "Wait 2h",
+      "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const post = $('Parse JSON').item.json;\nconst tags = (post.tags || []).slice(0, 4);\nconst posts = [\n  { provider: 'devto',    channelId: $env.POSTIZ_CHANNEL_DEVTO,    content: post.body_md, settings: { __type: 'devto',    title: post.title, tags } },\n  { provider: 'medium',   channelId: $env.POSTIZ_CHANNEL_MEDIUM,   content: post.body_md, settings: { __type: 'medium',   title: post.title, tags: tags.slice(0,3).map((t)=>({ value: t, label: t })) } },\n  { provider: 'hashnode', channelId: $env.POSTIZ_CHANNEL_HASHNODE, content: post.body_md, settings: { __type: 'hashnode', title: post.title, tags } }\n].filter((p) => !!p.channelId);\nreturn [{ json: { posts, tags: ['source:seo_blog_engine'] } }];"
+      },
+      "id": "build-postiz", "name": "Build Postiz fan-out",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [640, 0]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "name", "value": "lib/postiz_publish" },
+        "options": {}
+      },
+      "id": "postiz", "name": "Publish via Postiz",
+      "type": "n8n-nodes-base.executeWorkflow", "typeVersion": 1.1, "position": [820, 0]
+    }
+  ],
+  "connections": {
+    "Daily 14 UTC":         { "main": [[{ "node": "Topic pool", "type": "main", "index": 0 }]] },
+    "Topic pool":           { "main": [[{ "node": "Pick topic", "type": "main", "index": 0 }]] },
+    "Pick topic":           { "main": [[{ "node": "Draft post (gpt-5)", "type": "main", "index": 0 }]] },
+    "Draft post (gpt-5)":   { "main": [[{ "node": "Parse JSON", "type": "main", "index": 0 }]] },
+    "Parse JSON":           { "main": [[{ "node": "Slack approval gate", "type": "main", "index": 0 }]] },
+    "Slack approval gate":  { "main": [[{ "node": "Wait 2h", "type": "main", "index": 0 }]] },
+    "Wait 2h":              { "main": [[{ "node": "Build Postiz fan-out", "type": "main", "index": 0 }]] },
+    "Build Postiz fan-out": { "main": [[{ "node": "Publish via Postiz", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "seo" }]
+}

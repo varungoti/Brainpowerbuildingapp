@@ -1,37 +1,70 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
 import { FeedProvider } from "./context/FeedContext";
 import { RemoteConfigProvider } from "./context/RemoteConfigContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ScreenErrorBoundary } from "./components/ScreenErrorBoundary";
 import { FULL_SCREEN_VIEWS, getActiveNavTab, getScreenTitle, shouldHideHeader } from "./logic/viewConfig";
 import { useOnlineStatus } from "../utils/networkStatus";
 import { hydrateTextScaleFromNativePreferences } from "../utils/textScale";
+import { captureAttributionFromUrl } from "../utils/attribution";
 
-// Screens
+// Critical-path screens (eager) — boot, auth, onboarding, the 5 nav tabs, and
+// the few screens reachable in <2 taps from Home. Everything else is
+// lazy-loaded so the initial JS payload stays under the chunk-size warning
+// for parent mobile.
 import { LandingScreen }     from "./screens/LandingScreen";
 import { AuthScreen }        from "./screens/AuthScreen";
 import { OnboardingScreen }  from "./screens/OnboardingScreen";
 import { HomeScreen }        from "./screens/HomeScreen";
 import { GeneratorScreen }   from "./screens/GeneratorScreen";
 import { HistoryScreen } from "./screens/HistoryScreen";
-import { StatsScreen } from "./screens/StatsScreen";
 import { ProfileScreen } from "./screens/ProfileScreen";
 import { AddChildScreen } from "./screens/AddChildScreen";
 import { PaywallScreen } from "./screens/PaywallScreen";
-import { YearPlanScreen } from "./screens/YearPlanScreen";
-import { AICounselorScreen } from "./screens/AICounselorScreen";
 import { BrainMapScreen } from "./screens/BrainMapScreen";
-import { MilestonesScreen } from "./screens/MilestonesScreen";
-import { LegalInfoScreen } from "./screens/LegalInfoScreen";
 import { ActivityDetailScreen } from "./screens/ActivityDetailScreen";
-import { BlueprintDocsScreen } from "./screens/BlueprintDocsScreen";
-import { FeedsScreen } from "./screens/FeedsScreen";
-import { ReportScreen } from "./screens/ReportScreen";
-import { SiblingModeScreen } from "./screens/SiblingModeScreen";
-import { PortfolioScreen } from "./screens/PortfolioScreen";
-import { SeasonalLibraryScreen } from "./screens/SeasonalLibraryScreen";
-import { LanguageSettingsScreen } from "./screens/LanguageSettingsScreen";
-import { SensorySettingsScreen } from "./screens/SensorySettingsScreen";
+import { AICounselorScreen } from "./screens/AICounselorScreen";
+
+// Tail-traffic screens (lazy) — visited from Profile / Quick Actions, not
+// from boot. Each ships as its own chunk so the main bundle shrinks.
+const StatsScreen                 = lazy(() => import("./screens/StatsScreen").then(m => ({ default: m.StatsScreen })));
+const YearPlanScreen              = lazy(() => import("./screens/YearPlanScreen").then(m => ({ default: m.YearPlanScreen })));
+const MilestonesScreen            = lazy(() => import("./screens/MilestonesScreen").then(m => ({ default: m.MilestonesScreen })));
+const LegalInfoScreen             = lazy(() => import("./screens/LegalInfoScreen").then(m => ({ default: m.LegalInfoScreen })));
+const BlueprintDocsScreen         = lazy(() => import("./screens/BlueprintDocsScreen").then(m => ({ default: m.BlueprintDocsScreen })));
+const FeedsScreen                 = lazy(() => import("./screens/FeedsScreen").then(m => ({ default: m.FeedsScreen })));
+const ReportScreen                = lazy(() => import("./screens/ReportScreen").then(m => ({ default: m.ReportScreen })));
+const SiblingModeScreen           = lazy(() => import("./screens/SiblingModeScreen").then(m => ({ default: m.SiblingModeScreen })));
+const PortfolioScreen             = lazy(() => import("./screens/PortfolioScreen").then(m => ({ default: m.PortfolioScreen })));
+const SeasonalLibraryScreen       = lazy(() => import("./screens/SeasonalLibraryScreen").then(m => ({ default: m.SeasonalLibraryScreen })));
+const LanguageSettingsScreen      = lazy(() => import("./screens/LanguageSettingsScreen").then(m => ({ default: m.LanguageSettingsScreen })));
+const SensorySettingsScreen       = lazy(() => import("./screens/SensorySettingsScreen").then(m => ({ default: m.SensorySettingsScreen })));
+const BondingScreen               = lazy(() => import("./screens/BondingScreen").then(m => ({ default: m.BondingScreen })));
+const RoutineScreen               = lazy(() => import("./screens/RoutineScreen").then(m => ({ default: m.RoutineScreen })));
+const CaregiversScreen            = lazy(() => import("./screens/CaregiversScreen").then(m => ({ default: m.CaregiversScreen })));
+const QuestsScreen                = lazy(() => import("./screens/QuestsScreen").then(m => ({ default: m.QuestsScreen })));
+const NotificationSettingsScreen  = lazy(() => import("./screens/NotificationSettingsScreen").then(m => ({ default: m.NotificationSettingsScreen })));
+const AIPrivacyScreen             = lazy(() => import("./screens/AIPrivacyScreen").then(m => ({ default: m.AIPrivacyScreen })));
+const AudioModeScreen             = lazy(() => import("./screens/AudioModeScreen").then(m => ({ default: m.AudioModeScreen })));
+const CoachMemoryScreen           = lazy(() => import("./screens/CoachMemoryScreen").then(m => ({ default: m.CoachMemoryScreen })));
+const RuptureRepairScreen         = lazy(() => import("./screens/RuptureRepairScreen").then(m => ({ default: m.RuptureRepairScreen })));
+const SleepLogScreen              = lazy(() => import("./screens/SleepLogScreen").then(m => ({ default: m.SleepLogScreen })));
+const SnapshotScreen              = lazy(() => import("./screens/SnapshotScreen").then(m => ({ default: m.SnapshotScreen })));
+const SnapshotSharesScreen        = lazy(() => import("./screens/SnapshotSharesScreen").then(m => ({ default: m.SnapshotSharesScreen })));
+
+function LazyScreenFallback() {
+  return (
+    <div role="status" aria-live="polite" className="flex h-full w-full items-center justify-center bg-[#F0EFFF] p-6">
+      <div className="space-y-3 w-full max-w-sm">
+        <div className="h-6 w-1/2 animate-pulse rounded-full bg-slate-200" />
+        <div className="h-24 animate-pulse rounded-2xl bg-slate-200/70" />
+        <div className="h-24 animate-pulse rounded-2xl bg-slate-200/70" />
+        <span className="sr-only">Loading screen…</span>
+      </div>
+    </div>
+  );
+}
 
 // ─── Bottom Nav ────────────────────────────────────────────────────────────────
 const NAV_TABS = [
@@ -121,8 +154,7 @@ function OfflineBanner() {
 }
 
 // ─── Screen Router ─────────────────────────────────────────────────────────────
-function ScreenContent() {
-  const { view } = useApp();
+function renderScreen(view: AppView): React.ReactNode {
   switch(view) {
     case "landing":           return <LandingScreen />;
     case "auth":              return <AuthScreen />;
@@ -153,8 +185,50 @@ function ScreenContent() {
     case "seasonal_library":  return <SeasonalLibraryScreen />;
     case "settings_language": return <LanguageSettingsScreen />;
     case "settings_sensory":  return <SensorySettingsScreen />;
+    case "bonding":           return <BondingScreen />;
+    case "routine":           return <RoutineScreen />;
+    case "caregivers":        return <CaregiversScreen />;
+    case "quests":            return <QuestsScreen />;
+    case "settings_notifications": return <NotificationSettingsScreen />;
+    case "ai_privacy": return <AIPrivacyScreen />;
+    case "audio_mode": return <AudioModeScreen />;
+    case "coach_memory": return <CoachMemoryScreen />;
+    case "rupture_repair": return <RuptureRepairScreen />;
+    case "sleep_log": return <SleepLogScreen />;
+    case "snapshot": return <SnapshotScreen />;
+    case "snapshot_shares": return <SnapshotSharesScreen />;
     default:                  return <HomeScreen />;
   }
+}
+
+function ScreenContent() {
+  const { view, goBack, canGoBack, navigate, user } = useApp();
+
+  // Listen for caregiver-invite deep-link events emitted by the URL parser.
+  useEffect(() => {
+    const handler = () => {
+      if (user) navigate("caregivers");
+    };
+    window.addEventListener("neurospark:open-caregivers", handler);
+    // Also fire once at mount in case the event was dispatched before listen
+    // (rare race when URL param exists at first render).
+    if (user && sessionStorage.getItem("neurospark_pending_invite")) {
+      navigate("caregivers");
+    }
+    return () => window.removeEventListener("neurospark:open-caregivers", handler);
+  }, [navigate, user]);
+
+  // Keyed boundary: a new view gets a fresh boundary instance, so a crash in
+  // one screen never leaks into another and simply navigating away recovers.
+  return (
+    <ScreenErrorBoundary
+      key={view}
+      screenName={view}
+      onRetry={() => (canGoBack ? goBack() : navigate("home"))}
+    >
+      <Suspense fallback={<LazyScreenFallback />}>{renderScreen(view)}</Suspense>
+    </ScreenErrorBoundary>
+  );
 }
 
 function AppShell() {
@@ -183,7 +257,37 @@ function AppShell() {
 
   useEffect(() => {
     void hydrateTextScaleFromNativePreferences();
+    captureAttributionFromUrl();
   }, []);
+
+  // Caregiver invite deep-link: /invite?token=… (or any URL containing the
+  // ns_invite query param) routes the user to the Caregivers screen with the
+  // token pre-stashed in sessionStorage so CaregiversScreen can auto-accept.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token =
+        params.get("token") && window.location.pathname.replace(/\/+$/, "").endsWith("/invite")
+          ? params.get("token")
+          : params.get("ns_invite");
+      if (!token) return;
+      sessionStorage.setItem("neurospark_pending_invite", token);
+      // Strip the token from the URL so a refresh doesn't re-trigger.
+      const cleaned = new URL(window.location.href);
+      cleaned.searchParams.delete("token");
+      cleaned.searchParams.delete("ns_invite");
+      window.history.replaceState({}, "", cleaned.toString());
+      if (isAuthenticated) {
+        // We can't useApp().navigate before the provider is ready; defer to a microtask.
+        Promise.resolve().then(() => {
+          window.dispatchEvent(new CustomEvent("neurospark:open-caregivers"));
+        });
+      }
+    } catch {
+      /* malformed URL — ignore */
+    }
+  }, [isAuthenticated]);
 
   const shellStyle = isCompactViewport
     ? {

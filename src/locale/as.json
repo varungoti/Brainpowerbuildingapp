@@ -1,0 +1,17 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "হোম",
+  "nav.today": "আজি",
+  "nav.brain": "মগজু",
+  "nav.aiHelp": "AI সহায়",
+  "nav.profile": "প্ৰফাইল",
+  "home.greeting": "নমস্কাৰ, {name}!",
+  "common.save": "সংৰক্ষণ",
+  "common.cancel": "বাতিল",
+  "common.back": "পিছলৈ",
+  "common.next": "পৰৱৰ্তী",
+  "common.done": "সম্পূৰ্ণ",
+  "common.loading": "লোড হৈ আছে...",
+  "common.error": "কিবা ভুল হ'ল",
+  "common.premium": "প্ৰিমিয়াম বৈশিষ্ট্য"
+}

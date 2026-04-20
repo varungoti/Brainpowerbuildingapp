@@ -1,0 +1,52 @@
+---
+const regions = [
+  { id: "prefrontal", label: "Prefrontal Cortex", desc: "Executive function & planning" },
+  { id: "broca", label: "Broca's Area", desc: "Language production" },
+  { id: "wernicke", label: "Wernicke's Area", desc: "Language comprehension" },
+  { id: "hippocampus", label: "Hippocampus", desc: "Memory consolidation" },
+  { id: "amygdala", label: "Amygdala", desc: "Emotion & social cues" },
+  { id: "parietal", label: "Parietal", desc: "Spatial reasoning & math" },
+  { id: "occipital", label: "Occipital", desc: "Visual processing" },
+  { id: "cerebellum", label: "Cerebellum", desc: "Coordination & balance" },
+];
+---
+<div class="grid md:grid-cols-2 gap-10 items-center">
+  <svg viewBox="0 0 320 320" class="w-full" id="brain-map" aria-hidden="true">
+    <ellipse cx="160" cy="170" rx="130" ry="100" fill="#FFE9DA" stroke="#FF6B47" stroke-width="2" />
+    <path id="region-prefrontal"  d="M50 150 Q90 110 160 110 Q230 110 270 150 Z" fill="#FF6B47" opacity="0.0" />
+    <path id="region-broca"       d="M70 200 Q90 170 130 170 Q150 170 150 210 Z" fill="#3D3FE8" opacity="0.0" />
+    <path id="region-wernicke"    d="M170 200 Q220 180 250 200 Q260 230 220 240 Z" fill="#FFC857" opacity="0.0" />
+    <path id="region-hippocampus" d="M120 220 Q160 250 200 220 Z" fill="#3D3FE8" opacity="0.0" />
+    <path id="region-amygdala"    d="M140 240 Q160 260 180 240 Z" fill="#FF6B47" opacity="0.0" />
+  </svg>
+  <ul class="space-y-3">
+    {regions.map((r) => (
+      <li
+        class="cursor-pointer rounded-xl border border-ink/5 px-4 py-3 hover:border-spark-500/40 transition"
+        data-region={r.id}
+      >
+        <div class="font-semibold">{r.label}</div>
+        <div class="text-sm text-ink/60">{r.desc}</div>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import("motion").then(({ animate }) => {
+    document.querySelectorAll<HTMLElement>("[data-region]").forEach((li) => {
+      li.addEventListener("mouseenter", () => {
+        const id = li.dataset.region;
+        const target = document.getElementById(`region-${id}`);
+        if (!target) return;
+        animate(target, { opacity: [0, 0.7] }, { duration: 0.4 });
+      });
+      li.addEventListener("mouseleave", () => {
+        const id = li.dataset.region;
+        const target = document.getElementById(`region-${id}`);
+        if (!target) return;
+        animate(target, { opacity: [0.7, 0] }, { duration: 0.5 });
+      });
+    });
+  }).catch(() => undefined);
+</script>

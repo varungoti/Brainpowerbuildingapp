@@ -1,0 +1,22 @@
+services:
+  kokoro-upstream:
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    container_name: ns-kokoro-upstream
+    restart: unless-stopped
+    ports: ["8881:8880"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: ["gpu"]
+  voice-svc-kokoro:
+    build: .
+    container_name: ns-voice-svc-kokoro
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      KOKORO_UPSTREAM: http://kokoro-upstream:8880
+    ports: ["8880:8880"]
+    depends_on: [kokoro-upstream]

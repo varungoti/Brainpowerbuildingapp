@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 import { useRemoteAppFlags } from "../context/RemoteConfigContext";
 import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
 import { useOnlineStatus } from "@/utils/networkStatus";
+import { ConversationButton } from "../../components/voice/ConversationButton";
 
 const CATEGORIES = [
   { id: "eating",   emoji: "🥗", label: "Picky Eating",      color: "#06D6A0" },
@@ -184,6 +185,23 @@ export function AICounselorScreen() {
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
                 Describe your concern in detail
               </div>
+              {hasServerConfig && !aiPausedRemote && (
+                <div className="mb-3 flex justify-center">
+                  <ConversationButton
+                    agent="counselor"
+                    locale="en"
+                    label="Dictate your concern"
+                    onTurn={async (utterance) => {
+                      // Append the spoken utterance into the textarea so the
+                      // parent can review/edit before submitting to the deep
+                      // research pipeline. We do NOT auto-submit — too high a
+                      // stakes payload for an accidental tap.
+                      setConcern((c) => (c ? `${c} ${utterance}` : utterance).trim());
+                      return "Got it — I added that to your concern. Tap the research button when you're ready.";
+                    }}
+                  />
+                </div>
+              )}
               <textarea
                 value={concern}
                 onChange={e => setConcern(e.target.value)}

@@ -1,9 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "../../utils/supabase/client";
+import { captureProductEvent } from "@/utils/productAnalytics";
 
 export function AuthScreen() {
   const { loginUser, navigate, authMode, setAuthMode } = useApp();
+  const mountedAtRef = useRef<number>(typeof performance !== "undefined" ? performance.now() : Date.now());
+
+  // Funnel: fire `auth_view` once on mount and again whenever the user toggles
+  // signup ↔ login. `screen: "auth"` keeps this joinable with the generic
+  // screen_view stream.
+  useEffect(() => {
+    captureProductEvent("auth_view", { screen: "auth", auth_mode: authMode });
+  }, [authMode]);
   const [name, setName]       = useState("");
   const [email, setEmail]     = useState("");
   const [pass, setPass]       = useState("");
@@ -19,6 +28,15 @@ export function AuthScreen() {
     setError("");
     setLoading(true);
 
+    const dwell = Math.max(0, Math.round(
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) - mountedAtRef.current,
+    ));
+    captureProductEvent("auth_submit_attempt", {
+      screen: "auth",
+      auth_mode: authMode,
+      dwell_ms: dwell,
+    });
+
     const client = getSupabaseBrowserClient();
     if (client) {
       try {
@@ -33,8 +51,17 @@ export function AuthScreen() {
           });
           if (e) throw e;
           if (data.session?.user && data.user) {
+            captureProductEvent("auth_submit_success", { screen: "auth", auth_mode: "signup" });
             loginUser(email.trim(), name.trim(), { supabaseUid: data.user.id });
           } else {
+            // Email-confirmation flow — not a hard failure but not a success
+            // either; log as `email_confirmation_pending` so funnel reports
+            // can distinguish "we sent you an email" from a real failure.
+            captureProductEvent("auth_submit_fail", {
+              screen: "auth",
+              auth_mode: "signup",
+              fail_reason: "email_confirmation_pending",
+            });
             setError(
               "Check your email to confirm your account, then sign in. (For local dev: disable email confirmation in Supabase → Authentication → Providers → Email.)",
             );
@@ -50,10 +77,17 @@ export function AuthScreen() {
             (typeof u.user_metadata?.full_name === "string" && u.user_metadata.full_name) ||
             u.email?.split("@")[0] ||
             "Parent";
+          captureProductEvent("auth_submit_success", { screen: "auth", auth_mode: "login" });
           loginUser(u.email!, nm, { supabaseUid: u.id });
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
+        captureProductEvent("auth_submit_fail", {
+          screen: "auth",
+          auth_mode: authMode,
+          // Bucket the supabase error code instead of leaking the raw string.
+          fail_reason: classifySupabaseAuthError(msg),
+        });
         setError(msg);
       } finally {
         setLoading(false);
@@ -62,6 +96,7 @@ export function AuthScreen() {
     }
 
     await new Promise((r) => setTimeout(r, 600));
+    captureProductEvent("auth_submit_success", { screen: "auth", auth_mode: authMode });
     loginUser(email.trim(), authMode === "signup" ? name.trim() : email.split("@")[0]);
     setLoading(false);
   };
@@ -170,6 +205,20 @@ export function AuthScreen() {
       </div>
     </div>
   );
+}
+
+// Privacy-light bucketing for Supabase auth errors so analytics never carry
+// raw error strings (which can include emails, IP addresses, etc.). Returns
+// a short stable token suitable for funnel grouping.
+function classifySupabaseAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login")) return "invalid_credentials";
+  if (m.includes("password") && m.includes("short")) return "weak_password";
+  if (m.includes("rate limit") || m.includes("too many")) return "rate_limited";
+  if (m.includes("network") || m.includes("fetch")) return "network_error";
+  if (m.includes("email") && m.includes("not")) return "email_not_confirmed";
+  if (m.includes("user already") || m.includes("already registered")) return "user_exists";
+  return "auth_error";
 }
 
 function Field({ label, value, onChange, placeholder, type, valid, icon }: {

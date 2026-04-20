@@ -7,6 +7,10 @@ interface ImportMetaEnv {
   readonly VITE_ANALYTICS_ENDPOINT?: string;
   /** Optional Sentry DSN; only initialized in production builds (see docs/ERROR_MONITORING.md) */
   readonly VITE_SENTRY_DSN?: string;
+  /** Optional PostHog project key; forwards `captureProductEvent` batches when `posthog` flag is on. */
+  readonly VITE_POSTHOG_KEY?: string;
+  /** Optional PostHog ingest host (defaults to `https://us.i.posthog.com`). */
+  readonly VITE_POSTHOG_HOST?: string;
   /** Logical deploy name for Sentry (e.g. production | staging); defaults to Vite MODE */
   readonly VITE_APP_ENV?: string;
   /** Comma-separated admin emails allowed to open internal Blueprint docs (production). */

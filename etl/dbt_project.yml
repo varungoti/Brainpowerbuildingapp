@@ -1,0 +1,27 @@
+name: neurospark
+version: 1.0.0
+config-version: 2
+
+profile: neurospark
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+
+target-path: target
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  neurospark:
+    +materialized: table
+    staging:
+      +materialized: view
+      +schema: stg
+    marts:
+      +materialized: table
+      +schema: marts

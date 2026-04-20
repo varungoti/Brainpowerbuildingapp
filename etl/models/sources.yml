@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Mirror of Supabase tables loaded nightly via etl/sync_supabase.py"
+    schema: raw
+    tables:
+      - name: events
+        description: "Product analytics events (PostHog-compatible shape)"
+        columns:
+          - name: id
+            tests: [unique, not_null]
+          - name: occurred_at
+            tests: [not_null]
+          - name: profile_id
+          - name: child_id
+          - name: name
+          - name: payload
+      - name: profiles
+      - name: children
+      - name: activity_attempts
+        columns:
+          - name: id
+            tests: [unique, not_null]
+          - name: child_id
+            tests: [not_null]
+          - name: activity_id
+            tests: [not_null]
+          - name: rating
+      - name: subscriptions
+      - name: caregiver_links
+      - name: feedback
+      - name: studio_jobs
+      - name: studio_cost_ledger
+      - name: marketing_costs

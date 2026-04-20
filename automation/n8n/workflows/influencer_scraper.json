@@ -1,0 +1,53 @@
+{
+  "name": "Influencer Scraper (Apify) → Supabase CRM",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 8 * * 1" }] } },
+      "id": "weekly", "name": "Mon 08 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/run-sync-get-dataset-items?token={{ $env.APIFY_TOKEN }}",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "content-type", "value": "application/json" }]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={\n  \"hashtags\": [\"toddleractivities\", \"montessoriathome\", \"earlylearning\", \"parentingtips\", \"braindevelopment\"],\n  \"resultsType\": \"posts\",\n  \"resultsLimit\": 100\n}"
+      },
+      "id": "apify", "name": "Apify scrape Instagram",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const out = [];\nfor (const p of ($json || [])) {\n  if (!p.ownerUsername) continue;\n  out.push({ json: {\n    handle: p.ownerUsername,\n    follower_count: p.ownerFollowersCount || null,\n    last_post_url: `https://instagram.com/p/${p.shortCode}`,\n    last_post_likes: p.likesCount || 0,\n    bio: p.ownerFullName,\n    fit_score: Math.min(100, Math.round((p.likesCount || 0) / 10))\n  }});\n}\nreturn out;"
+      },
+      "id": "norm", "name": "Normalize creators",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/influencers?on_conflict=handle",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Prefer", "value": "resolution=merge-duplicates" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "upsert", "name": "Upsert into Supabase",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-160, 0]
+    }
+  ],
+  "connections": {
+    "Mon 08 UTC":              { "main": [[{ "node": "Apify scrape Instagram", "type": "main", "index": 0 }]] },
+    "Apify scrape Instagram":  { "main": [[{ "node": "Normalize creators", "type": "main", "index": 0 }]] },
+    "Normalize creators":      { "main": [[{ "node": "Upsert into Supabase", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "crm" }]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "PostHog Daily Digest → Slack",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 6 * * *" }] } },
+      "id": "daily-6", "name": "Daily 06 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-700, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POSTHOG_HOST }}/api/projects/{{ $env.POSTHOG_PROJECT_ID }}/insights/?short_id={{ $env.POSTHOG_DAU_INSIGHT_ID }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.POSTHOG_PERSONAL_API_KEY }}" }]}
+      },
+      "id": "dau", "name": "Fetch DAU insight",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, -100]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/admin_costs_summary",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={ \"days\": 1 }"
+      },
+      "id": "costs", "name": "Fetch yesterday costs",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-520, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "const dau = $('Fetch DAU insight').first().json?.results?.[0]?.data?.slice(-1)?.[0] ?? 'N/A';\nconst costs = $('Fetch yesterday costs').first().json ?? [];\nconst total = costs.reduce((a,b)=>a+Number(b.cost_usd||0),0).toFixed(2);\nreturn [{ json: { text: `:bar_chart: *Daily digest*\\n• DAU yesterday: *${dau}*\\n• AI/Infra spend: *$${total}*\\n• Top providers: ${costs.slice(0,3).map(c=>`${c.provider} ($${Number(c.cost_usd).toFixed(2)})`).join(', ')}` }}];"
+      },
+      "id": "format", "name": "Format digest",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-300, 0]
+    },
+    {
+      "parameters": { "channel": "={{ $env.SLACK_CHANNEL_ID }}", "text": "={{ $json.text }}" },
+      "id": "slack", "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack", "typeVersion": 2.2, "position": [-100, 0]
+    }
+  ],
+  "connections": {
+    "Daily 06 UTC": { "main": [[
+      { "node": "Fetch DAU insight", "type": "main", "index": 0 },
+      { "node": "Fetch yesterday costs", "type": "main", "index": 0 }
+    ]]},
+    "Fetch DAU insight":     { "main": [[{ "node": "Format digest", "type": "main", "index": 0 }]] },
+    "Fetch yesterday costs": { "main": [[{ "node": "Format digest", "type": "main", "index": 0 }]] },
+    "Format digest":         { "main": [[{ "node": "Post to Slack", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "metrics" }]
+}

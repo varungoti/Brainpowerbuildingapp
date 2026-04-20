@@ -109,6 +109,44 @@ export function ReportScreen() {
             </div>
           )}
 
+          {report.competencyCoverage.length > 0 && (
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 mb-1">AI-Age Readiness · 12 Dimensions</h3>
+              <p className="text-[10px] text-gray-500 mb-3">
+                Sorted weakest-first. Tap the AI-Age tab in Brain Map for full definitions.
+              </p>
+              <div className="space-y-1.5">
+                {report.competencyCoverage.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2">
+                    <span className="text-base w-5 text-center">{c.emoji}</span>
+                    <span className="text-[11px] text-gray-700 flex-1 truncate">{c.label}</span>
+                    <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${c.percent}%`, background: "#4361EE" }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-600 w-9 text-right">{Math.round(c.percent)}%</span>
+                    <span
+                      className="text-[9px] font-bold rounded-full px-1.5 py-0.5"
+                      style={{
+                        background: c.trend === "up" ? "rgba(6,214,160,0.15)" : c.trend === "down" ? "rgba(220,38,38,0.12)" : "rgba(148,163,184,0.18)",
+                        color: c.trend === "up" ? "#059669" : c.trend === "down" ? "#DC2626" : "#64748B",
+                      }}
+                    >
+                      {c.trend === "up" ? "▲" : c.trend === "down" ? "▼" : "—"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {report.competencyFocus.length > 0 && (
+                <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 p-2.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Next week's focus</div>
+                  <div className="text-[11px] text-amber-900 mt-0.5">
+                    {report.competencyFocus.map((c) => `${c.emoji} ${c.label}`).join(" · ")}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {report.highlights.length > 0 && (
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <h3 className="text-sm font-bold text-gray-900 mb-2">Highlights</h3>

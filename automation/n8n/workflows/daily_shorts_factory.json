@@ -1,0 +1,222 @@
+{
+  "name": "Daily Shorts Factory",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 13 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-13utc",
+      "name": "Daily 13:00 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "topics",
+              "value": "={{ JSON.stringify([\n  { template: 'BrainStoryShort', brief: 'How a 5-min sorting game builds working memory in 4-year-olds. End on hopeful tone.' },\n  { template: 'FeatureSpotlight', brief: 'Show the new AI Counselor feature that helps parents during meltdowns. Highlight privacy.' },\n  { template: 'TestimonialCard', brief: 'Use this real parent quote: \"My 3yo asked for the brain game instead of TV.\" Add gentle warm visuals.' },\n  { template: 'BrainStoryShort', brief: '60-second explainer on prefrontal cortex development in toddlers and one micro-activity to support it.' },\n  { template: 'ResearchExplainer', brief: 'Cite the 2024 NIH study on multilingual exposure boosting executive function. Translate findings into one daily action.' },\n  { template: 'AppDemo', brief: 'Demo the daily routine card walking through 4 micro-activities, ending on streak celebration.' }\n]) }}"
+            }
+          ]
+        }
+      },
+      "id": "topics",
+      "name": "Topic pool",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [-380, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const pool = JSON.parse($json.topics);\nconst pick = pool[Math.floor(Math.random() * pool.length)];\nreturn [{ json: { ...pick, durationSec: 30, voice: 'af_heart', variant: 'dark' } }];"
+      },
+      "id": "pick-topic",
+      "name": "Pick random topic",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-200, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.STUDIO_BASE_URL }}/studio/jobs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.STUDIO_BEARER_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template\": \"{{ $json.template }}\",\n  \"brief\": \"{{ $json.brief }}\",\n  \"durationSec\": {{ $json.durationSec }},\n  \"voice\": \"{{ $json.voice }}\",\n  \"variant\": \"{{ $json.variant }}\",\n  \"autoApprove\": true,\n  \"distribution\": [\"instagram_reel\", \"tiktok\", \"youtube_short\"]\n}",
+        "options": {}
+      },
+      "id": "create-job",
+      "name": "Create Studio job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-20, 0]
+    },
+    {
+      "parameters": {
+        "amount": 60,
+        "unit": "seconds"
+      },
+      "id": "wait-1m",
+      "name": "Wait 60s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [160, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.STUDIO_BASE_URL }}/studio/jobs/{{ $('Create Studio job').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.STUDIO_BEARER_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "poll-job",
+      "name": "Poll job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [340, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "is-done",
+      "name": "Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build Postiz fan-out payload from the completed Studio job.\nconst caption = `${$json.title || 'New from NeuroSpark'}\\n\\n${$json.subtitle || ''}\\n\\nBuilt for AI-age kids. Privacy-first. \\u2193\\n${$env.PUBLIC_APP_WEB_URL}?utm_source=${$json.template}&utm_medium=short&utm_campaign=daily_shorts`;\nconst mediaUrls = $json.mp4Url ? [$json.mp4Url] : [];\nconst posts = [\n  { provider: 'instagram', channelId: $env.POSTIZ_CHANNEL_INSTAGRAM, content: caption, mediaUrls, settings: { __type: 'instagram', post_type: 'reel' } },\n  { provider: 'tiktok',    channelId: $env.POSTIZ_CHANNEL_TIKTOK,    content: caption, mediaUrls },\n  { provider: 'youtube',   channelId: $env.POSTIZ_CHANNEL_YOUTUBE,   content: caption, mediaUrls, settings: { __type: 'youtube', type: 'short', title: ($json.title || 'NeuroSpark short').slice(0, 95), selfDeclaredMadeForKids: false } },\n  { provider: 'threads',   channelId: $env.POSTIZ_CHANNEL_THREADS,   content: caption, mediaUrls },\n  { provider: 'bluesky',   channelId: $env.POSTIZ_CHANNEL_BLUESKY,   content: caption.slice(0, 280), mediaUrls }\n].filter((p) => !!p.channelId);\nreturn [{ json: { posts, tags: [`template:${$json.template}`] } }];"
+      },
+      "id": "build-postiz",
+      "name": "Build Postiz fan-out",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [720, -160]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "name", "value": "lib/postiz_publish" },
+        "options": {}
+      },
+      "id": "postiz-publish",
+      "name": "Publish via Postiz",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [900, -160]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:movie_camera: Daily short ready: *{{ $('Poll job').item.json.title }}* — {{ $('Poll job').item.json.mp4Url }}",
+        "otherOptions": {}
+      },
+      "id": "slack",
+      "name": "Notify Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [720, 60],
+      "credentials": {
+        "slackApi": {
+          "id": "REPLACE",
+          "name": "Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait-30",
+      "name": "Wait 30s and re-poll",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [520, 160]
+    }
+  ],
+  "connections": {
+    "Daily 13:00 UTC": {
+      "main": [[{ "node": "Topic pool", "type": "main", "index": 0 }]]
+    },
+    "Topic pool": {
+      "main": [[{ "node": "Pick random topic", "type": "main", "index": 0 }]]
+    },
+    "Pick random topic": {
+      "main": [[{ "node": "Create Studio job", "type": "main", "index": 0 }]]
+    },
+    "Create Studio job": {
+      "main": [[{ "node": "Wait 60s", "type": "main", "index": 0 }]]
+    },
+    "Wait 60s": {
+      "main": [[{ "node": "Poll job", "type": "main", "index": 0 }]]
+    },
+    "Poll job": {
+      "main": [[{ "node": "Done?", "type": "main", "index": 0 }]]
+    },
+    "Done?": {
+      "main": [
+        [
+          { "node": "Build Postiz fan-out", "type": "main", "index": 0 },
+          { "node": "Notify Slack", "type": "main", "index": 0 }
+        ],
+        [{ "node": "Wait 30s and re-poll", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Postiz fan-out": {
+      "main": [[{ "node": "Publish via Postiz", "type": "main", "index": 0 }]]
+    },
+    "Wait 30s and re-poll": {
+      "main": [[{ "node": "Poll job", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "video" }]
+}

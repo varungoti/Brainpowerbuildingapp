@@ -1,0 +1,36 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+
+const features = [
+  { tag: "Daily routine", h: "5-minute routines, generated each morning", p: "A handful of micro-activities matched to your child's mood, last week's coverage, and the time you actually have." },
+  { tag: "AI Counselor", h: "A warm, evidence-backed parenting voice", p: "Ask anything from meltdowns to milestones. Voice-first. Citations included. Privacy-respecting." },
+  { tag: "Brain map", h: "Track all 15 regions, not just one", p: "We balance coverage across prefrontal cortex, hippocampus, Broca, parietal, cerebellum, and 10 more." },
+  { tag: "AI-age framework", h: "16 competencies for the AI generation", p: "Focus, originality, ethical reasoning, embodied skill, multilingualism — the things AI won't replicate any time soon." },
+  { tag: "Voice mode", h: "Hands-free, eyes-free play", p: "Native iOS/Android speech in every supported language. Use it during diaper changes, kitchen prep, car rides." },
+  { tag: "Sibling mode", h: "One activity, two ages", p: "Auto-adapts a single activity for two siblings at different developmental stages — builds interpersonal intelligence too." },
+  { tag: "Portfolio", h: "A camera roll for milestones", p: "Photograph creations, auto-tagged by intelligence type and brain region." },
+  { tag: "Caregivers", h: "Invite up to 5 trusted adults", p: "Grandparents, nannies, teachers — they all see the same routine, with revocable permissions." },
+  { tag: "Sensory engine", h: "One tap to adapt any activity", p: "ADHD, autism spectrum, visual impairment — every activity has alternative variants built-in." },
+  { tag: "Offline packs", h: "Works on the school bus", p: "Download a week of activities for flights, road trips, and patchy connections." },
+];
+---
+<Site title="Features" description="Everything inside NeuroSpark — micro-routines, AI Counselor, brain map, voice mode, sibling mode, portfolio, caregivers, sensory engine, offline packs.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">Features</span>
+      <h1 class="mt-4 text-5xl">Every feature, mapped to a real parenting moment.</h1>
+    </Reveal>
+    <div class="mt-16 grid md:grid-cols-2 gap-6">
+      {features.map((f, i) => (
+        <Reveal delay={(i % 2) * 0.1}>
+          <article class="rounded-3xl border border-ink/5 bg-white/70 p-8 hover:bg-white transition">
+            <span class="pill">{f.tag}</span>
+            <h2 class="mt-3 text-2xl">{f.h}</h2>
+            <p class="mt-2 text-ink/70">{f.p}</p>
+          </article>
+        </Reveal>
+      ))}
+    </div>
+  </section>
+</Site>

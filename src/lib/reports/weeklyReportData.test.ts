@@ -113,4 +113,19 @@ describe("buildWeeklyReport", () => {
     expect(report.coveredRegions).toBeGreaterThanOrEqual(1);
     expect(report.topIntelligences.length).toBeGreaterThan(0);
   });
+
+  it("emits a 12-row competency coverage rollup sorted weakest-first", () => {
+    const child = makeChild({
+      competencyScores: { "creative-generation": 80, "ethical-judgment": 5 },
+    });
+    const ref = new Date(2026, 3, 2);
+    const report = buildWeeklyReport(child, [], ref);
+
+    expect(report.competencyCoverage).toHaveLength(12);
+    expect(report.competencyCoverage[0].percent).toBeLessThanOrEqual(
+      report.competencyCoverage[report.competencyCoverage.length - 1].percent,
+    );
+    expect(report.competencyFocus).toHaveLength(2);
+    expect(report.competencyFocus[0].id).toBe(report.competencyCoverage[0].id);
+  });
 });

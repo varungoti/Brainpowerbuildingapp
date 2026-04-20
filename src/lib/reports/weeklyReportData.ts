@@ -1,4 +1,9 @@
 import type { ActivityLog, ChildProfile } from "../../app/context/AppContext";
+import {
+  AI_AGE_COMPETENCIES,
+  type AIAgeCompetencyId,
+  getCompetencyPercent,
+} from "../competencies/aiAgeCompetencies";
 
 export interface RegionCoverage {
   region: string;
@@ -6,6 +11,18 @@ export interface RegionCoverage {
   totalMinutes: number;
   avgEngagement: number;
   intelligences: string[];
+}
+
+export interface CompetencyCoverage {
+  id: AIAgeCompetencyId;
+  emoji: string;
+  label: string;
+  score: number;
+  percent: number;
+  /** Activities completed this week tagged with this competency. */
+  weekActivities: number;
+  /** "above" / "at" / "below" the rolling personal baseline. */
+  trend: "up" | "flat" | "down";
 }
 
 export interface WeeklyReportData {
@@ -25,6 +42,13 @@ export interface WeeklyReportData {
   level: number;
   highlights: string[];
   recommendations: string[];
+  /**
+   * 12-dimension AI-Age Readiness rollup. Sorted weakest-first so the report
+   * naturally highlights what to practice next week.
+   */
+  competencyCoverage: CompetencyCoverage[];
+  /** Two weakest competencies — surfaced as next-week's focus. */
+  competencyFocus: CompetencyCoverage[];
 }
 
 const ALL_REGIONS = ["Frontal", "Temporal", "Parietal", "Occipital", "Limbic", "Cerebellum", "Prefrontal", "Brain Stem", "Corpus Callosum", "Hippocampus", "Amygdala", "Thalamus", "Hypothalamus", "Basal Ganglia", "Wernicke"];
@@ -119,6 +143,37 @@ export function buildWeeklyReport(
     recommendations.push("Consider adjusting difficulty — try easier activities to build confidence");
   }
 
+  // ─── AI-Age Readiness 12-dim rollup ──────────────────────────────────────
+  const competencyCoverage: CompetencyCoverage[] = AI_AGE_COMPETENCIES.map((c) => {
+    const score = child.competencyScores?.[c.id] ?? 0;
+    const weekActivities = weekLogs.filter((l) =>
+      Array.isArray((l as ActivityLog & { competencyTags?: string[] }).competencyTags)
+        ? (l as ActivityLog & { competencyTags?: string[] }).competencyTags?.includes(c.id) ?? false
+        : false,
+    ).length;
+    const personalAvg =
+      Object.values(child.competencyScores ?? {}).reduce((s, n) => s + n, 0) /
+      Math.max(1, Object.keys(child.competencyScores ?? {}).length);
+    const trend: "up" | "flat" | "down" =
+      score > personalAvg + 1 ? "up" : score < personalAvg - 1 ? "down" : "flat";
+    return {
+      id: c.id,
+      emoji: c.emoji,
+      label: c.label,
+      score,
+      percent: getCompetencyPercent(score),
+      weekActivities,
+      trend,
+    };
+  }).sort((a, b) => a.percent - b.percent);
+
+  const competencyFocus = competencyCoverage.slice(0, 2);
+  if (competencyFocus.length > 0) {
+    recommendations.push(
+      `Next week — practice ${competencyFocus.map((c) => c.label.toLowerCase()).join(" + ")} for AI-age readiness.`,
+    );
+  }
+
   return {
     childName: child.name,
     childAge: childAgeInYears(child.dob),
@@ -136,5 +191,7 @@ export function buildWeeklyReport(
     level: child.level,
     highlights,
     recommendations,
+    competencyCoverage,
+    competencyFocus,
   };
 }

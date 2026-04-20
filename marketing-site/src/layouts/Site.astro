@@ -1,0 +1,60 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description = "NeuroSpark — playful brain-building activities for ages 0–7. Privacy-first. AI-age ready.", ogImage = "/og-default.png" } = Astro.props as Props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>{title} · NeuroSpark</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <slot name="head" />
+  </head>
+  <body>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      // Smooth scroll via Lenis (loaded only when JS available)
+      import("lenis").then(({ default: Lenis }) => {
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+        const lenis = new Lenis({ smoothWheel: true, lerp: 0.08 });
+        function raf(t: number) { lenis.raf(t); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+      }).catch(() => undefined);
+    </script>
+    {import.meta.env.PUBLIC_POSTHOG_KEY ? (
+      <script type="module" set:html={`
+        import('https://cdn.jsdelivr.net/npm/posthog-js@1.187.0/+esm').then(({ default: posthog })=>{
+          posthog.init(${JSON.stringify(import.meta.env.PUBLIC_POSTHOG_KEY)},{ api_host: ${JSON.stringify(import.meta.env.PUBLIC_POSTHOG_HOST)}, person_profiles:'identified_only', capture_pageview:true });
+          window.__nsTrack = (e,p)=>posthog.capture(e,p||{});
+        });
+      `} />
+    ) : null}
+  </body>
+</html>

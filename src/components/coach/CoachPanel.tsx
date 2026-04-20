@@ -8,6 +8,8 @@ import {
   type CoachChildProfile,
   type CoachResponse,
 } from "@/lib/coach/coachEngine";
+import { listCoachMemory, logCoachMemory } from "@/lib/coach/coachMemory";
+import { hasFeatureConsent } from "@/lib/localAi";
 
 type Props = {
   open: boolean;
@@ -16,7 +18,30 @@ type Props = {
   scores: Record<string, number>;
   isPremium: boolean;
   initialQuestion?: string;
+  /** Survivor 1: enables long-memory + auto-logging when supplied. */
+  childId?: string;
 };
+
+/** Light heuristic: which message turns are worth persisting as long memory.
+ * We only keep "observation"-shaped messages (parent describing the child),
+ * never instruction-only ones ("write me a plan"). Topic is inferred from a
+ * keyword bag-of-cues — same approach as the on-device safety classifier.
+ */
+function inferMemorySignal(content: string): { worth: boolean; topic: "sleep" | "meltdown" | "milestone" | "language" | "social" | "sibling" | "school" | "health" | "emotion" | "curiosity" | "other"; weight: number } {
+  const t = content.toLowerCase();
+  if (t.length < 30) return { worth: false, topic: "other", weight: 0 };
+  if (/sleep|nap|wake|bedtime|night/.test(t)) return { worth: true, topic: "sleep", weight: 1.2 };
+  if (/meltdown|tantrum|cry|scream|hit|bit/.test(t)) return { worth: true, topic: "meltdown", weight: 1.6 };
+  if (/word|spoke|said|talk|sentence|read/.test(t)) return { worth: true, topic: "language", weight: 1.1 };
+  if (/friend|peer|share|fight|nursery|preschool/.test(t)) return { worth: true, topic: "social", weight: 1.0 };
+  if (/sibling|brother|sister/.test(t)) return { worth: true, topic: "sibling", weight: 1.0 };
+  if (/school|teacher|classroom|homework/.test(t)) return { worth: true, topic: "school", weight: 1.0 };
+  if (/sick|fever|cough|allergy|medication/.test(t)) return { worth: true, topic: "health", weight: 1.4 };
+  if (/sad|happy|angry|frustrated|anxious|excited|proud/.test(t)) return { worth: true, topic: "emotion", weight: 0.9 };
+  if (/why|asked|wondered|curious|question/.test(t)) return { worth: true, topic: "curiosity", weight: 0.8 };
+  if (/walk|crawl|run|climb|jump|drew|wrote|counted|recognised|recognized/.test(t)) return { worth: true, topic: "milestone", weight: 1.3 };
+  return { worth: false, topic: "other", weight: 0 };
+}
 
 function CoachSkeleton() {
   return (
@@ -29,17 +54,33 @@ function CoachSkeleton() {
   );
 }
 
-export function CoachPanel({ open, onClose, profile, scores, isPremium, initialQuestion }: Props) {
+export function CoachPanel({ open, onClose, profile, scores, isPremium, initialQuestion, childId }: Props) {
   const [data, setData] = useState<CoachResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [messages, setMessages] = useState<CoachChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [memoryCount, setMemoryCount] = useState<number | null>(null);
 
   const initialPrompt = useMemo(
     () => initialQuestion || "Give me a practical parenting coach summary based on this brain profile.",
     [initialQuestion],
   );
+
+  // Survivor 1 transparency: count remembered observations so the parent
+  // can see (and trust) the long-memory injection. Best-effort; failure is
+  // a no-op so the rest of the coach surface keeps rendering.
+  useEffect(() => {
+    if (!open || !childId || !hasFeatureConsent(childId, "coach")) {
+      setMemoryCount(null);
+      return;
+    }
+    let cancelled = false;
+    void listCoachMemory(childId).then((rows) => {
+      if (!cancelled) setMemoryCount(rows.length);
+    });
+    return () => { cancelled = true; };
+  }, [open, childId]);
 
   useEffect(() => {
     if (!open) return;
@@ -51,6 +92,7 @@ export function CoachPanel({ open, onClose, profile, scores, isPremium, initialQ
       const response = await generateCoachResponse(profile, scores, {
         isPremium,
         question: initialPrompt,
+        childId,
       });
 
       if (cancelled) return;
@@ -76,11 +118,30 @@ export function CoachPanel({ open, onClose, profile, scores, isPremium, initialQ
       isPremium,
       question: message,
       messages: nextMessages,
+      childId,
     });
 
     setData(response);
     setMessages([...nextMessages, { role: "assistant", content: response.chatReply }]);
     setChatLoading(false);
+
+    // Survivor 1: auto-log observation-shaped messages as long memory.
+    // Only when the parent explicitly consented to the coach feature for
+    // this child (COPPA 2.0 — see AIPrivacyScreen). Best-effort; we never
+    // surface failure to the user.
+    if (childId && hasFeatureConsent(childId, "coach")) {
+      const signal = inferMemorySignal(message);
+      if (signal.worth) {
+        void logCoachMemory({
+          childId,
+          observation: message,
+          topic: signal.topic,
+          weight: signal.weight,
+        }).then((res) => {
+          if (res) setMemoryCount((n) => (n ?? 0) + 1);
+        });
+      }
+    }
   }
 
   return (
@@ -113,6 +174,13 @@ export function CoachPanel({ open, onClose, profile, scores, isPremium, initialQ
               <p className="mt-2 text-xs leading-relaxed text-slate-500">
                 Practical parenting guidance shaped by brain-region scores and daily routines.
               </p>
+              {memoryCount !== null && memoryCount > 0 && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-medium text-violet-700">
+                  <span aria-hidden="true">🧠</span>
+                  Remembering {memoryCount} observation{memoryCount === 1 ? "" : "s"} about
+                  {profile.name ? ` ${profile.name}` : " your child"}
+                </div>
+              )}
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">

@@ -1,4 +1,5 @@
 import type { ActivityLog, AdaptiveModel, AdaptiveRegionRecommendation } from "../../app/context/AppContext";
+import { AI_AGE_COMPETENCIES, type AIAgeCompetencyId } from "../competencies/aiAgeCompetencies";
 
 const MIN_SAMPLES = 3;
 const DEFAULT_WEIGHT = 1.0;
@@ -7,6 +8,7 @@ export function createEmptyModel(): AdaptiveModel {
   return {
     regionWeights: {},
     recommendations: {},
+    competencyWeights: {},
     lastTrainedAt: new Date().toISOString(),
     version: 1,
   };
@@ -66,6 +68,7 @@ export function trainFromLogs(logs: ActivityLog[], existing?: AdaptiveModel | nu
 
   model.regionWeights = { ...model.regionWeights, ...newWeights };
   model.recommendations = { ...model.recommendations, ...newRecs };
+  model.competencyWeights = { ...(model.competencyWeights ?? {}), ...trainCompetencyWeights(logs) };
   model.lastTrainedAt = new Date().toISOString();
   model.version += 1;
   return model;
@@ -81,4 +84,59 @@ export function getAdaptiveScoreBonus(activityRegion: string, difficulty: number
     bonus += (3 - tierMatch) * 5 * rec.confidenceScore;
   }
   return Math.round(bonus);
+}
+
+// ─── Phase D — competencyWeights ─────────────────────────────────────────────
+// Aggregates engagement per competency tag observed in the training logs
+// (we re-resolve tags on the log itself so we don't need to re-run the
+// inference pipeline). Weights are clamped to [0.7, 1.3] so a single bad
+// session never tanks a dimension.
+// ----------------------------------------------------------------------------
+type LogWithTags = ActivityLog & { competencyTags?: string[] };
+
+function trainCompetencyWeights(logs: ActivityLog[]): Record<string, number> {
+  const totals: Record<string, { eng: number; n: number }> = {};
+  for (const log of logs) {
+    if (!log.completed) continue;
+    const tags = (log as LogWithTags).competencyTags;
+    if (!tags || tags.length === 0) continue;
+    for (const tag of tags) {
+      if (!totals[tag]) totals[tag] = { eng: 0, n: 0 };
+      totals[tag].eng += log.engagementRating;
+      totals[tag].n += 1;
+    }
+  }
+  const out: Record<string, number> = {};
+  for (const c of AI_AGE_COMPETENCIES) {
+    const t = totals[c.id];
+    if (!t || t.n < MIN_SAMPLES) continue;
+    const avg = t.eng / t.n;
+    const weight = avg >= 4 ? 1.3 : avg >= 3 ? 1.0 : 0.7;
+    out[c.id] = weight;
+  }
+  return out;
+}
+
+/**
+ * Returns a small score nudge for an activity based on its competency tags.
+ * Positive when the child engages above-average with that competency,
+ * negative when consistently disengaged. Centred at 0.
+ */
+export function getAdaptiveCompetencyBonus(
+  competencyTags: AIAgeCompetencyId[] | undefined,
+  model: AdaptiveModel | null,
+): number {
+  if (!model || !competencyTags || competencyTags.length === 0) return 0;
+  const weights = model.competencyWeights ?? {};
+  let sum = 0;
+  let count = 0;
+  for (const tag of competencyTags) {
+    const w = weights[tag];
+    if (typeof w === "number") {
+      sum += w - 1.0;
+      count += 1;
+    }
+  }
+  if (count === 0) return 0;
+  return Math.round((sum / count) * 12);
 }

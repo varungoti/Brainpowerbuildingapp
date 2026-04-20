@@ -1,0 +1,28 @@
+---
+import Site from "../../layouts/Site.astro";
+import Reveal from "../../components/Reveal.astro";
+
+const posts = await Astro.glob("../../content/blog/*.md");
+posts.sort((a, b) => +new Date(b.frontmatter.date) - +new Date(a.frontmatter.date));
+---
+<Site title="Blog" description="Evidence-backed parenting writing from the NeuroSpark team. Updated weekly.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">Blog</span>
+      <h1 class="mt-4 text-5xl">Evidence-backed parenting writing.</h1>
+    </Reveal>
+    <ul class="mt-12 grid md:grid-cols-2 gap-6">
+      {posts.length === 0 ? (
+        <li class="text-ink/60">No posts yet — first one ships next Monday. Subscribe via RSS to be notified.</li>
+      ) : posts.map((p, i) => (
+        <Reveal delay={(i % 2) * 0.1}>
+          <a href={p.url} class="block rounded-3xl border border-ink/5 bg-white p-8 hover:border-spark-500/40 transition">
+            <div class="text-xs uppercase tracking-wide text-ink/50">{new Date(p.frontmatter.date).toLocaleDateString()}</div>
+            <h2 class="mt-2 text-2xl">{p.frontmatter.title}</h2>
+            <p class="mt-2 text-ink/70 text-sm">{p.frontmatter.dek}</p>
+          </a>
+        </Reveal>
+      ))}
+    </ul>
+  </section>
+</Site>

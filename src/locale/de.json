@@ -1,0 +1,20 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Start",
+  "nav.today": "Heute",
+  "nav.brain": "Gehirn",
+  "nav.aiHelp": "KI-Hilfe",
+  "nav.profile": "Profil",
+  "home.greeting": "Hallo, {name}!",
+  "home.streakLabel": "{count} Tage Serie",
+  "home.todaysPick": "Heutige Aktivität",
+  "home.brainPoints": "Gehirnpunkte",
+  "common.save": "Speichern",
+  "common.cancel": "Abbrechen",
+  "common.back": "Zurück",
+  "common.next": "Weiter",
+  "common.done": "Fertig",
+  "common.loading": "Laden...",
+  "common.error": "Etwas ist schiefgelaufen",
+  "common.premium": "Premium-Funktion"
+}

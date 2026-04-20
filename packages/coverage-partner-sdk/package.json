@@ -1,0 +1,11 @@
+{
+  "name": "@neurospark/coverage-partner-sdk",
+  "version": "0.1.0",
+  "description": "Node SDK for granting NeuroSpark coverage credit from a third-party experience (Roblox plugin, daycare portal, school iPad app, sibling co-play).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src", "README.md"],
+  "private": false
+}

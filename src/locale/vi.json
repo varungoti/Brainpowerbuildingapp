@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "Trang chủ",
+  "nav.today": "Hôm nay",
+  "nav.brain": "Não bộ",
+  "nav.aiHelp": "Trợ giúp AI",
+  "nav.profile": "Hồ sơ",
+  "home.greeting": "Xin chào, {name}!",
+  "home.streakLabel": "Chuỗi {count} ngày",
+  "common.save": "Lưu",
+  "common.cancel": "Hủy",
+  "common.back": "Quay lại",
+  "common.next": "Tiếp theo",
+  "common.done": "Xong",
+  "common.loading": "Đang tải...",
+  "common.error": "Đã xảy ra lỗi",
+  "common.premium": "Tính năng Premium"
+}

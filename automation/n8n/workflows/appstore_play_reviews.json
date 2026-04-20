@@ -1,0 +1,86 @@
+{
+  "name": "App Store + Play Reviews → Slack + Supabase",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 */6 * * *" }] } },
+      "id": "every6h", "name": "Every 6h",
+      "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.1, "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.appstoreconnect.apple.com/v1/apps/{{ $env.APPSTORE_APP_ID }}/customerReviews?limit=200&sort=-createdDate",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.APPSTORE_JWT }}" }]},
+        "options": {}
+      },
+      "id": "ios", "name": "Fetch iOS reviews",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-380, -100]
+    },
+    {
+      "parameters": {
+        "url": "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.neurospark.app/reviews",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.PLAY_OAUTH_TOKEN }}" }]},
+        "options": {}
+      },
+      "id": "android", "name": "Fetch Android reviews",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-380, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "const ios = ($('Fetch iOS reviews').first().json?.data || []).map(r => ({\n  source: 'ios',\n  rating: r.attributes?.rating,\n  body: r.attributes?.body,\n  title: r.attributes?.title,\n  author: r.attributes?.reviewerNickname,\n  created_at: r.attributes?.createdDate,\n  external_id: r.id,\n}));\nconst android = ($('Fetch Android reviews').first().json?.reviews || []).map(r => ({\n  source: 'android',\n  rating: r.comments?.[0]?.userComment?.starRating,\n  body: r.comments?.[0]?.userComment?.text,\n  title: '',\n  author: r.authorName,\n  created_at: r.comments?.[0]?.userComment?.lastModified?.seconds,\n  external_id: r.reviewId,\n}));\nreturn [...ios, ...android].map(json => ({ json }));"
+      },
+      "id": "merge", "name": "Merge + normalize",
+      "type": "n8n-nodes-base.function", "typeVersion": 1, "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/feedback?on_conflict=external_id",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [
+          { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+          { "name": "Prefer", "value": "resolution=merge-duplicates,return=representation" },
+          { "name": "content-type", "value": "application/json" }
+        ]},
+        "sendBody": true, "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "upsert", "name": "Upsert feedback",
+      "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [60, 0]
+    },
+    {
+      "parameters": {
+        "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [{ "leftValue": "={{ $json.rating }}", "rightValue": "3", "operator": { "type": "number", "operation": "lt" }}],
+          "combinator": "and"
+        }
+      },
+      "id": "if-low", "name": "Rating < 3?",
+      "type": "n8n-nodes-base.if", "typeVersion": 2, "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:warning: Negative review ({{ $json.source }}, {{ $json.rating }}★) by {{ $json.author }}: {{ $json.body }}"
+      },
+      "id": "slack", "name": "Slack low-rating",
+      "type": "n8n-nodes-base.slack", "typeVersion": 2.2, "position": [460, 0]
+    }
+  ],
+  "connections": {
+    "Every 6h": { "main": [[
+      { "node": "Fetch iOS reviews", "type": "main", "index": 0 },
+      { "node": "Fetch Android reviews", "type": "main", "index": 0 }
+    ]]},
+    "Fetch iOS reviews":     { "main": [[{ "node": "Merge + normalize", "type": "main", "index": 0 }]] },
+    "Fetch Android reviews": { "main": [[{ "node": "Merge + normalize", "type": "main", "index": 0 }]] },
+    "Merge + normalize":     { "main": [[{ "node": "Upsert feedback", "type": "main", "index": 0 }]] },
+    "Upsert feedback":       { "main": [[{ "node": "Rating < 3?", "type": "main", "index": 0 }]] },
+    "Rating < 3?":           { "main": [[{ "node": "Slack low-rating", "type": "main", "index": 0 }], []] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "reviews" }]
+}

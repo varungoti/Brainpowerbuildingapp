@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "خانه",
+  "nav.today": "امروز",
+  "nav.brain": "مغز",
+  "nav.aiHelp": "کمک AI",
+  "nav.profile": "پروفایل",
+  "home.greeting": "سلام، {name}!",
+  "home.streakLabel": "رشته {count} روزه",
+  "common.save": "ذخیره",
+  "common.cancel": "لغو",
+  "common.back": "بازگشت",
+  "common.next": "بعدی",
+  "common.done": "انجام شد",
+  "common.loading": "در حال بارگذاری...",
+  "common.error": "مشکلی پیش آمد",
+  "common.premium": "ویژگی پرمیوم"
+}

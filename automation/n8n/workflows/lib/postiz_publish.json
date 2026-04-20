@@ -1,0 +1,95 @@
+{
+  "name": "lib/postiz_publish",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "When called by another workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [-380, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build Postiz /public/v1/posts payload from a normalized input.\n// Expected input on $json:\n// {\n//   posts: [\n//     {\n//       channelId: string,         // Postiz integration UUID\n//       provider: 'instagram'|'tiktok'|'youtube'|'x'|'linkedin'|'bluesky'|'threads'|'mastodon'|'reddit'|'pinterest'|'medium'|'devto'|'hashnode'|'telegram'|'discord',\n//       content: string,\n//       mediaUrls?: string[],      // already-uploaded media URLs (Postiz fetches them)\n//       settings?: object          // provider-specific settings overrides\n//     }, ...\n//   ],\n//   scheduleAt?: string            // ISO timestamp; if omitted -> 'now'\n// }\n\nconst input = $json;\nif (!input.posts || !input.posts.length) {\n  throw new Error('postiz_publish: posts[] is required');\n}\n\nconst defaultSettings = {\n  instagram:  { __type: 'instagram',  post_type: 'reel' },\n  tiktok:     { __type: 'tiktok',     privacy_level: 'PUBLIC_TO_EVERYONE', autoAddMusic: true, content_posting_method: 'DIRECT_POST' },\n  youtube:    { __type: 'youtube',    type: 'short', selfDeclaredMadeForKids: false },\n  x:          { __type: 'x',          who_can_reply_post: 'everyone' },\n  linkedin:   { __type: 'linkedin' },\n  bluesky:    { __type: 'bluesky' },\n  threads:    { __type: 'threads' },\n  mastodon:   { __type: 'mastodon' },\n  reddit:     { __type: 'reddit',     subreddit: [] },\n  pinterest:  { __type: 'pinterest' },\n  medium:     { __type: 'medium' },\n  devto:      { __type: 'devto' },\n  hashnode:   { __type: 'hashnode' },\n  telegram:   { __type: 'telegram' },\n  discord:    { __type: 'discord' }\n};\n\nconst posts = input.posts.map((p) => {\n  const base = defaultSettings[p.provider] || { __type: p.provider };\n  const settings = { ...base, ...(p.settings || {}) };\n  const image = (p.mediaUrls || []).map((u, i) => ({ id: `media-${i}`, path: u }));\n  return {\n    integration: { id: p.channelId },\n    value: [\n      {\n        content: p.content,\n        image\n      }\n    ],\n    settings\n  };\n});\n\nconst payload = {\n  type: input.scheduleAt ? 'schedule' : 'now',\n  date: input.scheduleAt || new Date().toISOString(),\n  shortLink: false,\n  tags: input.tags || [],\n  posts\n};\n\nreturn [{ json: payload }];"
+      },
+      "id": "build-payload",
+      "name": "Build Postiz payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POSTIZ_BASE_URL }}/public/v1/posts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ $env.POSTIZ_API_KEY }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "create-post",
+      "name": "POST /public/v1/posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode || $json.status || 200 }}",
+              "rightValue": 299,
+              "operator": { "type": "number", "operation": "largerEqual" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "is-error",
+      "name": "Postiz error?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:warning: Postiz publish failed: {{ JSON.stringify($json).slice(0, 800) }}",
+        "otherOptions": {}
+      },
+      "id": "alert-slack",
+      "name": "Alert Slack on failure",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [440, -100],
+      "credentials": { "slackApi": { "id": "REPLACE", "name": "Slack" } }
+    }
+  ],
+  "connections": {
+    "When called by another workflow": {
+      "main": [[{ "node": "Build Postiz payload", "type": "main", "index": 0 }]]
+    },
+    "Build Postiz payload": {
+      "main": [[{ "node": "POST /public/v1/posts", "type": "main", "index": 0 }]]
+    },
+    "POST /public/v1/posts": {
+      "main": [[{ "node": "Postiz error?", "type": "main", "index": 0 }]]
+    },
+    "Postiz error?": {
+      "main": [[{ "node": "Alert Slack on failure", "type": "main", "index": 0 }], []]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "library" }, { "name": "postiz" }]
+}

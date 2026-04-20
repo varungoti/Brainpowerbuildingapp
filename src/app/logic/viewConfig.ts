@@ -21,6 +21,18 @@ export const SCREEN_TITLES: Partial<Record<AppView, string>> = {
   settings_language: "Language",
   settings_sensory: "Sensory Settings",
   seasonal_library: "Seasonal Activities",
+  bonding: "Bonding Journey",
+  routine: "Daily Routine",
+  caregivers: "Caregivers",
+  quests: "Quests & Challenges",
+  settings_notifications: "Notifications",
+  ai_privacy: "AI Privacy",
+  audio_mode: "Audio Mode",
+  coach_memory: "Coach Memory",
+  rupture_repair: "Rupture & Repair",
+  sleep_log: "Sleep Log",
+  snapshot: "Well-child Snapshot",
+  snapshot_shares: "Pediatrician Shares",
 };
 
 export const FULL_SCREEN_VIEWS: AppView[] = [
@@ -41,6 +53,8 @@ const HEADERLESS_VIEWS: AppView[] = [
   "ai_counselor",
   "brain_map",
   "milestones",
+  "audio_mode",
+  "rupture_repair",
 ];
 
 export function getScreenTitle(view: AppView): string {
@@ -56,7 +70,12 @@ export function getActiveNavTab(view: AppView): AppView | null {
   if (view === "know_your_child") return "brain_map";
   if (view === "legal_info" || view === "stats" || view === "history" || view === "add_child" || view === "blueprint" || view === "feeds"
     || view === "settings_language" || view === "settings_sensory" || view === "portfolio"
-    || view === "weekly_report") return "profile";
-  if (view === "sibling_mode" || view === "seasonal_library") return "generate";
+    || view === "weekly_report" || view === "bonding" || view === "routine"
+    || view === "caregivers" || view === "settings_notifications"
+    || view === "ai_privacy"
+    || view === "coach_memory" || view === "sleep_log"
+    || view === "snapshot" || view === "snapshot_shares") return "profile";
+  if (view === "sibling_mode" || view === "seasonal_library" || view === "quests") return "generate";
+  if (view === "audio_mode") return "home";
   return view;
 }

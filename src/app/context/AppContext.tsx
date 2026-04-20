@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Activity, getAgeTierFromDob } from "../data/activities";
+import { Activity, getAgeTierFromDob, ACTIVITIES } from "../data/activities";
+import {
+  applyCompetencyDeltas,
+  competencyDeltasFromLog,
+  inferCompetencyTags,
+  type AIAgeCompetencyId,
+} from "../../lib/competencies/aiAgeCompetencies";
 import { currentMonthKey, computeComposite, type OutcomeChecklistMonth } from "../data/outcomeChecklist";
 import { getSupabaseBrowserClient, signOutSupabase } from "../../utils/supabase/client";
 import { captureProductEvent } from "../../utils/productAnalytics";
@@ -8,6 +14,7 @@ import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../util
 import { trainFromLogs } from "../../lib/ml/adaptiveEngine";
 import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
 import { canAccessBlueprint } from "../../utils/adminAccess";
+import { isCloudSyncEnabled, pushStateDebounced } from "../../lib/sync/cloudSync";
 export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -20,7 +27,10 @@ export type AppView =
   | "brain_map" | "know_your_child" | "milestones"
   | "legal_info"
   | "weekly_report" | "sibling_mode" | "portfolio"
-  | "settings_language" | "settings_sensory" | "seasonal_library";
+  | "settings_language" | "settings_sensory" | "seasonal_library"
+  | "bonding" | "routine" | "caregivers" | "quests" | "settings_notifications"
+  | "ai_privacy" | "audio_mode"
+  | "coach_memory" | "rupture_repair" | "sleep_log" | "snapshot" | "snapshot_shares";
 
 export interface KYCData {
   curiosity: number;
@@ -59,6 +69,13 @@ export interface ChildProfile {
   badges: string[];
   totalActivities: number;
   intelligenceScores: Record<string, number>;
+  /**
+   * AI-Age Readiness competency scores (parallel to `intelligenceScores`).
+   * Keys are `AIAgeCompetencyId`. Optional for back-compat with legacy stored
+   * profiles — `load()` defaults to `{}` and the recommendation engine treats
+   * missing dimensions as score 0 (i.e. highest priority).
+   */
+  competencyScores?: Record<string, number>;
 }
 export type SensoryCondition =
   | "adhd" | "asd" | "visual-impairment" | "hearing-impairment"
@@ -71,9 +88,11 @@ export interface SensoryProfile {
 }
 
 export type SupportedLocale =
-  | "en" | "hi" | "ta" | "te" | "kn" | "ml" | "bn" | "mr" | "gu" | "pa"
+  | "en" | "hi" | "ta" | "te" | "kn" | "ml" | "bn" | "mr" | "gu" | "pa" | "or" | "as" | "ur"
   | "zh-CN" | "ja" | "ko"
-  | "es" | "fr" | "pt" | "ar" | "sw";
+  | "es" | "fr" | "pt" | "de" | "it" | "nl" | "ru" | "pl"
+  | "ar" | "tr" | "sw" | "fa"
+  | "th" | "vi" | "id" | "ms";
 
 export interface AdaptiveRegionRecommendation {
   recommendedTier: 1 | 2 | 3;
@@ -87,6 +106,12 @@ export interface AdaptiveModel {
   recommendations: Record<string, AdaptiveRegionRecommendation>;
   lastTrainedAt: string;
   version: number;
+  /**
+   * Per-AI-Age-competency engagement multipliers (centred at 1.0).
+   * Phase D — drives `getAdaptiveCompetencyBonus` so the engine prefers
+   * dimensions where the child shows higher engagement when there is a tie.
+   */
+  competencyWeights?: Record<string, number>;
 }
 
 export interface ReportHistoryEntry {
@@ -128,6 +153,83 @@ export interface CommunityRatingCache {
   fetchedAt: string;
 }
 
+export interface RoutineConfig {
+  wakeTime: string;
+  napStart?: string;
+  napEnd?: string;
+  bedTime: string;
+  energyPattern: "morning-peak" | "afternoon-peak" | "even" | "unknown";
+}
+
+export type QuestType = "daily" | "weekly" | "monthly" | "special";
+export type QuestCondition =
+  | { type: "complete-n"; count: number }
+  | { type: "region-n"; region: string; count: number }
+  | { type: "streak-days"; days: number }
+  | { type: "score-reach"; region: string; score: number }
+  | { type: "engagement-avg"; min: number; activities: number };
+
+export interface Quest {
+  id: string;
+  type: QuestType;
+  title: string;
+  description: string;
+  emoji: string;
+  target: number;
+  progress: number;
+  rewardBP: number;
+  rewardBadge?: string;
+  expiresAt: string;
+  condition: QuestCondition;
+}
+
+export interface EnhancedStreak {
+  currentDays: number;
+  longestEver: number;
+  freezesAvailable: number;
+  freezesUsed: number;
+  lastActivityDate: string;
+  recoveryAvailable: boolean;
+  recoveryDeadline?: string;
+}
+
+export type NotificationType =
+  | "daily-reminder" | "streak-at-risk" | "milestone-approaching"
+  | "report-ready" | "quest-expiring";
+
+export interface NotificationPrefs {
+  enabled: boolean;
+  maxPerDay: number;
+  quietStart: string;
+  quietEnd: string;
+  types: Record<NotificationType, boolean>;
+}
+
+export interface UsagePattern {
+  hourBuckets: number[];
+  dayBuckets: number[];
+  avgSessionMinutes: number;
+  lastActiveAt: string;
+}
+
+export interface CaregiverLink {
+  id: string;
+  userId: string;
+  childId: string;
+  role: "primary" | "caregiver" | "observer";
+  invitedBy: string;
+  acceptedAt?: string;
+  displayName: string;
+  email: string;
+}
+
+export interface WeeklyBondingScore {
+  weekStart: string;
+  score: number;
+  trend: "improving" | "declining" | "stable";
+  joyMoments: string[];
+}
+
 export interface ActivityLog {
   id: string;
   childId: string;
@@ -152,14 +254,22 @@ export interface ActivityLog {
   interactionQuality?: 1 | 2 | 3 | 4 | 5;
   parentParticipation?: "active" | "guided" | "observed";
   joyMoments?: string[];
+  /** AI-Age competency tags inferred at log time so adaptive engine can train. */
+  competencyTags?: string[];
 }
 
 export interface GeneratorIntent {
-  source: "milestone_concern";
+  source: "milestone_concern" | "ai_age_focus";
   title: string;
   note: string;
   suggestedMood?: string;
   priorityIntelligences: string[];
+  /**
+   * Optional AI-Age Readiness competencies to emphasize. Set when the
+   * "Practice today's focus" CTA on HomeScreen routes the user into the
+   * generator with the child's two weakest dimensions pre-selected.
+   */
+  priorityCompetencies?: AIAgeCompetencyId[];
 }
 
 // ─── Level system ──────────────────────────────────────────────────────────────
@@ -217,6 +327,14 @@ export interface AppPersistedState {
   locale: SupportedLocale;
   sensoryProfiles: Record<string, SensoryProfile>;
   communityRatingCache: CommunityRatingCache | null;
+  routineConfig: RoutineConfig | null;
+  quests: Quest[];
+  enhancedStreak: EnhancedStreak | null;
+  notificationPrefs: NotificationPrefs | null;
+  usagePattern: UsagePattern | null;
+  caregivers: CaregiverLink[];
+  bondingScores: WeeklyBondingScore[];
+  narrativeCache: Record<string, string>;
 }
 type Persisted = AppPersistedState;
 const DEFAULTS: Persisted = {
@@ -235,6 +353,14 @@ const DEFAULTS: Persisted = {
   locale: "en",
   sensoryProfiles: {},
   communityRatingCache: null,
+  routineConfig: null,
+  quests: [],
+  enhancedStreak: null,
+  notificationPrefs: null,
+  usagePattern: null,
+  caregivers: [],
+  bondingScores: [],
+  narrativeCache: {},
 };
 function loadLegacyMilestoneChecks(
   childIds: string[],
@@ -328,6 +454,14 @@ interface Ctx extends Persisted {
   removePortfolioEntry: (id: string) => void;
   addReportHistoryEntry: (entry: Omit<ReportHistoryEntry, "generatedAt">) => void;
   setCommunityRatingCache: (cache: CommunityRatingCache) => void;
+  saveRoutineConfig: (config: RoutineConfig) => void;
+  setQuests: (quests: Quest[]) => void;
+  setEnhancedStreak: (streak: EnhancedStreak) => void;
+  saveNotificationPrefs: (prefs: NotificationPrefs) => void;
+  saveUsagePattern: (pattern: UsagePattern) => void;
+  addCaregiver: (link: Omit<CaregiverLink, "id">) => void;
+  removeCaregiver: (id: string) => void;
+  saveNarrativeCache: (weekKey: string, narrative: string) => void;
 }
 const AppCtx = createContext<Ctx | null>(null);
 export function useApp() {
@@ -352,8 +486,38 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   useEffect(() => {
     userRef.current = p.user;
   }, [p.user]);
+  const pRef = useRef(p);
+  useEffect(() => {
+    pRef.current = p;
+  }, [p]);
 
   useEffect(() => { save(p); }, [p]);
+
+  // Cloud sync — debounced push on every persisted-state mutation when the
+  // user has opted in AND there is an authenticated Supabase session. The
+  // transport layer owns the debounce so back-to-back local updates coalesce
+  // into a single round-trip.
+  useEffect(() => {
+    if (!p.user) return;
+    if (!isCloudSyncEnabled()) return;
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { data } = await client.auth.getSession();
+        if (cancelled) return;
+        const jwt = data.session?.access_token ?? null;
+        if (!jwt) return;
+        pushStateDebounced(JSON.parse(buildNeurosparkBackupFile(p)) as unknown, jwt);
+      } catch {
+        /* ignore — local-first stays correct */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [p]);
 
   // Supabase: session lifecycle (refresh is automatic via client config), remote sign-out, metadata updates
   useEffect(() => {
@@ -361,10 +525,14 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     if (!client) return;
 
     const syncFromSession = (session: Session | null) => {
-      setP((prev) => {
-        const next = syncPersistedSessionUser(prev, session);
-        setView((v) => getViewAfterSessionSync(v, { hasChildren: next.children.length > 0 }));
-        return next;
+      // setView was previously called INSIDE the setP updater which fires twice in
+      // React StrictMode and is considered an unsafe side-effect in reducers.
+      // Compute the next persisted state once, apply it, then derive the next view.
+      setP((prev) => syncPersistedSessionUser(prev, session));
+      setView((v) => {
+        const hasChildren =
+          syncPersistedSessionUser(pRef.current, session).children.length > 0;
+        return getViewAfterSessionSync(v, { hasChildren });
       });
     };
 
@@ -430,11 +598,12 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
       supabaseUid: uid,
     };
     setHist([]);
-    setP((prev) => {
-      if (prev.children.length === 0) setView("onboard_welcome");
-      else setView("home");
-      return { ...prev, user };
-    });
+    // Derive the next view from the current persisted state BEFORE committing the
+    // user update — putting setView inside the setP updater made it fire twice in
+    // StrictMode and could race with other batched state updates.
+    const hasChildren = pRef.current.children.length > 0;
+    setP((prev) => ({ ...prev, user }));
+    setView(hasChildren ? "home" : "onboard_welcome");
   };
 
   const logoutUser = () => {
@@ -458,6 +627,7 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     const newChild: ChildProfile = {
       ...c, id, ageTier: getAgeTierFromDob(c.dob), brainPoints: 0, level: 0, streak: 0,
       lastStreakDate: "", badges: [], totalActivities: 0, intelligenceScores: {},
+      competencyScores: {},
     };
     const newChildren = [...p.children, newChild];
     upd({ children: newChildren, activeChildId: id });
@@ -471,35 +641,100 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     const bp = log.completed ? 50 + (log.engagementRating - 1) * 12 : 10;
     const entry: ActivityLog = { ...log, id: Math.random().toString(36).slice(2), date: new Date().toISOString(), brainPointsEarned: bp };
     const today = new Date().toDateString();
-    const newChildren = p.children.map(c => {
-      if (c.id !== log.childId) return c;
-      const newBP = c.brainPoints + bp;
-      const newLevel = getLevelFromBP(newBP).level;
-      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-      const isConsec = c.lastStreakDate === yesterday.toDateString();
-      const isSameDay = c.lastStreakDate === today;
-      const newStreak = isSameDay ? c.streak : isConsec ? c.streak + 1 : 1;
-      const newIntel = { ...c.intelligenceScores };
-      log.intelligences.forEach(i => { newIntel[i] = (newIntel[i] ?? 0) + 1; });
-      const newBadges = [...c.badges];
-      const addBadge = (b: string) => { if (!newBadges.includes(b)) newBadges.push(b); };
-      if (!newBadges.includes("first_activity")) addBadge("first_activity");
-      if (newStreak >= 7) addBadge("week_streak");
-      if ((c.totalActivities + 1) >= 10) addBadge("ten_activities");
-      return { ...c, brainPoints: newBP, level: newLevel, streak: newStreak, lastStreakDate: today, badges: newBadges, totalActivities: c.totalActivities + (log.completed ? 1 : 0), intelligenceScores: newIntel };
+    // First-activity funnel: capture whether THIS log brings the active child
+    // from 0 → 1 completed activities so the funnel can join `auth_submit_success`
+    // → `onboard_complete` → `first_activity_complete` cleanly.
+    const wasFirstActivityForChild =
+      log.completed &&
+      pRef.current.activityLogs.filter(
+        (l) => l.childId === log.childId && l.completed,
+      ).length === 0;
+
+    // Derive all state updates from `prev` inside a single functional updater so we
+    // never mix the freshly-committed activityLogs with a stale closure value when we
+    // decide whether to retrain the adaptive model.
+    setP((prev) => {
+      const nextLogs = [entry, ...prev.activityLogs];
+      const nextChildren = prev.children.map(c => {
+        if (c.id !== log.childId) return c;
+        const newBP = c.brainPoints + bp;
+        const newLevel = getLevelFromBP(newBP).level;
+        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+        const isConsec = c.lastStreakDate === yesterday.toDateString();
+        const isSameDay = c.lastStreakDate === today;
+        const newStreak = isSameDay ? c.streak : isConsec ? c.streak + 1 : 1;
+        const newIntel = { ...c.intelligenceScores };
+        log.intelligences.forEach(i => { newIntel[i] = (newIntel[i] ?? 0) + 1; });
+        // AI-Age competency scoring: derive competencies from the activity
+        // (or fall back to a heuristic on the log itself when the activity
+        // can't be resolved — e.g. legacy logs from before the registry
+        // existed). Engagement weights the increment, so consistently-
+        // engaged activities push competency up faster than half-hearted ones.
+        const sourceActivity = ACTIVITIES.find((a) => a.id === log.activityId);
+        const competencyTags: AIAgeCompetencyId[] = sourceActivity?.competencyTags ?? inferCompetencyTags({
+          intelligences: log.intelligences,
+          method: log.method ?? "",
+          skillTags: undefined,
+          mechanismTags: undefined,
+          duration: log.duration ?? 0,
+          ageTiers: [c.ageTier],
+          competencyTags: undefined,
+        });
+        const competencyDelta = competencyDeltasFromLog({
+          competencyTags,
+          engagementRating: log.engagementRating,
+          completed: log.completed,
+        });
+        const newCompetency = applyCompetencyDeltas(c.competencyScores, competencyDelta);
+        const newBadges = [...c.badges];
+        const addBadge = (b: string) => { if (!newBadges.includes(b)) newBadges.push(b); };
+        if (!newBadges.includes("first_activity")) addBadge("first_activity");
+        if (newStreak >= 7) addBadge("week_streak");
+        if ((c.totalActivities + 1) >= 10) addBadge("ten_activities");
+        return {
+          ...c,
+          brainPoints: newBP,
+          level: newLevel,
+          streak: newStreak,
+          lastStreakDate: today,
+          badges: newBadges,
+          totalActivities: c.totalActivities + (log.completed ? 1 : 0),
+          intelligenceScores: newIntel,
+          competencyScores: newCompetency,
+        };
+      });
+
+      let nextAdaptive = prev.adaptiveModel;
+      if (log.completed) {
+        const childCompletedLogs = nextLogs.filter(l => l.childId === log.childId && l.completed);
+        if (childCompletedLogs.length > 0 && childCompletedLogs.length % 5 === 0) {
+          nextAdaptive = trainFromLogs(childCompletedLogs, prev.adaptiveModel);
+        }
+      }
+
+      return {
+        ...prev,
+        activityLogs: nextLogs,
+        children: nextChildren,
+        adaptiveModel: nextAdaptive,
+      };
     });
-    upd({ activityLogs: [entry, ...p.activityLogs], children: newChildren });
+
     if (log.completed) {
       captureProductEvent("activity_complete", {
         primary_intel: log.intelligences[0],
         duration_min: log.duration,
         region: log.region,
+        is_first_activity: wasFirstActivityForChild,
       });
-      const allLogs = [entry, ...p.activityLogs];
-      const childLogs = allLogs.filter(l => l.childId === log.childId && l.completed);
-      if (childLogs.length % 5 === 0) {
-        const newModel = trainFromLogs(childLogs, p.adaptiveModel);
-        upd({ adaptiveModel: newModel });
+      if (wasFirstActivityForChild) {
+        captureProductEvent("first_activity_complete", {
+          screen: "activity_detail",
+          primary_intel: log.intelligences[0],
+          duration_min: log.duration,
+          region: log.region,
+          age_tier: pRef.current.children.find((c) => c.id === log.childId)?.ageTier,
+        });
       }
     }
     return bp;
@@ -620,6 +855,18 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   const setCommunityRatingCache = (cache: CommunityRatingCache) =>
     upd({ communityRatingCache: cache });
 
+  const saveRoutineConfig = (config: RoutineConfig) => upd({ routineConfig: config });
+  const setQuests = (quests: Quest[]) => upd({ quests });
+  const setEnhancedStreak = (streak: EnhancedStreak) => upd({ enhancedStreak: streak });
+  const saveNotificationPrefs = (prefs: NotificationPrefs) => upd({ notificationPrefs: prefs });
+  const saveUsagePattern = (pattern: UsagePattern) => upd({ usagePattern: pattern });
+  const addCaregiver = (link: Omit<CaregiverLink, "id">) =>
+    upd({ caregivers: [...p.caregivers, { ...link, id: crypto.randomUUID() }] });
+  const removeCaregiver = (id: string) =>
+    upd({ caregivers: p.caregivers.filter(c => c.id !== id) });
+  const saveNarrativeCache = (weekKey: string, narrative: string) =>
+    upd({ narrativeCache: { ...p.narrativeCache, [weekKey]: narrative } });
+
   const activeChild = p.children.find(c => c.id === p.activeChildId) ?? null;
 
   const value: Ctx = {
@@ -646,6 +893,14 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     removePortfolioEntry,
     addReportHistoryEntry,
     setCommunityRatingCache,
+    saveRoutineConfig,
+    setQuests,
+    setEnhancedStreak,
+    saveNotificationPrefs,
+    saveUsagePattern,
+    addCaregiver,
+    removeCaregiver,
+    saveNarrativeCache,
   };
   return <AppCtx.Provider value={value}>{ch}</AppCtx.Provider>;
 }

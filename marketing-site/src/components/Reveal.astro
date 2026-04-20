@@ -1,0 +1,42 @@
+---
+interface Props {
+  delay?: number;
+  y?: number;
+  className?: string;
+}
+const { delay = 0, y = 40, className = "" } = Astro.props as Props;
+---
+<div data-reveal data-delay={delay} data-y={y} class:list={["opacity-0", className]}>
+  <slot />
+</div>
+
+<script>
+  // Single intersection observer for all <Reveal> sections; uses the stable
+  // motion-one library (Anime.js v4 also fine, motion is smaller).
+  import("motion").then(({ animate }) => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const els = document.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (reduce) {
+      els.forEach((el) => (el.style.opacity = "1"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target as HTMLElement;
+          const delay = Number(el.dataset.delay ?? 0);
+          const y = Number(el.dataset.y ?? 40);
+          animate(
+            el,
+            { opacity: [0, 1], transform: [`translateY(${y}px)`, "translateY(0px)"] },
+            { duration: 0.85, delay, easing: [0.16, 1, 0.3, 1] },
+          );
+          io.unobserve(el);
+        });
+      },
+      { threshold: 0.15 },
+    );
+    els.forEach((el) => io.observe(el));
+  }).catch(() => undefined);
+</script>

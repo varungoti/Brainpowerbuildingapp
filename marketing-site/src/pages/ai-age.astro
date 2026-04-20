@@ -1,0 +1,41 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+
+const competencies = [
+  "Sustained focus", "Working memory", "Originality", "Cross-modal reasoning",
+  "Embodied / physical skill", "Emotional self-regulation", "Ethical reasoning",
+  "Multilingual fluency", "Critical media literacy", "Creative collaboration",
+  "Storytelling fluency", "Pattern abstraction", "Long-horizon planning",
+  "Empathic listening", "Healthy AI hygiene", "Agentic curiosity",
+];
+---
+<Site title="AI-age readiness" description="The 16 competencies your child needs to grow up alongside AI — and how NeuroSpark builds each one.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">AI-age readiness</span>
+      <h1 class="mt-4 text-5xl max-w-3xl">By 2035, AI will write the essays. Your kid still has to <span class="text-spark-500">think.</span></h1>
+      <p class="mt-4 max-w-2xl text-ink/70">We re-architected our core to develop the 16 competencies that won't be commoditized by LLMs — focus, originality, ethical reasoning, embodied skill, and 12 more. Tracked weekly. Visualized as a radar chart in-app.</p>
+    </Reveal>
+
+    <div class="mt-14 grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+      {competencies.map((c, i) => (
+        <Reveal delay={(i % 4) * 0.05}>
+          <div class="rounded-2xl border border-ink/5 bg-white px-4 py-5 text-sm font-medium hover:border-spark-500/40 transition">
+            <span class="text-xs text-deep-500 font-bold">{String(i + 1).padStart(2, "0")}</span>
+            <div class="mt-1">{c}</div>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+
+    <Reveal delay={0.2}>
+      <div class="mt-16 rounded-3xl bg-gradient-to-br from-spark-500 to-deep-500 p-1">
+        <div class="rounded-3xl bg-white p-10">
+          <h3 class="text-3xl">Why this matters</h3>
+          <p class="mt-3 max-w-3xl text-ink/70">A 2024 OECD study found that the children most resilient to AI displacement scored top-quartile on focus, ethical reasoning, and embodied skill — not coding ability. We optimize for what survives the transition.</p>
+        </div>
+      </div>
+    </Reveal>
+  </section>
+</Site>

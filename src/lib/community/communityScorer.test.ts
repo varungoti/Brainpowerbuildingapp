@@ -1,42 +1,87 @@
-import { describe, it, expect } from "vitest";
-import type { CommunityRatingCache } from "../../app/context/AppContext";
-import { communityScoreBonus } from "./communityScorer";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-describe("communityScoreBonus", () => {
-  it("returns 0 when cache is null", () => {
-    expect(communityScoreBonus("any-id", null)).toBe(0);
+vi.mock("../../utils/supabase/info", () => ({
+  functionsBaseUrl: "https://test.supabase.co/functions/v1/make-server-76b0ba9a",
+  isSupabaseConfigured: () => true,
+  publicAnonKey: "anon-key-test",
+}));
+
+vi.mock("../../utils/supabase/client", () => ({
+  getSupabaseBrowserClient: () => ({
+    auth: {
+      getSession: async () => ({
+        data: { session: { access_token: "user-jwt-test" } },
+      }),
+    },
+  }),
+}));
+
+import { submitRating, fetchRatings } from "./communityScorer";
+
+describe("communityScorer URL contract", () => {
+  const fetchSpy = vi.fn();
+
+  beforeEach(() => {
+    fetchSpy.mockReset();
+    (globalThis as unknown as { fetch: typeof fetch }).fetch =
+      fetchSpy as unknown as typeof fetch;
   });
 
-  it("returns 0 when the activity is missing or count is below 3", () => {
-    const cache: CommunityRatingCache = {
-      ratings: {
-        "act-a": { avg: 5, count: 2 },
-      },
-      fetchedAt: new Date().toISOString(),
-    };
-    expect(communityScoreBonus("missing", cache)).toBe(0);
-    expect(communityScoreBonus("act-a", cache)).toBe(0);
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("returns a calculated bonus for rated activities with enough samples", () => {
-    const cache: CommunityRatingCache = {
-      ratings: {
-        popular: { avg: 5, count: 10 },
-        average: { avg: 3, count: 5 },
-      },
-      fetchedAt: new Date().toISOString(),
-    };
-    expect(communityScoreBonus("popular", cache)).toBe(8);
-    expect(communityScoreBonus("average", cache)).toBe(0);
+  it("submitRating posts to the /make-server-76b0ba9a/rate-activity endpoint with the user's JWT", async () => {
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, avg: 4.2, count: 17 }),
+    });
+
+    const result = await submitRating("alpha-123", 5);
+
+    expect(result).toEqual({ avg: 4.2, count: 17 });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(
+      "https://test.supabase.co/functions/v1/make-server-76b0ba9a/rate-activity",
+    );
+    expect(init?.method).toBe("POST");
+    const headers = init?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer user-jwt-test");
+    expect(headers.apikey).toBe("anon-key-test");
+    expect(JSON.parse(String(init?.body))).toEqual({
+      activityId: "alpha-123",
+      rating: 5,
+    });
   });
 
-  it("rounds the bonus to the nearest integer", () => {
-    const cache: CommunityRatingCache = {
-      ratings: {
-        edge: { avg: 3.5, count: 4 },
-      },
-      fetchedAt: new Date().toISOString(),
-    };
-    expect(communityScoreBonus("edge", cache)).toBe(2);
+  it("submitRating returns null on non-OK responses instead of throwing", async () => {
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+    expect(await submitRating("alpha-123", 5)).toBeNull();
+  });
+
+  it("fetchRatings uses the same base URL and filters out malformed ids", async () => {
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        ratings: { "alpha-123": { avg: 3.3, count: 9 } },
+      }),
+    });
+
+    const result = await fetchRatings([
+      "alpha-123",
+      "  bad id with spaces  ",
+      "$$$",
+    ]);
+
+    expect(result).toEqual({ "alpha-123": { avg: 3.3, count: 9 } });
+    const [url] = fetchSpy.mock.calls[0] as [string];
+    expect(url).toMatch(
+      /^https:\/\/test\.supabase\.co\/functions\/v1\/make-server-76b0ba9a\/activity-ratings\?ids=/,
+    );
+    expect(url).toContain("alpha-123");
+    expect(url).not.toContain("$$$");
   });
 });

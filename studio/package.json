@@ -1,0 +1,42 @@
+{
+  "name": "@neurospark/studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render",
+    "still": "remotion still",
+    "server": "tsx watch server/index.ts",
+    "server:start": "tsx server/index.ts",
+    "build": "tsc --noEmit && remotion bundle",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@remotion/bundler": "^4.0.446",
+    "@remotion/captions": "^4.0.446",
+    "@remotion/cli": "^4.0.446",
+    "@remotion/google-fonts": "^4.0.446",
+    "@remotion/media-utils": "^4.0.446",
+    "@remotion/renderer": "^4.0.446",
+    "@remotion/transitions": "^4.0.446",
+    "@supabase/supabase-js": "^2.49.8",
+    "hono": "^4.12.8",
+    "pg-boss": "^10.1.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.446",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
+  }
+}

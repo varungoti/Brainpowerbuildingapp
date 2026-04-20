@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { CoachChatMessage } from "@/lib/coach/coachEngine";
+import { ConversationButton } from "../voice/ConversationButton";
 
 type Props = {
   messages: CoachChatMessage[];
@@ -74,6 +75,23 @@ export function CoachChat({ messages, isPremium, loading, onSend }: Props) {
           Send
         </button>
       </form>
+
+      <div className="mt-3 flex justify-center">
+        <ConversationButton
+          agent="coach"
+          locale="en"
+          label="Talk to the coach hands-free"
+          onTurn={async (utterance) => {
+            // Push the spoken question into the chat as if the parent had
+            // typed it; the parent component owns calling /coach so we just
+            // forward via onSend and rely on the chat history to surface the
+            // reply. The promised string here is what the TTS speaks back —
+            // we keep it short so the loud "thinking" hint isn't jarring.
+            await onSend(utterance);
+            return "Got it. Look at the chat above for my full answer.";
+          }}
+        />
+      </div>
     </div>
   );
 }

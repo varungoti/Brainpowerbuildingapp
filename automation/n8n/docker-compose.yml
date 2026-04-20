@@ -1,0 +1,43 @@
+version: "3.9"
+# Self-hosted n8n for local dev. In production we deploy to Railway with the
+# same image and the same env vars; the Postgres is hosted on Neon.
+services:
+  n8n:
+    image: n8nio/n8n:1.74.0
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
+      - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
+      - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
+      - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
+      - DB_POSTGRESDB_SSL_ENABLED=${DB_POSTGRESDB_SSL_ENABLED}
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - STUDIO_BASE_URL=${STUDIO_BASE_URL}
+      - STUDIO_BEARER_TOKEN=${STUDIO_BEARER_TOKEN}
+      - PUBLIC_APP_WEB_URL=${PUBLIC_APP_WEB_URL}
+      - BUFFER_ACCESS_TOKEN=${BUFFER_ACCESS_TOKEN}
+      - BUFFER_PROFILE_IG=${BUFFER_PROFILE_IG}
+      - BUFFER_PROFILE_TIKTOK=${BUFFER_PROFILE_TIKTOK}
+      - BUFFER_PROFILE_YT_SHORTS=${BUFFER_PROFILE_YT_SHORTS}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID}
+      - N8N_MARKETING_MONTHLY_USD_CAP=${N8N_MARKETING_MONTHLY_USD_CAP}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./workflows:/workflows:ro
+
+volumes:
+  n8n_data:

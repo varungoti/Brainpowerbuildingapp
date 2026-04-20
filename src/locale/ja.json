@@ -1,0 +1,20 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "ホーム",
+  "nav.today": "今日",
+  "nav.brain": "脳",
+  "nav.aiHelp": "AIヘルプ",
+  "nav.profile": "プロフィール",
+  "home.greeting": "こんにちは、{name}！",
+  "home.streakLabel": "{count}日連続",
+  "home.todaysPick": "今日のアクティビティ",
+  "home.brainPoints": "ブレインポイント",
+  "common.save": "保存",
+  "common.cancel": "キャンセル",
+  "common.back": "戻る",
+  "common.next": "次へ",
+  "common.done": "完了",
+  "common.loading": "読み込み中...",
+  "common.error": "エラーが発生しました",
+  "common.premium": "プレミアム機能"
+}

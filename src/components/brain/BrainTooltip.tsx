@@ -3,6 +3,7 @@ import {
   BRAIN_REGIONS,
   getBrainRegionPercent,
 } from "@/lib/brainRegions";
+import { getAccessiblePillStyle } from "@/lib/brain/contrast";
 
 type Props = {
   hoveredId: string | null;
@@ -35,14 +36,22 @@ export function BrainTooltip({ hoveredId, scores }: Props) {
             <div className="truncate text-sm font-semibold text-slate-900">
               {region.emoji} {region.name}
             </div>
-            <div className="text-[11px] text-slate-500">{region.lobe}</div>
+            <div className="truncate text-[11px] font-medium text-slate-600">
+              {region.key}
+            </div>
+            <div className="truncate text-[10px] text-slate-400">{region.lobe}</div>
           </div>
-          <div
-            className="rounded-full px-2 py-1 text-[11px] font-bold"
-            style={{ backgroundColor: region.color, color: "rgb(15,23,42)" }}
-          >
-            {percent}%
-          </div>
+          {(() => {
+            const pill = getAccessiblePillStyle(region.color);
+            return (
+              <div
+                className="rounded-full px-2 py-1 text-[11px] font-bold"
+                style={{ backgroundColor: pill.background, color: pill.color }}
+              >
+                {percent}%
+              </div>
+            );
+          })()}
         </div>
         <p className="mt-2 text-xs leading-relaxed text-slate-600">{region.desc}</p>
       </div>

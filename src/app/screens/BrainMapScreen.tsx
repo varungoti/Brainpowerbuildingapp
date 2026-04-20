@@ -8,6 +8,7 @@ import {
   playClick, playActivityComplete,
 } from "../utils/audioEffects";
 import { BrainInteractive } from "@/components/brain/BrainInteractive";
+import { BrainLegend } from "@/components/brain/BrainLegend";
 import {
   BRAIN_REGIONS,
   MAX_BRAIN_REGION_SCORE,
@@ -17,6 +18,13 @@ import {
   getTopBrainRegions,
 } from "../data/brainRegions";
 import { generateInsights } from "@/lib/brainInsights";
+import { CompetencyRadar } from "@/components/competency/CompetencyRadar";
+import { CompetencyDetailModal } from "@/components/competency/CompetencyDetailModal";
+import { AI_AGE_COMPETENCIES, getCompetencyPercent, type AIAgeCompetencyId } from "@/lib/competencies/aiAgeCompetencies";
+import { PredictorCard } from "@/components/milestones/PredictorCard";
+import { predictMilestones } from "@/lib/milestones/milestonePredictor";
+import { WeeklyNarrative } from "@/components/narrative/WeeklyNarrative";
+import { captureProductEvent } from "../../utils/productAnalytics";
 
 // ─── Stats Row (persistent across all tabs) ──────────────────────────────────
 function StatsRow({ scores }: { scores: Record<string, number> }) {
@@ -75,24 +83,25 @@ function StatsRow({ scores }: { scores: Record<string, number> }) {
 }
 
 // ─── Tab Bar (pill segmented control) ────────────────────────────────────────
-type BrainTab = "brain" | "radar" | "plan" | "kyc";
+type BrainTab = "brain" | "radar" | "ai_age" | "plan" | "kyc";
 
 const TABS: { id: BrainTab; emoji: string; label: string }[] = [
   { id: "brain",  emoji: "🧠", label: "Brain" },
   { id: "radar",  emoji: "📊", label: "Radar" },
+  { id: "ai_age", emoji: "🤖", label: "AI-Age" },
   { id: "plan",   emoji: "🗓️", label: "Year" },
   { id: "kyc",    emoji: "🧒", label: "Profile" },
 ];
 
 function SegmentedTabs({ tab, setTab }: { tab: BrainTab; setTab: (t: BrainTab) => void }) {
   return (
-    <div className="mx-4 mt-3 mb-1 flex rounded-2xl bg-slate-100/80 p-1 relative">
+    <div className="mx-4 mt-3 mb-1 flex rounded-2xl bg-slate-100/80 p-0.5 relative">
       {TABS.map(t => (
         <button key={t.id} onClick={() => { setTab(t.id); playClick(); }}
-          className="relative z-10 flex-1 flex items-center justify-center gap-1 py-2 rounded-xl transition-colors"
+          className="relative z-10 flex-1 flex items-center justify-center gap-1 py-2 rounded-xl transition-colors min-w-0"
         >
-          <span style={{ fontSize: 13 }}>{t.emoji}</span>
-          <span className={`font-semibold text-[11px] ${tab === t.id ? "text-slate-900" : "text-slate-400"}`}>
+          <span style={{ fontSize: 12 }}>{t.emoji}</span>
+          <span className={`font-semibold text-[10px] truncate ${tab === t.id ? "text-slate-900" : "text-slate-400"}`}>
             {t.label}
           </span>
           {tab === t.id && (
@@ -111,8 +120,16 @@ function SegmentedTabs({ tab, setTab }: { tab: BrainTab; setTab: (t: BrainTab) =
 
 // ─── Brain Tab ───────────────────────────────────────────────────────────────
 function BrainTabContent({ scores, navigate }: { scores: Record<string, number>; navigate: (v: string) => void }) {
+  const { activeChild, activityLogs, milestoneChecks } = useApp();
   const sorted = getSortedBrainRegionProgress(scores);
   const insights = generateInsights(scores);
+
+  const predictions = React.useMemo(() => {
+    if (!activeChild) return [];
+    const childLogs = activityLogs.filter(l => l.childId === activeChild.id);
+    const checked = milestoneChecks[activeChild.id] ?? [];
+    return predictMilestones(activeChild, childLogs, checked);
+  }, [activeChild, activityLogs, milestoneChecks]);
 
   useEffect(() => {
     const t = setTimeout(() => playBrainPulse(), 300);
@@ -149,6 +166,8 @@ function BrainTabContent({ scores, navigate }: { scores: Record<string, number>;
         </div>
       </div>
 
+      <BrainLegend scores={scores} />
+
       <div className="px-4 mt-2 space-y-2.5">
         {insights.map(insight => (
           <div key={`${insight.type}-${insight.regionId}`}
@@ -163,6 +182,25 @@ function BrainTabContent({ scores, navigate }: { scores: Record<string, number>;
             </div>
           </div>
         ))}
+      </div>
+
+      {predictions.length > 0 && (
+        <div className="px-4 mt-3">
+          <PredictorCard
+            predictions={predictions}
+            onViewAll={() => navigate("milestones")}
+          />
+        </div>
+      )}
+
+      <div className="px-4 mt-3">
+        <WeeklyNarrative
+          childName={activeChild?.name ?? ""}
+          narrative={null}
+          isLoading={false}
+          isPremium={false}
+          onGenerate={() => navigate("report")}
+        />
       </div>
 
       <div className="px-4 mt-3 mb-5 grid grid-cols-2 gap-2">
@@ -182,6 +220,134 @@ function BrainTabContent({ scores, navigate }: { scores: Record<string, number>;
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── AI-Age Readiness Tab ────────────────────────────────────────────────────
+function AIAgeReadinessTab({ scores }: { scores?: Record<string, number> }) {
+  const [selected, setSelected] = React.useState<AIAgeCompetencyId | null>(null);
+
+  React.useEffect(() => {
+    captureProductEvent("competency_radar_view", {});
+  }, []);
+
+  const ranked = AI_AGE_COMPETENCIES.map((c) => ({ id: c.id, pct: getCompetencyPercent(scores?.[c.id] ?? 0) })).sort(
+    (a, b) => a.pct - b.pct,
+  );
+  const weakest = ranked.slice(0, 2).map((r) => r.id);
+  const strongest = ranked.slice(-2).map((r) => r.id);
+
+  return (
+    <div className="flex-1 overflow-y-auto px-3 pb-4" style={{ scrollbarWidth: "none" }}>
+      <div className="text-slate-400 text-xs text-center pt-2 pb-1 font-medium">12-Dimension AI-Age Readiness</div>
+
+      <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-2">
+        <CompetencyRadar
+          scores={scores}
+          onSelect={(competency) => {
+            setSelected(competency.id);
+            captureProductEvent("competency_detail_view", { competency_id: competency.id, surface: "radar" });
+          }}
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 px-1">
+        <div className="rounded-2xl bg-white border border-slate-100 p-3">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-amber-600 mb-1.5">⚠️ Today's focus</div>
+          <div className="space-y-1">
+            {weakest.map((id) => {
+              const c = AI_AGE_COMPETENCIES.find((x) => x.id === id)!;
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setSelected(id);
+                    captureProductEvent("competency_detail_view", { competency_id: id, surface: "weakest_card" });
+                  }}
+                  className="w-full flex items-center gap-1.5 text-left"
+                >
+                  <span className="text-sm">{c.emoji}</span>
+                  <span className="text-[11px] font-semibold text-slate-700 truncate">{c.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white border border-slate-100 p-3">
+          <div className="text-[10px] uppercase tracking-wide font-bold text-emerald-600 mb-1.5">✓ Strongest</div>
+          <div className="space-y-1">
+            {strongest.map((id) => {
+              const c = AI_AGE_COMPETENCIES.find((x) => x.id === id)!;
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setSelected(id);
+                    captureProductEvent("competency_detail_view", { competency_id: id, surface: "strongest_card" });
+                  }}
+                  className="w-full flex items-center gap-1.5 text-left"
+                >
+                  <span className="text-sm">{c.emoji}</span>
+                  <span className="text-[11px] font-semibold text-slate-700 truncate">{c.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 px-1">
+        <div className="text-[10px] uppercase tracking-wide font-bold text-slate-500 mb-2">All 12 Dimensions</div>
+        <div className="space-y-1.5">
+          {AI_AGE_COMPETENCIES.map((c) => {
+            const score = scores?.[c.id] ?? 0;
+            const pct = getCompetencyPercent(score);
+            return (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setSelected(c.id);
+                  captureProductEvent("competency_detail_view", { competency_id: c.id, surface: "list" });
+                }}
+                className="w-full flex items-center gap-2.5 p-2.5 rounded-xl bg-white border border-slate-100 shadow-sm text-left active:scale-[0.99] transition"
+              >
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0" style={{ background: `${c.color}20` }}>
+                  {c.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-slate-800 text-xs font-semibold truncate">{c.label}</div>
+                  <div className="h-1.5 rounded-full mt-0.5 bg-slate-100 overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: c.color }} />
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="font-black text-xs" style={{ color: pct > 0 ? c.color : "#CBD5E1" }}>
+                    {Math.round(pct)}%
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-4 mx-1 rounded-2xl border-2 border-dashed border-slate-200 p-3">
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">🛡️ Anti-overclaim guarantee</div>
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          We never promise that one app will make your child "AI-ready". These dimensions are a parent compass —
+          tap any tile to see the research it's grounded in.
+        </p>
+      </div>
+
+      {selected && (
+        <CompetencyDetailModal
+          competency={AI_AGE_COMPETENCIES.find((c) => c.id === selected) ?? null}
+          score={scores?.[selected] ?? 0}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
@@ -564,10 +730,11 @@ export function BrainMapScreen() {
         <motion.div key={tab} className="flex-1 flex flex-col overflow-hidden"
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}>
-          {tab === "brain" && <BrainTabContent scores={scores} navigate={navigate as (v: string) => void} />}
-          {tab === "radar" && <RadarTab scores={scores} />}
-          {tab === "plan"  && <YearPlanTab />}
-          {tab === "kyc"   && <KnowYourChildTab />}
+          {tab === "brain"  && <BrainTabContent scores={scores} navigate={navigate as (v: string) => void} />}
+          {tab === "radar"  && <RadarTab scores={scores} />}
+          {tab === "ai_age" && <AIAgeReadinessTab scores={activeChild.competencyScores} />}
+          {tab === "plan"   && <YearPlanTab />}
+          {tab === "kyc"    && <KnowYourChildTab />}
         </motion.div>
       </AnimatePresence>
     </div>

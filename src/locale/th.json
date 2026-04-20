@@ -1,0 +1,18 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "หน้าหลัก",
+  "nav.today": "วันนี้",
+  "nav.brain": "สมอง",
+  "nav.aiHelp": "AI ช่วยเหลือ",
+  "nav.profile": "โปรไฟล์",
+  "home.greeting": "สวัสดี, {name}!",
+  "home.streakLabel": "สตรีค {count} วัน",
+  "common.save": "บันทึก",
+  "common.cancel": "ยกเลิก",
+  "common.back": "กลับ",
+  "common.next": "ถัดไป",
+  "common.done": "เสร็จสิ้น",
+  "common.loading": "กำลังโหลด...",
+  "common.error": "เกิดข้อผิดพลาด",
+  "common.premium": "ฟีเจอร์พรีเมียม"
+}

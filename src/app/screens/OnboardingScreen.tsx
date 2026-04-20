@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApp, AVATAR_EMOJIS, AVATAR_COLORS } from "../context/AppContext";
 import { MATERIAL_OPTIONS, getAgeTierConfig } from "../data/activities";
+import { captureProductEvent } from "@/utils/productAnalytics";
 
 export function OnboardingScreen() {
   const { view } = useApp();
@@ -11,8 +12,21 @@ export function OnboardingScreen() {
   return null;
 }
 
+function useOnboardStepView(step: "welcome" | "child" | "materials" | "ready") {
+  // Fire-and-forget funnel beacon — once per mount of each step component.
+  // Lives here (not inside each Step*) so the call site is uniform and we
+  // can extend the dimensionality (locale, ab_bucket, …) in one place later.
+  useEffect(() => {
+    captureProductEvent("onboard_step_view", {
+      screen: `onboard_${step}`,
+      step,
+    });
+  }, [step]);
+}
+
 function StepWelcome() {
   const { user, navigate } = useApp();
+  useOnboardStepView("welcome");
   return (
     <div className="h-full flex flex-col px-5 py-8" style={{ background:"linear-gradient(160deg,#0f0c29,#302b63)" }}>
       <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -48,6 +62,7 @@ const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 
 function StepChild() {
   const { addChild, navigate } = useApp();
+  useOnboardStepView("child");
   const [name, setName]   = useState("");
   const [year, setYear]   = useState(CURRENT_YEAR - 4);
   const [month, setMonth] = useState(0);
@@ -155,6 +170,7 @@ function StepChild() {
 
 function StepMaterials() {
   const { materialInventory, setMaterialInventory, navigate } = useApp();
+  useOnboardStepView("materials");
   const toggle = (id: string) =>
     setMaterialInventory(materialInventory.includes(id) ? materialInventory.filter(m => m !== id) : [...materialInventory, id]);
 
@@ -201,6 +217,7 @@ function StepMaterials() {
 
 function StepReady() {
   const { navigate, activeChild } = useApp();
+  useOnboardStepView("ready");
   return (
     <div className="h-full flex flex-col items-center justify-center px-5 py-8 text-center"
       style={{ background:"linear-gradient(160deg,#0f0c29,#302b63)" }}>
@@ -224,7 +241,14 @@ function StepReady() {
           </div>
         ))}
       </div>
-      <button onClick={() => navigate("home")}
+      <button
+        onClick={() => {
+          captureProductEvent("onboard_complete", {
+            screen: "onboard_ready",
+            age_tier: activeChild?.ageTier,
+          });
+          navigate("home");
+        }}
         className="w-full py-4 rounded-2xl font-bold text-white animate-pulse-glow"
         style={{ background:"linear-gradient(135deg,#F72585,#7209B7)", boxShadow:"0 8px 32px rgba(247,37,133,0.5)" }}>
         Generate First Activities ⚡

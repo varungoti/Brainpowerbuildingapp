@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { INTEL_COLORS, SKILL_TAG_UI } from "../data/activities";
 import { generateCoaching } from "../../lib/coaching/parentCoachingEngine";
@@ -10,11 +10,45 @@ import { SensoryBadge } from "../../components/sensory/SensoryBadge";
 import { ModificationPanel } from "../../components/sensory/ModificationPanel";
 import { CommunityBadge } from "../../components/community/CommunityBadge";
 import { VoicePlayerBar } from "../../components/voice/VoicePlayerBar";
+import { CompetencyBadges } from "../../components/competency/CompetencyBadges";
+import { captureProductEvent } from "@/utils/productAnalytics";
 
 export function ActivityDetailScreen() {
-  const { viewingActivity, goBack, setViewingActivity, activeChild, sensoryProfiles, locale, communityRatingCache } = useApp();
+  const { viewingActivity, goBack, setViewingActivity, activeChild, sensoryProfiles, locale, communityRatingCache, activityLogs } = useApp();
   const [showCoaching, setShowCoaching] = useState(false);
   const [activeTab, setActiveTab] = useState<"steps" | "coaching" | "sensory">("steps");
+
+  // Funnel: every time the user opens a different activity, fire
+  // `activity_open` once. The first open per child is also reported as
+  // `first_activity_open` so the open → complete conversion is trivial to
+  // compute. We use an "id we last fired for" ref instead of an effect dep
+  // array so re-renders triggered by tab switches or activityLogs updates
+  // don't re-fire the analytic.
+  const firedForActivityIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = viewingActivity?.id ?? null;
+    if (!viewingActivity || id === firedForActivityIdRef.current) return;
+    firedForActivityIdRef.current = id;
+    const isFirst =
+      !!activeChild &&
+      activityLogs.filter((l) => l.childId === activeChild.id && l.completed).length === 0;
+    captureProductEvent("activity_open", {
+      screen: "activity_detail",
+      primary_intel: viewingActivity.intelligences[0],
+      duration_min: viewingActivity.duration,
+      region: viewingActivity.region,
+      age_tier: activeChild?.ageTier,
+      is_first_activity: isFirst,
+    });
+    if (isFirst) {
+      captureProductEvent("first_activity_open", {
+        screen: "activity_detail",
+        primary_intel: viewingActivity.intelligences[0],
+        region: viewingActivity.region,
+        age_tier: activeChild?.ageTier,
+      });
+    }
+  }, [viewingActivity, activeChild, activityLogs]);
 
   if (!viewingActivity) {
     return (
@@ -69,6 +103,15 @@ export function ActivityDetailScreen() {
               </span>
             ))}
           </div>
+          {viewingActivity.competencyTags && viewingActivity.competencyTags.length > 0 && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">AI-age</span>
+              <CompetencyBadges
+                ids={viewingActivity.competencyTags}
+                variant="full"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -194,6 +237,26 @@ function ActivityDetailBody({ viewingActivity, activeChild, sensoryProfiles, loc
               <div className="text-gray-900 font-black text-sm mb-2">Why this matters</div>
               <p className="text-gray-700 text-sm leading-relaxed">{viewingActivity.parentTip}</p>
             </section>
+
+            {viewingActivity.whyAIAge && (
+              <section
+                className="rounded-3xl border p-4 shadow-sm"
+                style={{
+                  background: "linear-gradient(135deg,#EFF6FF,#E0F2FE)",
+                  borderColor: "rgba(59,130,246,0.30)",
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">🤖</span>
+                  <div className="font-black text-sm" style={{ color: "#1E40AF" }}>
+                    Why this matters in the AI age
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: "#1E3A8A" }}>
+                  {viewingActivity.whyAIAge}
+                </p>
+              </section>
+            )}
 
             {viewingActivity.extensionIdeas?.length ? (
               <section className="bg-white rounded-3xl border border-gray-100 p-4 shadow-sm">

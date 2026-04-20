@@ -1,0 +1,20 @@
+{
+  "app.name": "NeuroSpark",
+  "nav.home": "હોમ",
+  "nav.today": "આજે",
+  "nav.brain": "મગજ",
+  "nav.aiHelp": "AI સહાય",
+  "nav.profile": "પ્રોફાઇલ",
+  "home.greeting": "નમસ્તે, {name}!",
+  "home.streakLabel": "{count} દિવસની સ્ટ્રીક",
+  "home.todaysPick": "આજની પ્રવૃત્તિ",
+  "home.brainPoints": "બ્રેઇન પોઇન્ટ્સ",
+  "common.save": "સાચવો",
+  "common.cancel": "રદ કરો",
+  "common.back": "પાછળ",
+  "common.next": "આગળ",
+  "common.done": "પૂર્ણ",
+  "common.loading": "લોડ થઈ રહ્યું છે...",
+  "common.error": "કંઈક ખોટું થયું",
+  "common.premium": "પ્રીમિયમ ફીચર"
+}

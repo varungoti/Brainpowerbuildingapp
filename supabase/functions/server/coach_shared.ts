@@ -156,10 +156,23 @@ export function buildCoachFallback(
   };
 }
 
+export interface CoachLongMemory {
+  observation: string;
+  topic: string;
+  weight: number;
+  created_at: string;
+}
+
 export function generateCoachPrompt(
   profile: CoachChildProfile,
   scores: Record<string, number>,
-  options?: { question?: string; isPremium?: boolean; messages?: CoachChatMessage[] },
+  options?: {
+    question?: string;
+    isPremium?: boolean;
+    messages?: CoachChatMessage[];
+    /** Survivor 1: long memory observations from coach_memory table. */
+    longMemory?: CoachLongMemory[];
+  },
 ) {
   const strengths = getTopThree(scores);
   const weaknesses = getBottomThree(scores);
@@ -170,6 +183,20 @@ export function generateCoachPrompt(
   const premiumInstruction = options?.isPremium === false
     ? "Give concise free-tier coaching: keep the daily plan to 2 short items."
     : "Give premium-tier coaching: include 4-5 concrete daily-plan items and deeper weekly focus.";
+
+  // Survivor 1 — long-memory injection. We pick the 12 highest-weight, most
+  // recent observations and inject them as a quoted block. The system
+  // prompt instructs the coach to *quote back* a specific past observation
+  // when relevant, which is the key differentiator vs a stateless LLM.
+  const longMemoryBlock = (options?.longMemory ?? [])
+    .slice()
+    .sort((a, b) => (b.weight - a.weight) || b.created_at.localeCompare(a.created_at))
+    .slice(0, 12)
+    .map((m) => `- (${m.topic}, ${new Date(m.created_at).toISOString().slice(0, 10)}) ${m.observation}`)
+    .join("\n");
+  const longMemorySection = longMemoryBlock
+    ? `\n\nLong memory of this child (last 6 months — quote back specifics when relevant):\n${longMemoryBlock}`
+    : "";
 
   return `You are an expert child development coach.
 
@@ -193,7 +220,7 @@ Useful region-to-activity mappings:
 ${BRAIN_REGIONS.map((region) => `- ${region.key}: ${getActivityIdeas(region.key).join("; ")}`).join("\n")}
 
 Conversation context:
-${history}
+${history}${longMemorySection}
 
 Current parent request:
 ${options?.question?.trim() || "Give a personalized parenting coach report based on the child's development profile."}

@@ -1,0 +1,26 @@
+---
+const links = [
+  { href: "/features", label: "Features" },
+  { href: "/science", label: "Science" },
+  { href: "/ai-age", label: "AI-age readiness" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/blog", label: "Blog" },
+];
+---
+<header class="sticky top-0 z-30 backdrop-blur bg-mist/70 border-b border-ink/5">
+  <div class="container-tight flex items-center justify-between h-16">
+    <a href="/" class="flex items-center gap-2 font-display font-extrabold text-lg">
+      <span class="grid place-items-center w-8 h-8 rounded-xl bg-gradient-to-br from-spark-500 to-deep-500 text-white">N</span>
+      NeuroSpark
+    </a>
+    <nav aria-label="primary" class="hidden md:flex gap-8 text-sm font-medium">
+      {links.map((l) => (
+        <a href={l.href} class="text-ink/80 hover:text-ink transition">{l.label}</a>
+      ))}
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="/download" class="hidden md:inline-flex btn-ghost">Open app</a>
+      <a href="/download" class="btn-primary">Get NeuroSpark</a>
+    </div>
+  </div>
+</header>

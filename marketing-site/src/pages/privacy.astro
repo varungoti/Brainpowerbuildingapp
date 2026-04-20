@@ -1,0 +1,24 @@
+---
+import Site from "../layouts/Site.astro";
+---
+<Site title="Privacy" description="What we collect, what we don't, and how we keep your child's data on your device.">
+  <article class="container-tight py-20 prose prose-slate max-w-3xl">
+    <h1>Privacy</h1>
+    <p><em>Last updated: April 2026.</em></p>
+    <h2>The short version</h2>
+    <ul>
+      <li>We never collect a child's name, photo, or date of birth in identifiable form. Activities run on-device using only an age-tier integer (0–4 years, 4–7 years).</li>
+      <li>We never sell, share, or rent any data, anonymized or otherwise.</li>
+      <li>You can export and delete everything from <code>Profile → Privacy → Reset</code> at any time. We honor the deletion within 24 hours, including in our backups.</li>
+      <li>Coppa, GDPR-K, and India DPDP compliant. Audited annually by an external firm.</li>
+    </ul>
+    <h2>What we do collect</h2>
+    <ul>
+      <li><b>Account:</b> email + password hash. Used for login + caregiver invites only.</li>
+      <li><b>Crash + performance:</b> Sentry, with PII scrubbing.</li>
+      <li><b>Funnel events:</b> coarse, non-identifying buckets (e.g. <code>activity_complete</code>, <code>paywall_view</code>) attached to a random profile id.</li>
+    </ul>
+    <h2>Open questions?</h2>
+    <p>Email <a href="mailto:privacy@neurospark.com">privacy@neurospark.com</a>. We answer within two business days.</p>
+  </article>
+</Site>

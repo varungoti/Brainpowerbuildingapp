@@ -12,6 +12,8 @@ type CoachRequest = {
   question?: string;
   messages?: CoachChatMessage[];
   isPremium?: boolean;
+  /** Survivor 1: identifies which child's long-memory bucket to inject. */
+  childId?: string;
 };
 
 type CoachApiEnvelope = {
@@ -53,7 +55,13 @@ function normalizeCoachResponse(
 export async function generateCoachResponse(
   profile: CoachChildProfile,
   scores: Record<string, number>,
-  options?: { question?: string; messages?: CoachChatMessage[]; isPremium?: boolean },
+  options?: {
+    question?: string;
+    messages?: CoachChatMessage[];
+    isPremium?: boolean;
+    /** Survivor 1: passes through to the server so it can inject coach_memory. */
+    childId?: string;
+  },
 ): Promise<CoachResponse> {
   const fallback = buildCoachFallback(profile, scores, {
     question: options?.question,
@@ -70,6 +78,7 @@ export async function generateCoachResponse(
     question: options?.question,
     messages: options?.messages,
     isPremium: options?.isPremium,
+    childId: options?.childId,
   };
 
   try {

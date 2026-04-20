@@ -171,6 +171,14 @@ function normalizePersisted(
     locale: ((p as unknown as Record<string, unknown>).locale as AppPersistedState["locale"]) ?? "en",
     sensoryProfiles: ((p as unknown as Record<string, unknown>).sensoryProfiles as AppPersistedState["sensoryProfiles"]) ?? {},
     communityRatingCache: (p as unknown as Record<string, unknown>).communityRatingCache as AppPersistedState["communityRatingCache"] ?? null,
+    routineConfig: (p as unknown as Record<string, unknown>).routineConfig as AppPersistedState["routineConfig"] ?? null,
+    quests: ((p as unknown as Record<string, unknown>).quests as AppPersistedState["quests"]) ?? [],
+    enhancedStreak: (p as unknown as Record<string, unknown>).enhancedStreak as AppPersistedState["enhancedStreak"] ?? null,
+    notificationPrefs: (p as unknown as Record<string, unknown>).notificationPrefs as AppPersistedState["notificationPrefs"] ?? null,
+    usagePattern: (p as unknown as Record<string, unknown>).usagePattern as AppPersistedState["usagePattern"] ?? null,
+    caregivers: ((p as unknown as Record<string, unknown>).caregivers as AppPersistedState["caregivers"]) ?? [],
+    bondingScores: ((p as unknown as Record<string, unknown>).bondingScores as AppPersistedState["bondingScores"]) ?? [],
+    narrativeCache: ((p as unknown as Record<string, unknown>).narrativeCache as AppPersistedState["narrativeCache"]) ?? {},
   };
 }
 
