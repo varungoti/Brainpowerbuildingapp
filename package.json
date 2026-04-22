@@ -6,7 +6,9 @@
   "packageManager": "pnpm@10.30.3",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "pnpm run build:voice-plugin && vite build",
+    "build:voice-plugin": "tsc -p capacitor-plugins/neurospark-voice/tsconfig.json",
+    "postinstall": "pnpm run build:voice-plugin",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
     "cap:open:ios": "cap open ios",
@@ -34,6 +36,7 @@
     "@capacitor/core": "^7.6.1",
     "@capacitor/ios": "^7.6.1",
     "@capacitor/preferences": "^7.0.4",
+    "neurospark-voice": "link:capacitor-plugins/neurospark-voice",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -109,6 +112,7 @@
     "jsdom": "^29.0.1",
     "tailwindcss": "4.1.12",
     "tsx": "^4.21.0",
+    "typescript": "5.8.2",
     "typescript-eslint": "^8.57.1",
     "vite": "6.3.5",
     "vitest": "^4.1.0"

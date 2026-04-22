@@ -26,11 +26,28 @@ import { WebVoiceAdapter } from "./webVoiceAdapter";
 
 // ─── In-house full-stack plugin (deferred) ────────────────────────────────
 
+type PluginListenerHandle = { remove: () => Promise<void> };
+
+/**
+ * What crosses the native bridge: no function fields. TTS is filtered in
+ * `NativePluginAdapter.speak`. STT uses `sttPartial` / `sttFinal` / `sttError`
+ * listeners (same pattern as @capacitor-community/speech-recognition).
+ */
+type SerializableTTS = Pick<TTSOptions, "text" | "locale" | "rate" | "pitch" | "agent">;
+type SerializableSTT = Pick<STTOptions, "locale" | "partialResults" | "silenceTimeoutMs">;
+
 interface NeuroSparkVoicePlugin {
-  capabilities(): Promise<VoiceCapabilities>;
-  speak(opts: TTSOptions): Promise<void>;
+  /** Native may return; `NativePluginAdapter` still returns fixed caps for now. */
+  capabilities?(): Promise<VoiceCapabilities>;
+  checkPermissions(): Promise<{ speechRecognition: "granted" | "denied" | "prompt" }>;
+  requestPermissions(): Promise<{ speechRecognition: "granted" | "denied" | "prompt" }>;
+  speak(opts: SerializableTTS): Promise<void>;
   cancelSpeech(): Promise<void>;
-  startListening(opts: STTOptions): Promise<void>;
+  addListener?(
+    event: "sttPartial" | "sttFinal" | "sttError",
+    callback: (data: { text?: string; error?: string }) => void,
+  ): Promise<PluginListenerHandle>;
+  startListening(opts: SerializableSTT): Promise<void>;
   stopListening(): Promise<void>;
   isListening(): Promise<{ value: boolean }>;
   isSpeaking(): Promise<{ value: boolean }>;
@@ -75,6 +92,8 @@ function getCap(): CapacitorBridge | null {
 // ─── Adapter implementations ──────────────────────────────────────────────
 
 class NativePluginAdapter implements VoiceAdapter {
+  private sttListenerHandles: PluginListenerHandle[] = [];
+
   constructor(private plugin: NeuroSparkVoicePlugin, private platform: "ios" | "android") {}
 
   capabilities(): VoiceCapabilities {
@@ -88,8 +107,14 @@ class NativePluginAdapter implements VoiceAdapter {
   }
 
   async speak(opts: TTSOptions): Promise<void> {
-    await this.plugin.speak(opts);
-    opts.onEnd?.();
+    const { onEnd, onError, onBoundary, ...serializable } = opts;
+    void onBoundary;
+    try {
+      await this.plugin.speak(serializable);
+      onEnd?.();
+    } catch (e) {
+      onError?.(e instanceof Error ? e : new Error(String(e)));
+    }
   }
 
   cancelSpeech(): void {
@@ -97,10 +122,58 @@ class NativePluginAdapter implements VoiceAdapter {
   }
 
   async startListening(opts: STTOptions): Promise<void> {
-    await this.plugin.startListening(opts);
+    const { onPartial, onFinal, onError, ...serializable } = opts;
+    for (const h of this.sttListenerHandles) {
+      void h.remove().catch(() => undefined);
+    }
+    this.sttListenerHandles = [];
+
+    if (this.plugin.addListener) {
+      if (onPartial) {
+        const h = await this.plugin.addListener("sttPartial", (d) => {
+          const t = d.text;
+          if (t) onPartial(t);
+        });
+        this.sttListenerHandles.push(h);
+      }
+      if (onFinal) {
+        const h = await this.plugin.addListener("sttFinal", (d) => {
+          onFinal(d.text ?? "");
+        });
+        this.sttListenerHandles.push(h);
+      }
+      if (onError) {
+        const h = await this.plugin.addListener("sttError", (d) => {
+          onError(new Error(d.error ?? "stt_error"));
+        });
+        this.sttListenerHandles.push(h);
+      }
+    }
+    try {
+      const cur = await this.plugin.checkPermissions();
+      if (cur.speechRecognition !== "granted") {
+        const req = await this.plugin.requestPermissions();
+        if (req.speechRecognition !== "granted") {
+          onError?.(new Error("speech_recognition_permission_denied"));
+          return;
+        }
+      }
+    } catch (e) {
+      onError?.(e instanceof Error ? e : new Error(String(e)));
+      return;
+    }
+    try {
+      await this.plugin.startListening(serializable);
+    } catch (e) {
+      onError?.(e instanceof Error ? e : new Error(String(e)));
+    }
   }
 
   stopListening(): void {
+    for (const h of this.sttListenerHandles) {
+      void h.remove().catch(() => undefined);
+    }
+    this.sttListenerHandles = [];
     void this.plugin.stopListening().catch(() => undefined);
   }
 

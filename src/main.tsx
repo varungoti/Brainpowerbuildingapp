@@ -1,3 +1,4 @@
+import "neurospark-voice";
 import { createRoot } from "react-dom/client";
 import { initClientMonitoring } from "./utils/monitoring";
 import { registerPwaServiceWorker } from "./utils/pwa";

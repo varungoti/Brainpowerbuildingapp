@@ -181,7 +181,7 @@ test.describe("NeuroSpark core flows", () => {
     await expect(page.getByText(/Aarav/i).first()).toBeVisible({ timeout: 8000 });
   });
 
-  test("paywall shows plans when out of credits and disables pay without checkout", async ({ page }) => {
+  test("paywall shows plans when out of credits; pay CTA matches checkout readiness", async ({ page }) => {
     await seedLocalState(page, { ...seededState, credits: 0 });
     await page.goto("/");
     await page.getByRole("button", { name: /^Today$/i }).click();
@@ -189,8 +189,21 @@ test.describe("NeuroSpark core flows", () => {
     await expect(page.getByText(/Unlock Today's Brain Pack/i)).toBeVisible();
     await expect(page.getByText(/Choose Your Plan/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /30 Days/i })).toBeVisible();
-    await expect(page.getByText(/Checkout not configured/i)).toBeVisible();
-    await expect(page.getByTestId("paywall-pay-button")).toBeDisabled();
+
+    const payBtn = page.getByTestId("paywall-pay-button");
+    const notConfigured = page.getByText(/Checkout not configured/i);
+    const paymentsPaused = page.getByText(/Payments paused/i);
+    const noCheckout = await notConfigured.isVisible();
+    const kill = await paymentsPaused.isVisible();
+    if (noCheckout || kill) {
+      // `checkoutReady` is false: disabled until Supabase is configured / kill lifted
+      await expect(payBtn).toBeDisabled();
+    } else {
+      // `checkoutReady` true: same rule as `PaywallScreen` — only offline gates the CTA
+      const online = await page.evaluate(() => navigator.onLine);
+      if (online) await expect(payBtn).toBeEnabled();
+      else await expect(payBtn).toBeDisabled();
+    }
   });
 
   test("milestone completion persists across navigation", async ({ page }) => {
@@ -198,7 +211,10 @@ test.describe("NeuroSpark core flows", () => {
     await page.goto("/");
 
     await page.getByRole("button", { name: /^Brain$/i }).click();
-    await page.getByRole("button", { name: /Developmental Milestones Tracker/i }).click();
+    // Brain tab quick-action card: emoji+label, e.g. "📋 Milestones" (not bare "Milestones")
+    const milestonesCard = page.getByRole("button", { name: /Milestones/i });
+    await milestonesCard.scrollIntoViewIfNeeded();
+    await milestonesCard.click();
     await expect(page.getByText(/Brain Development Progress/i)).toBeVisible();
 
     const firstMilestoneToggle = page.locator('button[aria-label^="Mark "]').first();
@@ -207,7 +223,9 @@ test.describe("NeuroSpark core flows", () => {
 
     await page.getByRole("button", { name: /^Home$/i }).click();
     await page.getByRole("button", { name: /^Brain$/i }).click();
-    await page.getByRole("button", { name: /Developmental Milestones Tracker/i }).click();
+    const milestonesCard2 = page.getByRole("button", { name: /Milestones/i });
+    await milestonesCard2.scrollIntoViewIfNeeded();
+    await milestonesCard2.click();
     await expect(page.getByRole("button", { name: /Mark .* incomplete/i }).first()).toBeVisible();
   });
 });

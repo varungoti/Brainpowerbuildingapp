@@ -2,17 +2,23 @@
 #
 # How to use:
 # 1. Push this workflow to your default branch on GitHub.
-# 2. GitHub → Actions → "Build Android APK (debug)" → Run workflow.
+# 2. GitHub → Actions → "Build Android APK (debug)" → Run workflow, OR push to
+#    main/master / version tags (v*).
 # 3. When it finishes, open the run → Artifacts → download neurospark-debug-apk.zip
 #    → unzip → app-debug.apk
 #
-# Optional: also runs on git tags matching v*.*.* (e.g. v1.0.0) for release-ish builds.
+# Requires JDK 21 to match `android/app/capacitor.build.gradle` (Capacitor sets
+# sourceCompatibility/targetCompatibility to Java 21).
+#
+# Optional secrets (for a fully wired production build in CI): VITE_ADMIN_EMAILS,
+# VITE_SUPABASE_PROJECT_ID, VITE_SUPABASE_ANON_KEY — the app still builds if unset.
 
 name: Build Android APK (debug)
 
 on:
   workflow_dispatch:
   push:
+    branches: [main, master]
     tags:
       - "v*"
 
@@ -51,11 +57,11 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || '' }}
         run: pnpm run build:mobile
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
           cache: gradle
           cache-dependency-path: |
             android/**/*.gradle*

@@ -1,0 +1,36 @@
+{
+  "name": "neurospark-voice",
+  "version": "0.0.1",
+  "description": "In-house full-stack TTS+STT Capacitor plugin (NeuroSpark) — iOS (AVSpeech* / SFSpeech*) and Android (TextToSpeech + SpeechRecognizer) scaffolding.",
+  "author": "NeuroSpark",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    }
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "7.6.1",
+    "typescript": "5.8.2"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

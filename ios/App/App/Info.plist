@@ -45,5 +45,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>NeuroSpark uses the microphone so your child can answer activities with their voice.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>NeuroSpark uses on-device speech recognition to understand spoken answers during activities.</string>
 </dict>
 </plist>
