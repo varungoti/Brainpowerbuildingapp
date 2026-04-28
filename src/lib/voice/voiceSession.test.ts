@@ -144,6 +144,35 @@ describe("VoiceSession FSM", () => {
     expect(session.getState()).toBe("idle");
   });
 
+  it("watchdog emits stt_speech_timeout when no result arrives for 15s", async () => {
+    const states: { state: string; transcript?: string }[] = [];
+    const session = new VoiceSession({
+      adapter, agent: "coach", locale: "en-US",
+      onTurn: async () => "x",
+      onStateChange: (s, t) => states.push({ state: s, transcript: t }),
+    });
+    await session.start();
+    expect(session.getState()).toBe("listen");
+    vi.advanceTimersByTime(15_500);
+    expect(session.getState()).toBe("error");
+    expect(session.getTranscript()).toMatch(/didn't hear|hiccup|try again/i);
+  });
+
+  it("watchdog upgrades a non-empty partial to a final instead of erroring", async () => {
+    const session = new VoiceSession({
+      adapter, agent: "coach", locale: "en-US",
+      onTurn: async () => "ok",
+    });
+    await session.start();
+    adapter.sttOpts!.onPartial!("hello there");
+    // Watchdog gets re-armed by partial, so advance the full window from now.
+    vi.advanceTimersByTime(15_500);
+    await Promise.resolve();
+    await Promise.resolve();
+    // After final, FSM moves to think (and then to speak in microtasks).
+    expect(["think", "speak"]).toContain(session.getState());
+  });
+
   it("partial results update transcript without changing state", async () => {
     const session = new VoiceSession({
       adapter, agent: "coach", locale: "en-US",

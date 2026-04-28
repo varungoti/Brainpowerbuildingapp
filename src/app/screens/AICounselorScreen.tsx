@@ -189,7 +189,7 @@ export function AICounselorScreen() {
                 <div className="mb-3 flex justify-center">
                   <ConversationButton
                     agent="counselor"
-                    locale="en"
+                    locale="en-US"
                     label="Dictate your concern"
                     onTurn={async (utterance) => {
                       // Append the spoken utterance into the textarea so the

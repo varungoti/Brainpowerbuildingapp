@@ -79,7 +79,7 @@ export function CoachChat({ messages, isPremium, loading, onSend }: Props) {
       <div className="mt-3 flex justify-center">
         <ConversationButton
           agent="coach"
-          locale="en"
+          locale="en-US"
           label="Talk to the coach hands-free"
           onTurn={async (utterance) => {
             // Push the spoken question into the chat as if the parent had

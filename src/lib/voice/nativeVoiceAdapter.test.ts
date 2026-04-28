@@ -156,6 +156,78 @@ describe("pickAdapter", () => {
     expect(onEnd).toHaveBeenCalled();
   });
 
+  it("retries TTS once if the native plugin reports tts_not_ready", async () => {
+    const speak = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("tts_not_ready"))
+      .mockResolvedValueOnce(undefined);
+    setCapacitor({
+      isNativePlatform: () => true,
+      getPlatform: () => "android",
+      Plugins: {
+        NeuroSparkVoice: {
+          capabilities: vi.fn(),
+          checkPermissions: vi.fn().mockResolvedValue({ speechRecognition: "granted" }),
+          requestPermissions: vi.fn().mockResolvedValue({ speechRecognition: "granted" }),
+          addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+          speak,
+          cancelSpeech: vi.fn().mockResolvedValue(undefined),
+          startListening: vi.fn().mockResolvedValue(undefined),
+          stopListening: vi.fn().mockResolvedValue(undefined),
+          isListening: vi.fn().mockResolvedValue({ value: false }),
+          isSpeaking: vi.fn().mockResolvedValue({ value: false }),
+        },
+      },
+    });
+    const adapter = pickAdapter();
+    const onEnd = vi.fn();
+    const onError = vi.fn();
+    await adapter.speak({ text: "hi", locale: "en-US", onEnd, onError });
+    expect(speak).toHaveBeenCalledTimes(2);
+    expect(onEnd).toHaveBeenCalledTimes(1);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("ignores stt partials emitted after a final has been delivered", async () => {
+    type Cb = (d: { text?: string }) => void;
+    const cbs: Record<string, Cb> = {};
+    const addListener = vi.fn().mockImplementation(async (event: string, cb: Cb) => {
+      cbs[event] = cb;
+      return { remove: vi.fn().mockResolvedValue(undefined) };
+    });
+    setCapacitor({
+      isNativePlatform: () => true,
+      getPlatform: () => "ios",
+      Plugins: {
+        NeuroSparkVoice: {
+          capabilities: vi.fn(),
+          checkPermissions: vi.fn().mockResolvedValue({ speechRecognition: "granted" }),
+          requestPermissions: vi.fn().mockResolvedValue({ speechRecognition: "granted" }),
+          addListener,
+          speak: vi.fn().mockResolvedValue(undefined),
+          cancelSpeech: vi.fn().mockResolvedValue(undefined),
+          startListening: vi.fn().mockResolvedValue(undefined),
+          stopListening: vi.fn().mockResolvedValue(undefined),
+          isListening: vi.fn().mockResolvedValue({ value: false }),
+          isSpeaking: vi.fn().mockResolvedValue({ value: false }),
+        },
+      },
+    });
+    const adapter = pickAdapter();
+    const onPartial = vi.fn();
+    const onFinal = vi.fn();
+    await adapter.startListening({ locale: "en-US", partialResults: true, onPartial, onFinal });
+    expect(cbs.sttPartial).toBeTruthy();
+    expect(cbs.sttFinal).toBeTruthy();
+    cbs.sttPartial?.({ text: "hel" });
+    cbs.sttFinal?.({ text: "hello" });
+    cbs.sttPartial?.({ text: "should-be-ignored" });
+    expect(onPartial).toHaveBeenCalledTimes(1);
+    expect(onPartial).toHaveBeenCalledWith("hel");
+    expect(onFinal).toHaveBeenCalledTimes(1);
+    expect(onFinal).toHaveBeenCalledWith("hello");
+  });
+
   it("caches the adapter across pickAdapter() calls", () => {
     const a1 = pickAdapter();
     const a2 = pickAdapter();

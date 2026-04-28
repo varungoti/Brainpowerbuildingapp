@@ -23,6 +23,7 @@ import type {
   VoiceCapabilities,
 } from "./voiceAdapter";
 import { WebVoiceAdapter } from "./webVoiceAdapter";
+import { normalizeSpeechLocale } from "./speechLocale";
 
 // ─── In-house full-stack plugin (deferred) ────────────────────────────────
 
@@ -107,10 +108,31 @@ class NativePluginAdapter implements VoiceAdapter {
   }
 
   async speak(opts: TTSOptions): Promise<void> {
-    const { onEnd, onError, onBoundary, ...serializable } = opts;
+    const { onEnd, onError, onBoundary, ...rest } = opts;
     void onBoundary;
-    try {
+    const serializable = {
+      ...rest,
+      locale: normalizeSpeechLocale(rest.locale),
+    };
+
+    const callOnce = async (): Promise<void> => {
       await this.plugin.speak(serializable);
+    };
+
+    try {
+      try {
+        await callOnce();
+      } catch (e) {
+        // The native engine sometimes isn't fully booted on cold start. Wait briefly and retry once
+        // before propagating to the UI.
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("tts_not_ready") || msg.includes("audio_session")) {
+          await new Promise((r) => setTimeout(r, 500));
+          await callOnce();
+        } else {
+          throw e;
+        }
+      }
       onEnd?.();
     } catch (e) {
       onError?.(e instanceof Error ? e : new Error(String(e)));
@@ -122,50 +144,72 @@ class NativePluginAdapter implements VoiceAdapter {
   }
 
   async startListening(opts: STTOptions): Promise<void> {
-    const { onPartial, onFinal, onError, ...serializable } = opts;
+    const { onPartial, onFinal, onError, ...rest } = opts;
+    const serializable = {
+      ...rest,
+      locale: normalizeSpeechLocale(rest.locale),
+    };
+
+    // Tear down any previous session before starting a new one. Some native engines
+    // (Samsung in particular) reject startListening with stt_busy if a prior task is
+    // still draining; explicit stop avoids that race.
+    try {
+      await this.plugin.stopListening();
+    } catch {
+      /* ignore */
+    }
     for (const h of this.sttListenerHandles) {
       void h.remove().catch(() => undefined);
     }
     this.sttListenerHandles = [];
 
+    let settled = false;
+    const settleError = (err: Error) => {
+      if (settled) return;
+      settled = true;
+      onError?.(err);
+    };
+    const settleFinal = (text: string) => {
+      if (settled) return;
+      settled = true;
+      onFinal?.(text);
+    };
+
     if (this.plugin.addListener) {
       if (onPartial) {
         const h = await this.plugin.addListener("sttPartial", (d) => {
           const t = d.text;
-          if (t) onPartial(t);
+          // Don't emit partials once we've settled (final/error already delivered).
+          if (t && !settled) onPartial(t);
         });
         this.sttListenerHandles.push(h);
       }
-      if (onFinal) {
-        const h = await this.plugin.addListener("sttFinal", (d) => {
-          onFinal(d.text ?? "");
-        });
-        this.sttListenerHandles.push(h);
-      }
-      if (onError) {
-        const h = await this.plugin.addListener("sttError", (d) => {
-          onError(new Error(d.error ?? "stt_error"));
-        });
-        this.sttListenerHandles.push(h);
-      }
+      const finalHandle = await this.plugin.addListener("sttFinal", (d) => {
+        settleFinal(d.text ?? "");
+      });
+      this.sttListenerHandles.push(finalHandle);
+      const errorHandle = await this.plugin.addListener("sttError", (d) => {
+        settleError(new Error(d.error ?? "stt_error"));
+      });
+      this.sttListenerHandles.push(errorHandle);
     }
     try {
       const cur = await this.plugin.checkPermissions();
       if (cur.speechRecognition !== "granted") {
         const req = await this.plugin.requestPermissions();
         if (req.speechRecognition !== "granted") {
-          onError?.(new Error("speech_recognition_permission_denied"));
+          settleError(new Error("speech_recognition_permission_denied"));
           return;
         }
       }
     } catch (e) {
-      onError?.(e instanceof Error ? e : new Error(String(e)));
+      settleError(e instanceof Error ? e : new Error(String(e)));
       return;
     }
     try {
       await this.plugin.startListening(serializable);
     } catch (e) {
-      onError?.(e instanceof Error ? e : new Error(String(e)));
+      settleError(e instanceof Error ? e : new Error(String(e)));
     }
   }
 
@@ -278,7 +322,7 @@ class CommunityPluginAdapter implements VoiceAdapter {
     this.listeningNow = true;
     try {
       const result = await this.stt.start({
-        language: opts.locale,
+        language: normalizeSpeechLocale(opts.locale),
         partialResults: opts.partialResults ?? true,
         popup: false,
       });

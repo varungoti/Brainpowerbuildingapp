@@ -9,7 +9,7 @@
 // ============================================================================
 
 import type { STTOptions, TTSOptions, VoiceAdapter, VoiceCapabilities } from "./voiceAdapter";
-import { getSpeechLang } from "./voiceNarrator";
+import { normalizeSpeechLocale } from "./speechLocale";
 
 interface SpeechRecognitionLike {
   lang: string;
@@ -60,7 +60,7 @@ export class WebVoiceAdapter implements VoiceAdapter {
     this.cancelSpeech();
     return new Promise<void>((resolve) => {
       const u = new SpeechSynthesisUtterance(opts.text);
-      const lang = opts.locale ? getSpeechLang(opts.locale) : "en-US";
+      const lang = normalizeSpeechLocale(opts.locale);
       u.lang = lang;
       u.rate = opts.rate ?? 0.95;
       u.pitch = opts.pitch ?? 1.0;
@@ -97,7 +97,7 @@ export class WebVoiceAdapter implements VoiceAdapter {
     }
     this.stopListening();
     const r = new Ctor();
-    r.lang = opts.locale ? getSpeechLang(opts.locale) : "en-US";
+    r.lang = normalizeSpeechLocale(opts.locale);
     r.interimResults = !!opts.partialResults;
     r.continuous = false;
 
