@@ -6,13 +6,7 @@ import { isPaymentsRemotelyDisabled } from "@/utils/featureFlags";
 import { useRemoteAppFlags } from "@/app/context/RemoteConfigContext";
 import { captureProductEvent } from "@/utils/productAnalytics";
 import { useOnlineStatus } from "@/utils/networkStatus";
-
-const PLANS = [
-  { id:"day1",   days:1,   price:100,   pricePerDay:100, label:"1 Day",   badge:null,           color:"#64748b" },
-  { id:"day7",   days:7,   price:600,   pricePerDay:86,  label:"7 Days",  badge:"Save ₹100",    color:"#4361EE" },
-  { id:"day30",  days:30,  price:2000,  pricePerDay:67,  label:"30 Days", badge:"Most Popular",  color:"#7209B7" },
-  { id:"day365", days:365, price:18000, pricePerDay:49,  label:"1 Year",  badge:"Best Value",    color:"#F72585" },
-];
+import { LAUNCH_PAYWALL_PLANS, LAUNCH_PRICING_COPY, getLaunchPaywallPlan } from "@/lib/revenue/launchPricing";
 
 const VALUE_PROPS = [
   { emoji:"🧠", title:"Research-Backed",  desc:"25+ global methods, 15 brain regions, 70+ curated activities" },
@@ -43,7 +37,7 @@ export function PaywallScreen() {
   const paymentsKilled =
     isPaymentsRemotelyDisabled() || remoteFlags.payments_remote_kill === true;
   const checkoutReady = hasServerConfig && !paymentsKilled;
-  const [selected, setSelected]   = useState("day30");
+  const [selected, setSelected]   = useState("premium_year");
   const [step, setStep]           = useState<PayStep>("plan");
   const [processing, setProcessing] = useState(false);
   const [payError, setPayError]   = useState<string | null>(null);
@@ -58,7 +52,7 @@ export function PaywallScreen() {
   );
   const missedActivities = ACTIVITIES.filter(a => a.ageTiers.includes(tier > 0 ? tier : 1)).slice(0, 3);
 
-  const plan = PLANS.find(p => p.id === selected)!;
+  const plan = getLaunchPaywallPlan(selected);
 
   useEffect(() => {
     if (step !== "plan") return;
@@ -85,7 +79,7 @@ export function PaywallScreen() {
       age_tier: tier,
       plan_id: plan.id,
       days: plan.days,
-      amount_inr: plan.price,
+      amount_inr: plan.priceInr,
     });
     try {
       // 1. Load Razorpay SDK
@@ -97,7 +91,7 @@ export function PaywallScreen() {
         {
           method: "POST",
           headers: { "Authorization": `Bearer ${publicAnonKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: plan.price }),
+          body: JSON.stringify({ amount: plan.priceInr }),
         }
       );
       const orderData = await orderRes.json();
@@ -135,7 +129,7 @@ export function PaywallScreen() {
                 age_tier: tier,
                 plan_id: plan.id,
                 days: plan.days,
-                amount_inr: plan.price,
+                amount_inr: plan.priceInr,
               });
               addCredits(plan.days);
               setStep("success");
@@ -271,12 +265,12 @@ export function PaywallScreen() {
 
         {/* Value comparison */}
         <div className="rounded-2xl p-4" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
-          <div className="text-white/50 text-xs font-semibold mb-3 uppercase tracking-wider">Why ₹100/day is exceptional value</div>
+          <div className="text-white/50 text-xs font-semibold mb-3 uppercase tracking-wider">Launch pricing aligned globally</div>
           <div className="space-y-2">
             {[
-              { label:"Traditional tutor",    price:"₹1,500–3,000/mo", cross:true  },
-              { label:"Enrichment class",      price:"₹2,000–5,000/mo", cross:true  },
-              { label:"NeuroSpark 30 days",   price:"₹67/day (₹2,000)", cross:false },
+              { label:"Global Family Premium", price:LAUNCH_PRICING_COPY.globalPremiumAnnual, cross:false },
+              { label:"India launch annual", price:LAUNCH_PRICING_COPY.indiaAnnualRange, cross:false },
+              { label:"Partner pilot motion", price:LAUNCH_PRICING_COPY.partnerPilotRange, cross:false },
             ].map(item => (
               <div key={item.label} className="flex items-center justify-between">
                 <span className={`text-xs ${item.cross?"text-white/30 line-through":"text-emerald-400 font-semibold"}`}>{item.label}</span>
@@ -290,14 +284,14 @@ export function PaywallScreen() {
         <div>
           <div className="text-white font-bold text-sm mb-3">Choose Your Plan</div>
           <div className="space-y-2.5">
-            {PLANS.map(p => (
+            {LAUNCH_PAYWALL_PLANS.map(p => (
               <button key={p.id} type="button" onClick={() => {
                 setSelected(p.id);
                 captureProductEvent("paywall_plan_select", {
                   age_tier: tier,
                   plan_id: p.id,
                   days: p.days,
-                  amount_inr: p.price,
+                  amount_inr: p.priceInr,
                 });
               }}
                 className="w-full rounded-2xl p-4 text-left transition-all"
@@ -314,20 +308,25 @@ export function PaywallScreen() {
                     </div>
                     <div>
                       <div className="text-white font-bold text-sm">{p.label}</div>
-                      <div className="text-white/40" style={{ fontSize:11 }}>₹{p.pricePerDay}/day</div>
+                      <div className="text-white/40" style={{ fontSize:11 }}>₹{p.pricePerDayInr}/day · {p.offer}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-white font-black text-lg">₹{p.price.toLocaleString()}</div>
+                    <div className="text-white font-black text-lg">₹{p.priceInr.toLocaleString()}</div>
                     {p.badge && (
                       <div className="rounded-full px-2 py-0.5 text-white font-bold text-center mt-0.5"
                         style={{ background:p.color, fontSize:10 }}>{p.badge}</div>
                     )}
                   </div>
                 </div>
-                {selected===p.id && p.id==="day30" && (
+                {selected===p.id && (
                   <div className="mt-3 pt-3 grid grid-cols-2 gap-2" style={{ borderTop:`1px solid ${p.color}30` }}>
-                    {["30 daily pack credits","90–150 activities","All 15 brain regions","Brain Map tracking"].map(f => (
+                    {[
+                      `${p.days} daily pack credits`,
+                      "Printable parent guides",
+                      "AI counselor + coach",
+                      "Brain Map tracking",
+                    ].map(f => (
                       <div key={f} className="flex items-center gap-1">
                         <span style={{ color:p.color, fontSize:10 }}>✓</span>
                         <span className="text-white/60" style={{ fontSize:10 }}>{f}</span>
@@ -378,7 +377,7 @@ export function PaywallScreen() {
               Connecting to Razorpay...
             </span>
           ) : (
-            `Pay ₹${plan.price.toLocaleString()} via Razorpay →`
+            `Pay ₹${plan.priceInr.toLocaleString()} via Razorpay →`
           )}
         </button>
 

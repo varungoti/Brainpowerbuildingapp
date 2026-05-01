@@ -28,15 +28,26 @@ Set **secrets** (Dashboard → Edge Functions → Secrets, or CLI):
 |--------|----------------|---------|
 | `RAZORPAY_KEY_ID` | Live checkout | Razorpay key id |
 | `RAZORPAY_KEY_SECRET` | Live checkout | Razorpay secret (verify signature) |
-| `OPENAI_API_KEY` | Live AI (optional) | If unset, AI Counselor returns **demo** JSON |
+| `FIREWORKS_API_KEY` | Fireworks AI text/images | Primary provider for AI Counselor, Coach, voice turns, narratives, and printable guide generation |
+| `OPENAI_API_KEY` | AI fallback (optional) | OpenAI-compatible fallback when Fireworks is paused, unavailable, or over cap |
+| `FIREWORKS_BUDGET_MODEL` | No | Default short-turn model override, e.g. `accounts/fireworks/models/gpt-oss-20b` |
+| `FIREWORKS_QUALITY_MODEL` | No | Default structured-output model override, e.g. `accounts/fireworks/models/gpt-oss-120b` |
+| `FIREWORKS_IMAGE_MODEL` | No | Default printable illustration model, e.g. `flux-1-schnell-fp8` |
+| `AI_MONTHLY_USD_CAP` | No | 30-day AI spend cap before deterministic fallback, default `$75` |
+| `IMAGE_SVC_URL` | Printable image fallback | Existing image service URL for fallback illustration generation |
+| `IMAGE_SVC_TOKEN` | Printable image fallback | Bearer token for `automation/image-svc` |
 | `ALLOWED_ORIGINS` | Production web | Comma-separated origins, e.g. `https://app.yoursite.com` |
-| `REMOTE_CONFIG_JSON` | No | Runtime flags JSON, e.g. `{"payments_remote_kill":false,"ai_counselor_paused":false}` |
+| `REMOTE_CONFIG_JSON` | No | Runtime flags JSON, e.g. `{"payments_remote_kill":false,"ai_fireworks_paused":false}` |
 
 ### Remote flags (runtime, no app rebuild)
 
 - **HTTP:** `GET /functions/v1/make-server-76b0ba9a/remote-config` (also mounted at `/remote-config` for Supabase path stripping).
 - **Merge order:** defaults → `REMOTE_CONFIG_JSON` env → KV key `remote_config:flags` (if you set it via tooling).
-- **Supported flags:** `payments_remote_kill`, `ai_counselor_paused` (booleans).
+- **Supported flags:** `payments_remote_kill`, `ai_counselor_paused`, `ai_fireworks_paused`, `ai_images_paused`, `ai_printables_paused`, `ai_force_deterministic` (booleans).
+- `ai_fireworks_paused` disables Fireworks but keeps OpenAI/deterministic fallback.
+- `ai_images_paused` disables generated illustrations and keeps icon fallback.
+- `ai_printables_paused` hides the printable guide action in the app.
+- `ai_force_deterministic` forces all new AI routes to use deterministic fallbacks.
 
 ## 3. GitHub Actions (optional)
 

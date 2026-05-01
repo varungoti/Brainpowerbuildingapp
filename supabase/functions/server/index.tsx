@@ -12,6 +12,13 @@ import {
   type CoachResponse,
 } from "./coach_shared.ts";
 import { registerAdminRoutes } from "./admin.tsx";
+import { chatJson, chatText, streamChat } from "./ai_provider.ts";
+import {
+  activityCoachingSchema,
+  aiCounselorSchema,
+  coachResponseSchema,
+} from "./ai_schemas.ts";
+import { generatePrintableGuide } from "./printable_guide.ts";
 
 const app = new Hono();
 
@@ -58,6 +65,12 @@ function truncateString(s: unknown, max: number): string {
   if (typeof s !== "string") return "";
   const cleaned = s.replace(/[\u0000-\u001f\u007f]/g, " ");
   return cleaned.length > max ? cleaned.slice(0, max) : cleaned;
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input.trim().toLowerCase());
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
@@ -153,6 +166,63 @@ app.post("/make-server-76b0ba9a/analytics/event", async (c) => {
     return c.json({ ok: false }, 500);
   }
 });
+
+const LEAD_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function postGrowthLead(c: Context) {
+  const rateLimit = await enforceRateLimit(c, "growth-lead", 10, 300);
+  if (rateLimit) return rateLimit;
+
+  const contentType = c.req.header("content-type") ?? "";
+  const body = contentType.includes("application/json")
+    ? await c.req.json().catch(() => ({}))
+    : Object.fromEntries(Object.entries(await c.req.parseBody().catch(() => ({}))).map(([k, v]) => [k, String(v)]));
+  const email = truncateString((body as Record<string, unknown>).email, 320).trim().toLowerCase();
+  if (!LEAD_EMAIL_RE.test(email)) return c.json({ ok: false, error: "invalid_email" }, 400);
+
+  const segment = truncateString((body as Record<string, unknown>).segment, 40) || "parent";
+  const leadMagnet = truncateString((body as Record<string, unknown>).lead_magnet ?? (body as Record<string, unknown>).leadMagnet, 120) || "unknown";
+  const source = truncateString((body as Record<string, unknown>).source, 80) || "marketing-site";
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return c.json({ ok: false, error: "server_misconfigured" }, 500);
+
+  const emailHash = await sha256Hex(email);
+  const sb = createClient(url, serviceKey);
+  const suppression = await sb
+    .from("growth_compliance_suppression")
+    .select("id")
+    .eq("channel", "email")
+    .eq("value_hash", emailHash)
+    .maybeSingle();
+  if (suppression.data?.id) return c.json({ ok: false, error: "suppressed" }, 403);
+
+  const { error } = await sb.from("growth_leads").upsert(
+    {
+      email,
+      email_hash: emailHash,
+      segment,
+      lead_magnet: leadMagnet,
+      source,
+      utm_source: truncateString((body as Record<string, unknown>).utm_source, 120) || null,
+      utm_medium: truncateString((body as Record<string, unknown>).utm_medium, 120) || null,
+      utm_campaign: truncateString((body as Record<string, unknown>).utm_campaign, 120) || null,
+      consent_marketing: (body as Record<string, unknown>).consent_marketing !== "false",
+      status: "new",
+      metadata: {
+        userAgent: truncateString(c.req.header("user-agent"), 300),
+        capturedAt: new Date().toISOString(),
+      },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "email_hash" },
+  );
+  if (error) return c.json({ ok: false, error: error.message }, 500);
+  return c.json({ ok: true });
+}
+
+app.post("/make-server-76b0ba9a/growth/lead", postGrowthLead);
+app.post("/growth/lead", postGrowthLead);
 
 // ─── Community Ratings ─────────────────────────────────────────────────────────
 const ACTIVITY_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -979,13 +1049,6 @@ async function postAiCounselor(c: Context) {
     const { concern, childAge, tier, category } = await c.req.json();
     if (!concern || !category) return c.json({ error: "Missing concern or category" }, 400);
 
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
-
-    if (!apiKey) {
-      const demo = DEMO_RESPONSES[category] ?? DEMO_RESPONSES["behavior"];
-      return c.json({ success: true, data: demo, isDemo: true });
-    }
-
     const systemPrompt = `You are NeuroSpark's world-class child development AI advisor — a synthesis of pediatric neuroscience, developmental psychology, behavioral therapy, nutritional science, cultural child-rearing wisdom, and mindfulness research. You have deep knowledge of Harvard Child Development, Johns Hopkins Pediatrics, WHO guidelines, AAP recommendations, and global parenting traditions from India, Japan, China, Korea, Scandinavia, and Western educational science.
 
 When a parent shares a concern about their child (age ${childAge}, developmental tier ${tier}):
@@ -1021,40 +1084,31 @@ Return ONLY valid JSON in this exact structure:
   "references": ["Author, A.B. (Year). Title. Journal. Vol(Issue), Pages.", ... 20-25 references]
 }`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Parent's concern about their ${childAge}-year-old child (Category: ${category}): "${concern}"\n\nPlease provide comprehensive, research-backed guidance with exactly 3 solutions and 20-25 academic references. Return only valid JSON.` }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000,
-      }),
+    const result = await chatJson<object>({
+      route: "ai-counselor",
+      quality: "quality",
+      schemaName: "AiCounselorResponse",
+      schema: aiCounselorSchema,
+      temperature: 0.55,
+      maxTokens: 4000,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Parent's concern about their ${childAge}-year-old child (Category: ${category}): "${concern}"\n\nPlease provide comprehensive, research-backed guidance with exactly 3 solutions and 20-25 academic references. Return only valid JSON.` },
+      ],
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.log("OpenAI API error:", errText);
+    if (!result) {
       const demo = DEMO_RESPONSES[category] ?? DEMO_RESPONSES["behavior"];
       return c.json({ success: true, data: demo, isDemo: true });
     }
 
-    const aiResult = await response.json();
-    const content = aiResult.choices?.[0]?.message?.content ?? "";
-    let parsed;
-    try {
-      const clean = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      parsed = JSON.parse(clean);
-    } catch {
-      console.log("JSON parse error, falling back to demo:", content.slice(0, 200));
-      const demo = DEMO_RESPONSES[category] ?? DEMO_RESPONSES["behavior"];
-      return c.json({ success: true, data: demo, isDemo: true });
-    }
-
-    return c.json({ success: true, data: parsed, isDemo: false });
+    return c.json({
+      success: true,
+      data: result.data,
+      isDemo: false,
+      provider: result.provider,
+      model: result.model,
+    });
   } catch (e) {
     console.log("ai-counselor error:", e);
     return c.json({ error: String(e) }, 500);
@@ -1103,6 +1157,37 @@ function sanitizeCoachMessages(messages: unknown): CoachChatMessage[] {
     .slice(-8);
 }
 
+function normalizeCoachResponse(parsed: Partial<CoachResponse>, fallback: CoachResponse, isPremium: boolean): CoachResponse {
+  return {
+    insights: typeof parsed.insights === "string" ? parsed.insights : fallback.insights,
+    summary: typeof parsed.summary === "string" ? parsed.summary : fallback.summary,
+    strengths: Array.isArray(parsed.strengths)
+      ? parsed.strengths.filter((item): item is string => typeof item === "string")
+      : fallback.strengths,
+    improvements: Array.isArray(parsed.improvements)
+      ? parsed.improvements.filter((item): item is string => typeof item === "string")
+      : fallback.improvements,
+    dailyPlan: Array.isArray(parsed.dailyPlan)
+      ? parsed.dailyPlan.filter(
+          (item): item is CoachResponse["dailyPlan"][number] =>
+            !!item &&
+            typeof item === "object" &&
+            typeof item.timeOfDay === "string" &&
+            typeof item.title === "string" &&
+            typeof item.description === "string" &&
+            typeof item.duration === "string" &&
+            typeof item.regionKey === "string",
+        )
+      : fallback.dailyPlan,
+    weeklyFocus: Array.isArray(parsed.weeklyFocus)
+      ? parsed.weeklyFocus.filter((item): item is string => typeof item === "string")
+      : fallback.weeklyFocus,
+    chatReply: typeof parsed.chatReply === "string" ? parsed.chatReply : fallback.chatReply,
+    disclaimer: typeof parsed.disclaimer === "string" ? parsed.disclaimer : fallback.disclaimer,
+    isPremium,
+  };
+}
+
 async function postCoach(c: Context) {
   try {
     const rateLimit = await enforceRateLimit(c, "coach", 24, 600);
@@ -1126,17 +1211,17 @@ async function postCoach(c: Context) {
     const messages = sanitizeCoachMessages(body.messages);
 
     const fallback = buildCoachFallback(profile, scores, { question, isPremium });
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!apiKey) {
-      return c.json({ success: true, data: fallback, isDemo: true });
-    }
 
     const isActivityMode = body.mode === "activity-coaching" && body.activityContext;
     let systemPrompt: string;
     let userMessage: string;
+    let schema: unknown = coachResponseSchema;
+    let schemaName = "CoachResponse";
 
     if (isActivityMode) {
       const ctx = body.activityContext!;
+      schema = activityCoachingSchema;
+      schemaName = "ActivityCoachingResponse";
       systemPrompt = [
         `You are a child development activity coach. The parent is doing "${ctx.name ?? "an activity"}" with their child (age ${profile.age}).`,
         `Activity region: ${ctx.region ?? "General"}, intelligences: ${(ctx.intelligences ?? []).join(", ")}, duration: ${ctx.duration ?? "unknown"} min.`,
@@ -1187,65 +1272,34 @@ async function postCoach(c: Context) {
         : "Create the initial AI parenting coach response now.";
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.7,
-        max_tokens: 2200,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage },
-        ],
-      }),
+    const result = await chatJson<Partial<CoachResponse>>({
+      route: "coach",
+      quality: isActivityMode ? "budget" : "quality",
+      schemaName,
+      schema,
+      temperature: 0.55,
+      maxTokens: 2200,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
     });
 
-    if (!response.ok) {
+    if (!result) {
       return c.json({ success: true, data: fallback, isDemo: true });
     }
 
-    const aiResult = await response.json();
-    const content = aiResult.choices?.[0]?.message?.content ?? "";
-    try {
-      const clean = String(content).replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const parsed = JSON.parse(clean) as Partial<CoachResponse>;
-      const normalized: CoachResponse = {
-        insights: typeof parsed.insights === "string" ? parsed.insights : fallback.insights,
-        summary: typeof parsed.summary === "string" ? parsed.summary : fallback.summary,
-        strengths: Array.isArray(parsed.strengths)
-          ? parsed.strengths.filter((item): item is string => typeof item === "string")
-          : fallback.strengths,
-        improvements: Array.isArray(parsed.improvements)
-          ? parsed.improvements.filter((item): item is string => typeof item === "string")
-          : fallback.improvements,
-        dailyPlan: Array.isArray(parsed.dailyPlan)
-          ? parsed.dailyPlan.filter(
-              (item): item is CoachResponse["dailyPlan"][number] =>
-                !!item &&
-                typeof item === "object" &&
-                typeof item.timeOfDay === "string" &&
-                typeof item.title === "string" &&
-                typeof item.description === "string" &&
-                typeof item.duration === "string" &&
-                typeof item.regionKey === "string",
-            )
-          : fallback.dailyPlan,
-        weeklyFocus: Array.isArray(parsed.weeklyFocus)
-          ? parsed.weeklyFocus.filter((item): item is string => typeof item === "string")
-          : fallback.weeklyFocus,
-        chatReply: typeof parsed.chatReply === "string" ? parsed.chatReply : fallback.chatReply,
-        disclaimer: typeof parsed.disclaimer === "string" ? parsed.disclaimer : fallback.disclaimer,
-        isPremium,
-      };
+    const normalized = isActivityMode
+      ? result.data
+      : normalizeCoachResponse(result.data, fallback, isPremium);
 
-      return c.json({ success: true, data: normalized, isDemo: false });
-    } catch {
-      return c.json({ success: true, data: fallback, isDemo: true });
-    }
+    return c.json({
+      success: true,
+      data: normalized,
+      isDemo: false,
+      provider: result.provider,
+      model: result.model,
+    });
   } catch (e) {
     console.log("coach error:", e);
     return c.json({ success: false, error: "coach_failed" }, 500);
@@ -1254,6 +1308,30 @@ async function postCoach(c: Context) {
 
 app.post("/make-server-76b0ba9a/coach", postCoach);
 app.post("/coach", postCoach);
+
+async function postPrintableGuide(c: Context) {
+  try {
+    const rateLimit = await enforceRateLimit(c, "printable-guide", 12, 3600);
+    if (rateLimit) return rateLimit;
+
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return c.json({ success: false, error: "invalid_payload" }, 400);
+    }
+    const rawActivities = (body as { activities?: unknown }).activities;
+    if (!Array.isArray(rawActivities) || rawActivities.length === 0) {
+      return c.json({ success: false, error: "missing_activities" }, 400);
+    }
+    const guide = await generatePrintableGuide(body as Parameters<typeof generatePrintableGuide>[0]);
+    return c.json({ success: true, guide });
+  } catch (e) {
+    console.error("printable guide error:", e);
+    return c.json({ success: false, error: "printable_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/printable/guide", postPrintableGuide);
+app.post("/printable/guide", postPrintableGuide);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Companion Coach Memory — Survivor 1.
@@ -1519,6 +1597,10 @@ async function getRemoteConfig(c: Context) {
   const defaults: Record<string, boolean> = {
     payments_remote_kill: false,
     ai_counselor_paused: false,
+    ai_fireworks_paused: false,
+    ai_images_paused: false,
+    ai_printables_paused: false,
+    ai_force_deterministic: false,
   };
   let fromEnv: Record<string, boolean> = {};
   try {
@@ -1703,17 +1785,6 @@ async function postNarrativeGenerate(c: Context) {
           .filter((m) => !!m)
       : [];
 
-    const openaiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiKey) {
-      return c.json({
-        narrative: `${childName} had a wonderful week with ${activityCount} activities completed. ` +
-          `They earned ${bpEarned} brain points and are on a ${streak}-day streak. Keep up the great work!`,
-        generatedAt: new Date().toISOString(),
-        model: "fallback",
-        cached: false,
-      });
-    }
-
     const deltaText = regionDeltas
       .map((r) => `${r.name}: ${r.before} → ${r.after} (${r.trend})`)
       .join("\n");
@@ -1738,19 +1809,31 @@ Tone: warm, specific, encouraging but honest. Use ${childName} naturally. Max 20
       2048,
     );
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${openaiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: prompt }], max_tokens: 400 }),
+    const generated = await chatText({
+      route: "narrative-generate",
+      quality: "budget",
+      maxTokens: 400,
+      temperature: 0.55,
+      messages: [{ role: "user", content: prompt }],
     });
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error("narrative generate: OpenAI non-OK:", res.status, errText);
-      return c.json({ error: "narrative_unavailable" }, 502);
+
+    if (!generated) {
+      return c.json({
+        narrative: `${childName} had a wonderful week with ${activityCount} activities completed. ` +
+          `They earned ${bpEarned} brain points and are on a ${streak}-day streak. Keep up the great work!`,
+        generatedAt: new Date().toISOString(),
+        model: "fallback",
+        cached: false,
+      });
     }
-    const data = await res.json();
-    const narrative = data.choices?.[0]?.message?.content?.trim() ?? "Unable to generate narrative.";
-    return c.json({ narrative, generatedAt: new Date().toISOString(), model: "gpt-4o-mini", cached: false });
+
+    return c.json({
+      narrative: generated.text,
+      generatedAt: new Date().toISOString(),
+      model: generated.model,
+      provider: generated.provider,
+      cached: false,
+    });
   } catch (e) {
     console.error("narrative generate error:", e);
     return c.json({ error: "narrative_failed" }, 500);
@@ -1899,8 +1982,17 @@ async function postVoiceTurn(c: Context) {
   const systemPrompt = VOICE_AGENT_PROMPTS[agent] ?? VOICE_AGENT_PROMPTS.coach;
   if (!utterance) return c.json({ error: "empty_utterance" }, 400);
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) return c.json({ error: "voice_unavailable" }, 503);
+  const upstream = await streamChat({
+    route: "voice-turn",
+    quality: "budget",
+    maxTokens: 500,
+    temperature: 0.45,
+    messages: [
+      { role: "system", content: `${systemPrompt}\nReply in ${locale}.` },
+      { role: "user", content: utterance },
+    ],
+  });
+  if (!upstream?.body) return c.json({ error: "voice_unavailable" }, 503);
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -1909,25 +2001,13 @@ async function postVoiceTurn(c: Context) {
         controller.enqueue(enc.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
       try {
-        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            stream: true,
-            messages: [
-              { role: "system", content: `${systemPrompt}\nReply in ${locale}.` },
-              { role: "user", content: utterance },
-            ],
-          }),
-        });
-        if (!resp.ok || !resp.body) {
+        const upstreamBody = upstream.body;
+        if (!upstreamBody) {
           send("error", { message: "upstream_error" });
           controller.close();
           return;
         }
-
-        const reader = resp.body.getReader();
+        const reader = upstreamBody.getReader();
         const dec = new TextDecoder();
         let buf = "";
         let assembled = "";

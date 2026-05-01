@@ -1,5 +1,128 @@
 # Progress
 
+## Global Revenue Plan full implementation assets
+
+Completed all existing plan todos at the repo-implementation level without editing the source plan file:
+
+- `docs/growth/LAUNCH_FOUNDATION.md` — ICPs, positioning, offers, conversion assets, analytics checklist.
+- `docs/growth/PRELAUNCH_AUDIENCE_PLAYBOOK.md` — daily rhythm, content pillars, 30 hooks, creator/community templates.
+- `docs/growth/SOFT_LAUNCH_PLAYBOOK.md` — cohort setup, activation gates, offer tests, feedback questions.
+- `docs/growth/REVENUE_SPRINT_PLAYBOOK.md` — 30-day challenge, webinar, founder offer, affiliate motion.
+- `docs/growth/PARTNERSHIP_ENGINE.md` — segment targets, partner pitch, outbound targets, demo agenda.
+- `docs/growth/GLOBAL_SCALE_PLAYBOOK.md` — market priorities, global launch, $1M scale path, $10M paths.
+- `docs/growth/WEEKLY_REVIEW_TEMPLATE.md` — weekly founder review, funnel/channel/product readiness and next OKRs.
+- `docs/growth/REVENUE_SOURCE_EXPERIMENTS.md` — 12 monetization experiments and kill rules.
+- `automation/growth-campaigns/seed-campaigns.json` and README — first 10 campaign definitions, dry-run and approval-gated by default.
+- `automation/n8n/workflows/growth_weekly_review_dry_run.json` — dry-run weekly review workflow scaffold.
+- `scripts/seed-growth-campaigns.mjs` and `pnpm run growth:seed-campaigns` — seeds campaign drafts through the admin API once production auth is available.
+- Updated `scripts/growth-production-check.ts` so `pnpm run growth:check` validates seeded campaigns and weekly review assets.
+- Added first-class seeded ICP definitions and scoring rules in `growth_icp_definitions`.
+- Added first-class revenue source experiment tracking in `growth_revenue_sources`.
+- Extended admin Growth overview/API/UI to show ICP definitions, revenue source tests, opportunity radar, and campaign calendar.
+- Added Mautic admin status/summary endpoints and `automation/mautic/segments-and-campaigns.json`.
+- Added n8n dry-run workflow pack for market intelligence, opportunity discovery, campaign planning, Mautic sync, Postiz scheduling, partner follow-up, and weekly review.
+- Added Hermes `schedules.json` and B2B SDR skill adaptation notes.
+- Seeded plan revenue milestones as Growth Command Center revenue checkpoints.
+- Added `src/lib/growth/growthRules.ts` plus `growthRules.test.ts` covering OKR scoring, suppression masking, approval transitions, admin role permissions, and live automation gates.
+- Added `src/lib/growth/growthPlanArtifacts.test.ts` to protect the plan playbooks, campaign seeds, n8n workflows, Mautic templates, Hermes schedules, and seeded Growth Command Center schema assets from regression.
+
+Verification:
+
+- `pnpm run growth:check` passed.
+- `pnpm run typecheck` passed.
+- `pnpm --filter @neurospark/admin build` passed.
+- `pnpm --filter marketing-site build` passed.
+- Final deeper-pass verification: `pnpm run growth:check` passed and `pnpm --filter @neurospark/admin build` passed.
+- Final Phase G test pass: `pnpm exec vitest run src/lib/growth/growthRules.test.ts` passed, and `pnpm run growth:check` passed with the new unit-coverage requirement.
+- Final artifact-regression pass: `pnpm exec vitest run src/lib/growth/growthRules.test.ts src/lib/growth/growthPlanArtifacts.test.ts` passed (11 tests), and `pnpm run growth:check` passed with artifact coverage.
+
+## Growth Command Center production build
+
+Implemented the aggressive revenue operating system in the repo:
+
+- Added `supabase/migrations/00016_growth_command_center.sql` with daily OKRs, key results, revenue checkpoints, opportunities, campaigns, approval queue, production readiness scores, kill switches, suppression list, Hermes/agent briefs, experiments, automation runs, RLS policies, default kill switches, and seeded readiness scores.
+- Extended `supabase/functions/server/admin.tsx` with `/admin/growth/*` endpoints for overview, OKR creation/scoring, checkpoints, leads, approvals, kill-switch toggles, readiness updates, suppression, agent briefs, opportunities, campaigns, experiments, automation runs, and dry-run webhook intake for n8n/Mautic.
+- Added public `/growth/lead` endpoint in `supabase/functions/server/index.tsx` with rate limiting, hashed suppression checks, and no child data.
+- Added `admin/src/pages/growth/GrowthCommandCenterPage.tsx` and wired it into `admin/src/App.tsx` plus `admin/src/components/Sidebar.tsx`; the page now includes manual controls for opportunities, campaigns, experiments, suppression, readiness, approval requests, OKR scoring, and lead visibility.
+- Added safe scaffolding: `automation/mautic/.env.example`, `automation/mautic/README.md`, `automation/hermes/growth-agent.prompt.md`, `automation/hermes/README.md`, and `automation/n8n/workflows/lib/growth_approval_gate.json`.
+- Added `docs/GROWTH_COMMAND_CENTER_PRODUCTION.md` with deployment gates, daily workflow, safe automation rules, and manual production dependencies.
+- Added `src/lib/revenue/launchPricing.ts`, aligned `PaywallScreen.tsx` and `marketing-site/src/pages/pricing.astro`, and added `marketing-site/src/pages/ai-age-starter-pack.astro`.
+- Added `scripts/growth-production-check.ts` and `pnpm run growth:check`.
+
+Verification performed:
+
+- IDE diagnostics clean for edited admin/server files.
+- `pnpm --filter @neurospark/admin typecheck` passed.
+- `pnpm --filter @neurospark/admin build` passed.
+- `pnpm run growth:check` passed.
+- `pnpm run typecheck` passed.
+- `pnpm --filter marketing-site build` passed.
+
+## Railway/online hosting preparation
+
+Added hosting artifacts:
+
+- Root `Dockerfile` and `railway.json` for the consumer app.
+- `admin/Dockerfile` and `admin/railway.json` for the admin app.
+- `marketing-site/Dockerfile` and `marketing-site/railway.json` for the marketing site.
+- `docs/RAILWAY_HOSTING.md` with service layout, required variables, deployment order, and smoke tests.
+
+Deployment status:
+
+- Railway MCP tools are not available in the workspace descriptor folder, so no Railway MCP deployment could be invoked.
+- Railway CLI is installed but not authenticated: `railway whoami` returns `invalid_grant` and asks for `railway login`.
+- Supabase CLI path found `.env.supabase`, but `pnpm run supabase:db:push` failed because `SUPABASE_DB_PASSWORD` is missing or invalid.
+- Docker CLI is installed, but Docker Desktop/Linux engine is not running, so local Docker image build smoke tests cannot run.
+- Cloudflare path is not available because `wrangler` and `CLOUDFLARE_API_TOKEN` are absent.
+
+Verification status for hosting prep:
+
+- Root app production build passed.
+- Admin app production build passed.
+- Single-worker Vitest run passed after default `pnpm run verify` hit Vitest worker startup timeouts.
+
+## Global revenue growth plan enhancement
+
+Updated `global-revenue-growth_c81045bc.plan.md` with:
+
+- Aggressive revenue operating model for the $10M-by-end-2026 goal.
+- Revenue milestone ladder with base, stretch, and overachievement deadlines.
+- Daily revenue targets and recovery-day policy.
+- Daily OKR system with scoring, owner/evidence fields, and 14-day streak tracking.
+- Daily learning loop and Hermes/n8n strategy adjustment brief format.
+- Weekly experiment cadence across pricing, paywall, landing pages, creators, partners, hooks, printables, and webinars.
+- 200% production-readiness standard requiring fallbacks, observability, kill switches, audit logs, suppression checks, and release gates before live automation.
+- Daily overachievement playbook and daily admin OKR workflow.
+
+## Working
+
+## Working
+
+- App has deterministic daily activity pack generation via `runAGE()`.
+- App has AI Counselor, Coach, weekly narrative, and voice turn routes in Supabase Edge Functions.
+- App has deterministic coach and activity guidance fallbacks.
+- Image/video automation services exist with provider routing and cost ledger support.
+- Content validation checks reviewed activities and media prompt packet safety sections.
+
+## Implemented
+
+- Fireworks/OpenAI-compatible provider layer for text, structured JSON, streaming, image generation, fallbacks, cost estimation, and cost ledger writes.
+- AI Counselor, Coach, weekly narrative, voice turn, and legacy coach route now route through the provider abstraction.
+- Printable parent guide schema, deterministic fallback, client cache/API, server generator, and daily pack preview/actions.
+- Fireworks FLUX provider in `automation/image-svc` plus direct printable image generation and fallback to image service/icons.
+- Runtime rollout flags and setup docs for Fireworks, image generation, printables, force-deterministic mode, and monthly caps.
+- Admin cost page labels AI route spend rows.
+
+## Known Gaps
+
+- Production secrets and real provider smoke tests must be completed in staging/deployment.
+- `@react-pdf/renderer` remains available, while the current first pass provides in-app print and HTML download actions.
+
+## Completion Criteria
+
+- Full verification passed locally.
+# Progress
+
 ## FUTURE_ROADMAP §1.2.I — Auth + onboarding + first-activity loop covered by Playwright E2E (April 2026, night +3, +follow-up #5)
 Closes the **last open §1.2.I "Cross-cutting hardening" bullet** — every item under that section is now ✅ shipped.
 

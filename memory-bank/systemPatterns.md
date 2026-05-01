@@ -1,5 +1,28 @@
 # System Patterns
 
+## Architecture
+
+- The Vite/Capacitor app calls Supabase Edge Functions for server-side AI work.
+- AI provider keys belong in Edge Function secrets or automation service env vars, not `VITE_*` variables.
+- Existing AI routes live mainly in `supabase/functions/server/index.tsx`.
+- Existing deterministic fallbacks live in app/shared modules such as `src/lib/coach/generateCoachPrompt.ts` and the static activity catalog.
+- Studio and image/video automation already use a `studio_cost_ledger` cost table and provider abstraction patterns.
+
+## Preferred Patterns
+
+- Add shared provider modules instead of duplicating raw provider fetch calls.
+- Validate model output with explicit schemas and normalization before UI rendering.
+- Cache expensive generated artifacts by stable hashes where possible.
+- Treat image generation as optional enrichment with icon/shape fallbacks.
+- Use existing design language: gradients, rounded cards, intelligence colors, competency badges, and accessible contrast helpers.
+
+## Guardrails
+
+- Do not remove or orphan existing `AppView` routes.
+- Do not replace deterministic pack selection with LLM-only behavior.
+- Generated printables should enrich `runAGE()` packs, not make pack generation dependent on external AI.
+# System Patterns
+
 ## Application architecture
 - Single-page React/Vite app.
 - Primary app state lives in `AppContext`.

@@ -44,9 +44,20 @@ open http://localhost:5678
 | `posthog_daily_digest.json` | daily | DAU / churn / cost rollup → Slack |
 | `influencer_scraper.json` | weekly | Apify Instagram/YouTube scraper → enrich CRM in Supabase |
 | `reddit_listener.json` | every 15m | r/Parenting + r/toddlers etc. → reply suggestions to Slack |
+| `growth_market_intelligence_dry_run.json` | manual/daily | Draft market intelligence brief only |
+| `growth_opportunity_discovery_dry_run.json` | manual/daily | Create opportunity drafts, no outreach |
+| `growth_campaign_planning_dry_run.json` | manual/weekly | Draft campaign plans into approval queue |
+| `growth_mautic_sync_dry_run.json` | manual | Validate Mautic contact sync payloads |
+| `growth_postiz_scheduling_dry_run.json` | manual | Validate social schedule payloads, no publish |
+| `growth_partner_followup_dry_run.json` | manual | Draft partner follow-ups, no sends |
+| `growth_weekly_review_dry_run.json` | weekly | Generate weekly review brief and next OKR recommendation |
 
 All workflows respect `N8N_MARKETING_MONTHLY_USD_CAP` — every node that calls
 a paid API includes a guard `IF cost_used >= cap THEN halt`.
+
+All `growth_*_dry_run` workflows are intentionally inactive and safe by default.
+They must write to the Growth Command Center and approval queue before any live
+publishing or outreach workflow is enabled.
 
 ## Postiz integration pattern
 

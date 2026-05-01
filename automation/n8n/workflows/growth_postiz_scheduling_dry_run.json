@@ -1,0 +1,26 @@
+{
+  "name": "growth_postiz_scheduling_dry_run",
+  "nodes": [
+    { "parameters": {}, "id": "manual-trigger", "name": "Manual trigger", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0] },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [{ "name": "dryRun", "value": true }, { "name": "approvalRequired", "value": true }],
+          "string": [
+            { "name": "workflowKey", "value": "growth_postiz_scheduling" },
+            { "name": "output", "value": "Validate scheduled social draft payloads. Do not publish." }
+          ]
+        }
+      },
+      "id": "payload",
+      "name": "Dry-run payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [260, 0]
+    }
+  ],
+  "connections": { "Manual trigger": { "main": [[{ "node": "Dry-run payload", "type": "main", "index": 0 }]] } },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "growth-postiz-scheduling-dry-run"
+}

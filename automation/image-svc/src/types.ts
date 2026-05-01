@@ -30,6 +30,7 @@ export interface ImageResult {
 
 export type ProviderId =
   | "ideogram"
+  | "fireworks_flux_schnell"
   | "flux_pro"
   | "flux_schnell_self"
   | "recraft"

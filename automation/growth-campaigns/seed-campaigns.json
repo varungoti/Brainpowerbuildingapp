@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "defaultMode": "dry_run",
+  "approvalRequired": true,
+  "suppressionRequired": true,
+  "campaigns": [
+    {
+      "key": "parent_waitlist_starter_pack",
+      "name": "Parent waitlist: 7-Day AI-Age Starter Pack",
+      "segment": "parents",
+      "channel": "email",
+      "offer": "Free 7-Day AI-Age Starter Pack",
+      "successMetric": "lead submissions and first app signup",
+      "approvalNotes": "Must include unsubscribe and no medical claims."
+    },
+    {
+      "key": "founder_annual",
+      "name": "Founder Annual",
+      "segment": "activated parents",
+      "channel": "email_webinar",
+      "offer": "$79/year or localized annual founder offer",
+      "successMetric": "checkout starts and purchases",
+      "approvalNotes": "Avoid dark-pattern urgency; founder cap must be honest."
+    },
+    {
+      "key": "family_pro",
+      "name": "Family Pro",
+      "segment": "high-intent parents",
+      "channel": "webinar",
+      "offer": "$199-$299 Pro bundle",
+      "successMetric": "Pro purchases or qualified sales calls",
+      "approvalNotes": "Do not imply clinical diagnosis or guaranteed outcomes."
+    },
+    {
+      "key": "creator_affiliate",
+      "name": "Creator Affiliate",
+      "segment": "parenting educators and homeschool creators",
+      "channel": "partner_outreach",
+      "offer": "30%-50% first-year commission plus co-branded starter pack",
+      "successMetric": "creators approved and first promotion live",
+      "approvalNotes": "Affiliate disclosure required."
+    },
+    {
+      "key": "school_pilot",
+      "name": "School / Preschool Pilot",
+      "segment": "preschools and Montessori operators",
+      "channel": "partner_outreach",
+      "offer": "$2,500 pilot for 50-100 families",
+      "successMetric": "demo calls and signed pilots",
+      "approvalNotes": "No sensitive child-level data shared with school."
+    },
+    {
+      "key": "clinic_snapshot",
+      "name": "Clinic Snapshot",
+      "segment": "pediatric clinics and child-development centers",
+      "channel": "partner_outreach",
+      "offer": "Parent observation snapshot and referral bundle",
+      "successMetric": "clinic reviews and pilot proposals",
+      "approvalNotes": "Must say observation, not diagnosis."
+    },
+    {
+      "key": "employer_benefit",
+      "name": "Employer Family Benefit",
+      "segment": "HR and benefits leaders",
+      "channel": "partner_outreach",
+      "offer": "$5k-$15k sponsored pilot or PEPM",
+      "successMetric": "HR conversations and proposal requests",
+      "approvalNotes": "Aggregate reporting only; no child-level employer data."
+    },
+    {
+      "key": "printable_bundle",
+      "name": "Printable Bundle",
+      "segment": "non-subscriber parents",
+      "channel": "email_social",
+      "offer": "$9-$19 printable bundle",
+      "successMetric": "one-time purchases and upsells",
+      "approvalNotes": "Parent-first curation; no manipulative scarcity."
+    },
+    {
+      "key": "ai_age_webinar",
+      "name": "AI-age readiness without more screen time",
+      "segment": "parents and educators",
+      "channel": "webinar",
+      "offer": "Founder Annual and Pro",
+      "successMetric": "registrations, show-up rate, purchases",
+      "approvalNotes": "Review all claims before promotion."
+    },
+    {
+      "key": "weekly_growth_review",
+      "name": "Weekly Growth Review",
+      "segment": "internal",
+      "channel": "admin",
+      "offer": "Operating review",
+      "successMetric": "next-week OKRs created",
+      "approvalNotes": "Internal only."
+    }
+  ]
+}

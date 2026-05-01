@@ -1,6 +1,38 @@
 # Tech Context
 
 ## Stack
+
+- Frontend: React 18, Vite, TypeScript, Tailwind-style utility classes.
+- Mobile: Capacitor Android/iOS.
+- Server: Supabase Edge Functions with Hono-style routing.
+- Data: Supabase Postgres, KV fallback in some Edge paths.
+- Tests: Vitest, Playwright, TypeScript typecheck, ESLint.
+- Package manager: pnpm.
+
+## AI And Media
+
+- Current text AI calls use OpenAI-compatible chat completions in Edge routes.
+- Fireworks.ai is OpenAI-compatible for chat completions and supports structured JSON outputs.
+- Fireworks image generation can use FLUX.1 schnell workflow endpoints.
+- Existing image automation lives in `automation/image-svc`.
+- Existing content validation lives in `scripts/content-validate.ts`.
+
+## Verification
+
+Standard verification after substantive edits:
+
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm run test`
+- `pnpm run content:validate`
+- `pnpm run age:report`
+- `pnpm run build`
+- `pnpm run verify`
+
+For native-impacting changes, also run mobile sync and Android debug build.
+# Tech Context
+
+## Stack
 - React + TypeScript + Vite
 - Vitest for unit tests
 - Playwright for E2E smoke/core flows

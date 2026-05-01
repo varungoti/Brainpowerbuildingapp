@@ -4,6 +4,10 @@ import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "./supabas
 export type RemoteAppFlags = {
   payments_remote_kill?: boolean;
   ai_counselor_paused?: boolean;
+  ai_fireworks_paused?: boolean;
+  ai_images_paused?: boolean;
+  ai_printables_paused?: boolean;
+  ai_force_deterministic?: boolean;
 };
 
 const DEFAULT_FLAGS: RemoteAppFlags = {};

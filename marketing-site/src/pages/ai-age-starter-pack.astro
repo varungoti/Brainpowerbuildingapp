@@ -1,0 +1,63 @@
+---
+import Site from "../layouts/Site.astro";
+import Reveal from "../components/Reveal.astro";
+
+const leadEndpoint = import.meta.env.PUBLIC_GROWTH_LEAD_ENDPOINT ?? "/download";
+---
+<Site title="Free AI-Age Starter Pack" description="A free 7-day parent guide with screen-free activities, printable routines, and AI-age readiness checkpoints.">
+  <section class="container-tight py-24">
+    <Reveal>
+      <span class="pill">Free launch guide</span>
+      <h1 class="mt-4 text-5xl max-w-3xl">Get the 7-Day AI-Age Starter Pack for parents.</h1>
+      <p class="mt-5 text-lg text-ink/70 max-w-2xl">
+        A practical, screen-light routine that helps parents build focus, creativity, emotional regulation, and AI-age readiness in 10 minutes a day.
+      </p>
+    </Reveal>
+
+    <div class="mt-14 grid lg:grid-cols-[1fr_0.8fr] gap-8 items-start">
+      <Reveal>
+        <article class="rounded-3xl bg-white border border-ink/5 p-8 shadow-sm">
+          <h2 class="text-2xl font-extrabold">What parents receive</h2>
+          <ul class="mt-6 space-y-3 text-ink/75">
+            <li>· 7 days of guided parent-child activities.</li>
+            <li>· Printable daily routine cards.</li>
+            <li>· Brain-region and AI-age competency explanations.</li>
+            <li>· Conversation scripts for reflection without pressure.</li>
+            <li>· A readiness checklist to decide whether Premium or Pro is useful.</li>
+          </ul>
+          <div class="mt-8 rounded-2xl bg-spark-50 border border-spark-100 p-5">
+            <h3 class="font-extrabold">Growth use</h3>
+            <p class="mt-2 text-sm text-ink/70">
+              This is the primary lead magnet for founder calls, creator campaigns, homeschool groups, preschools, clinics, and employer-benefit buyers.
+            </p>
+          </div>
+        </article>
+      </Reveal>
+
+      <Reveal delay={0.1}>
+        <form class="rounded-3xl bg-ink text-white p-8" method="POST" action={leadEndpoint}>
+          <h2 class="text-2xl font-extrabold">Send me the pack</h2>
+          <p class="mt-2 text-white/70 text-sm">This form routes to the download flow today. In production, connect it to Mautic with Growth Command Center approval and suppression checks.</p>
+          <input type="hidden" name="lead_magnet" value="ai-age-starter-pack" />
+          <input type="hidden" name="source" value="marketing-site" />
+          <label class="block mt-6 text-sm font-semibold">
+            Parent email
+            <input class="mt-2 w-full rounded-xl px-4 py-3 text-ink" type="email" name="email" placeholder="parent@example.com" required />
+          </label>
+          <label class="block mt-4 text-sm font-semibold">
+            I am a
+            <select class="mt-2 w-full rounded-xl px-4 py-3 text-ink" name="segment">
+              <option value="parent">Parent</option>
+              <option value="creator">Creator / parenting coach</option>
+              <option value="preschool">Preschool / school</option>
+              <option value="clinic">Clinic / pediatric practice</option>
+              <option value="employer">Employer benefits buyer</option>
+            </select>
+          </label>
+          <button class="btn-primary mt-6 w-full justify-center" type="submit">Get the starter pack</button>
+          <p class="mt-4 text-xs text-white/50">No child data required. No medical claims. Unsubscribe anytime once email nurture is enabled.</p>
+        </form>
+      </Reveal>
+    </div>
+  </section>
+</Site>

@@ -6,6 +6,12 @@ import { getOutcomeFocusPillars } from "../data/outcomeChecklist";
 import { pickPriorityCompetencies } from "@/lib/competencies/aiAgeCompetencies";
 import { captureProductEvent } from "@/utils/productAnalytics";
 import { CompetencyBadges } from "@/components/competency/CompetencyBadges";
+import { PrintableActions } from "@/components/printables/PrintableActions";
+import { PrintableGuidePreview } from "@/components/printables/PrintableGuidePreview";
+import { buildPrintableGuideFallback } from "@/lib/printables/guideFallback";
+import { createPrintableGuide } from "@/lib/printables/guideClient";
+import type { PrintableGuide } from "@/lib/printables/guideTypes";
+import { fetchRemoteAppFlags } from "@/utils/remoteAppConfig";
 
 // ─── Activity image map by primary intelligence ───────────────────────────────
 const INTEL_IMAGES: Record<string, string> = {
@@ -96,6 +102,10 @@ export function GeneratorScreen() {
   const [boostAILiteracy, setBoostAILiteracy] = useState(false);
   const [boostDualTask, setBoostDualTask] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [printableGuide, setPrintableGuide] = useState<PrintableGuide | null>(null);
+  const [printableLoading, setPrintableLoading] = useState(false);
+  const [printableStatus, setPrintableStatus] = useState<string | null>(null);
+  const [printablesPaused, setPrintablesPaused] = useState(false);
 
   useEffect(() => {
     setStep(hasTodaysPack ? "result" : "config");
@@ -121,6 +131,12 @@ export function GeneratorScreen() {
       localStorage.setItem(GEN_PREFS_KEY, JSON.stringify({ boostAILiteracy, boostDualTask }));
     } catch { /* ignore */ }
   }, [boostAILiteracy, boostDualTask]);
+
+  useEffect(() => {
+    fetchRemoteAppFlags().then((flags) => {
+      setPrintablesPaused(Boolean(flags.ai_printables_paused || flags.ai_force_deterministic));
+    });
+  }, []);
 
   const tier    = activeChild?.ageTier ?? 3;
   const tierCfg = getAgeTierConfig(tier);
@@ -162,6 +178,8 @@ export function GeneratorScreen() {
       setGeneratedPack(result);
       setCompletedIds(new Set());
       setEarnedBP({});
+      setPrintableGuide(null);
+      setPrintableStatus(null);
       captureProductEvent("pack_generate", {
         age_tier: tier,
         mood,
@@ -197,6 +215,51 @@ export function GeneratorScreen() {
   const totalDur  = pack.reduce((s, a) => s + a.duration, 0);
   const coveredIntel = [...new Set(pack.flatMap(a => a.intelligences))];
   const allDone   = pack.length > 0 && pack.every(a => completedIds.has(a.id));
+
+  const createGuide = async (opts?: { includeImages?: boolean; forceRefresh?: boolean }) => {
+    if (!activeChild || pack.length === 0) return;
+    setPrintableLoading(true);
+    setPrintableStatus("Creating parent guide: text, steps, and illustrations...");
+    try {
+      const guide = await createPrintableGuide({
+        childName: activeChild.name,
+        childAge: activeChild.ageTier,
+        ageTier: tier,
+        mood,
+        activities: pack,
+        includeImages: opts?.includeImages ?? true,
+        forceRefresh: opts?.forceRefresh,
+      });
+      setPrintableGuide(guide);
+      setPrintableStatus(guide.provider === "fallback" ? "Using simple offline guide." : "Guide ready.");
+    } catch {
+      const guide = buildPrintableGuideFallback({
+        childName: activeChild.name,
+        childAge: activeChild.ageTier,
+        ageTier: tier,
+        mood,
+        activities: pack,
+      });
+      setPrintableGuide(guide);
+      setPrintableStatus("Using simple offline guide.");
+    } finally {
+      setPrintableLoading(false);
+    }
+  };
+
+  const useIconGuide = () => {
+    if (!activeChild) return;
+    const guide = buildPrintableGuideFallback({
+      childName: activeChild.name,
+      childAge: activeChild.ageTier,
+      ageTier: tier,
+      mood,
+      activities: pack,
+      includeImages: false,
+    });
+    setPrintableGuide(guide);
+    setPrintableStatus("Simple icon version ready.");
+  };
 
   if (step === "config") return (
     <ConfigScreen
@@ -267,6 +330,52 @@ export function GeneratorScreen() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {!printablesPaused && <div className="rounded-3xl p-4 bg-white shadow-sm border border-violet-100">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ background: "linear-gradient(135deg,#F5F3FF,#FFE4F1)" }}>
+              🖨️
+            </div>
+            <div className="flex-1">
+              <div className="text-gray-900 font-black text-sm">Create parent printable guide</div>
+              <p className="text-gray-600 text-xs leading-relaxed mt-1">
+                Turn today&apos;s pack into a colourful parent sheet with prep, steps, scripts, adaptations, and illustrations.
+              </p>
+              {printableStatus && <div className="text-violet-700 text-xs font-semibold mt-2">{printableStatus}</div>}
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              disabled={printableLoading}
+              onClick={() => createGuide({ includeImages: true })}
+              className="flex-1 py-3 rounded-2xl text-white font-bold text-xs disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg,#4361EE,#7209B7)" }}
+            >
+              {printableLoading ? "Creating..." : "Create guide"}
+            </button>
+            <button
+              type="button"
+              disabled={printableLoading}
+              onClick={useIconGuide}
+              className="px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"
+            >
+              Icons only
+            </button>
+          </div>
+        </div>}
+
+        {printableGuide && !printablesPaused && (
+          <div className="space-y-3">
+            <PrintableActions
+              guide={printableGuide}
+              loading={printableLoading}
+              onRegenerate={() => createGuide({ includeImages: true, forceRefresh: true })}
+              onUseIcons={useIconGuide}
+            />
+            <PrintableGuidePreview guide={printableGuide} />
           </div>
         )}
 

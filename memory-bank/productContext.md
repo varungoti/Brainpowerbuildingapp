@@ -1,5 +1,26 @@
 # Product Context
 
+## Why This Exists
+
+Parents need practical, developmentally appropriate, emotionally safe guidance they can act on during busy daily routines. NeuroSpark turns child-development concepts into concrete activities and parent coaching that can happen at home with household materials.
+
+## User Experience Goals
+
+- Parents should understand what to do, why it matters, and how to adapt it.
+- Generated content should feel warm, specific, beautiful, and trustworthy.
+- Printable guides should be useful away from the screen and easy to follow while supervising a child.
+- AI should reduce parent effort without overclaiming, diagnosing, or replacing professionals.
+- Cost-effective AI routing should make premium-quality guidance sustainable.
+
+## Content Standards
+
+- Practical, parent-led steps over abstract theory.
+- Child-safe materials and supervision reminders.
+- Age/tier-aware language and difficulty.
+- Clear distinction between guidance and diagnosis.
+- Accessible formatting, good contrast, and non-emoji-only communication.
+# Product Context
+
 ## Why this project exists
 Parents need daily, practical, development-supportive activities that are easier to use than static worksheets, safer than generic AI advice, and more adaptive than one-size-fits-all content.
 

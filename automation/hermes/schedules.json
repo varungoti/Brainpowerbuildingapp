@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "timezone": "Asia/Kolkata",
+  "dryRun": true,
+  "jobs": [
+    {
+      "key": "daily_market_intelligence",
+      "cron": "0 7 * * 1-6",
+      "output": "growth_agent_briefs",
+      "approvalRequired": false,
+      "description": "Daily market intelligence and recommended objective. Research/draft only."
+    },
+    {
+      "key": "daily_opportunity_radar",
+      "cron": "30 7 * * 1-6",
+      "output": "growth_opportunities",
+      "approvalRequired": true,
+      "description": "Find and score partner/creator opportunities. No outreach."
+    },
+    {
+      "key": "weekly_growth_review",
+      "cron": "0 9 * * 1",
+      "output": "growth_agent_briefs",
+      "approvalRequired": false,
+      "description": "Summarize weekly performance and recommend next-week OKRs."
+    },
+    {
+      "key": "weekly_campaign_backlog",
+      "cron": "30 9 * * 1",
+      "output": "growth_approval_queue",
+      "approvalRequired": true,
+      "description": "Draft campaign and follow-up recommendations for human approval."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import type { Provider, ProviderId } from "../types.js";
 import { ideogram } from "./ideogram.js";
+import { fireworksFluxSchnell } from "./fireworks.js";
 import { fluxPro, fluxSchnellSelf } from "./flux.js";
 import { recraft } from "./recraft.js";
 import { openaiGptImage } from "./openai.js";
@@ -14,6 +15,7 @@ import { sdxlSelf, comfySelf } from "./selfHosted.js";
 import { pexels, unsplash, pixabay } from "./stock.js";
 
 export const ALL_PROVIDERS: Provider[] = [
+  fireworksFluxSchnell,
   ideogram,
   fluxPro,
   fluxSchnellSelf,
@@ -66,6 +68,7 @@ export function routeProvider(spec: {
   }
   return (
     pick(process.env.DEFAULT_PROVIDER as ProviderId) ??
+    pick("fireworks_flux_schnell") ??
     pick("flux_pro") ??
     pick("ideogram") ??
     enabled[0]

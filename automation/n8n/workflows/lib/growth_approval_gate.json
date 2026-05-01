@@ -1,0 +1,43 @@
+{
+  "name": "lib/growth_approval_gate",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-start",
+      "name": "Manual trigger only",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            { "name": "dryRun", "value": true },
+            { "name": "requireApproval", "value": true },
+            { "name": "suppressionRequired", "value": true }
+          ],
+          "string": [
+            { "name": "status", "value": "blocked_until_integrated" },
+            { "name": "reason", "value": "This library workflow is a production guardrail scaffold. Wire real workflows through Growth Command Center approval, suppression, kill switches, and audit logging before live sends." }
+          ]
+        }
+      },
+      "id": "guardrail-defaults",
+      "name": "Guardrail defaults",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Manual trigger only": {
+      "main": [[{ "node": "Guardrail defaults", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "growth-approval-gate-scaffold"
+}

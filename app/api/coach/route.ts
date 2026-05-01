@@ -63,6 +63,28 @@ function normalizeCoachResponse(parsed: Partial<CoachResponse>, fallback: CoachR
   };
 }
 
+function providerSpec() {
+  const fireworksKey = process.env.FIREWORKS_API_KEY;
+  if (fireworksKey && process.env.AI_FIREWORKS_PAUSED !== "true") {
+    return {
+      baseUrl: process.env.FIREWORKS_BASE_URL ?? "https://api.fireworks.ai/inference/v1",
+      apiKey: fireworksKey,
+      model: process.env.FIREWORKS_QUALITY_MODEL ?? "accounts/fireworks/models/gpt-oss-120b",
+      provider: "fireworks",
+    };
+  }
+  const openAiKey = process.env.OPENAI_API_KEY;
+  if (openAiKey) {
+    return {
+      baseUrl: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+      apiKey: openAiKey,
+      model: process.env.OPENAI_QUALITY_MODEL ?? "gpt-4o",
+      provider: "openai",
+    };
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CoachRequestBody;
@@ -82,20 +104,20 @@ export async function POST(request: Request) {
     const question = typeof body.question === "string" ? body.question : undefined;
     const messages = sanitizeCoachMessages(body.messages);
     const fallback = buildCoachFallback(profile, scores, { question, isPremium });
-    const apiKey = process.env.OPENAI_API_KEY;
+    const provider = providerSpec();
 
-    if (!apiKey) {
+    if (!provider || process.env.AI_FORCE_DETERMINISTIC === "true") {
       return Response.json({ success: true, data: fallback, isDemo: true });
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${provider.apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: provider.model,
         temperature: 0.7,
         max_tokens: 2200,
         messages: [
@@ -126,6 +148,8 @@ export async function POST(request: Request) {
       success: true,
       data: normalizeCoachResponse(parsed, fallback, isPremium),
       isDemo: false,
+      provider: provider.provider,
+      model: provider.model,
     });
   } catch {
     return Response.json({ success: false, error: "coach_failed" }, { status: 500 });

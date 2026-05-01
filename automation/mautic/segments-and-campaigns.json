@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "safeDefaults": {
+    "emailSendEnabled": false,
+    "requireGrowthApproval": true,
+    "requireSuppressionCheck": true,
+    "requireUnsubscribe": true
+  },
+  "segments": [
+    {
+      "key": "parents_starter_pack",
+      "name": "Parents - 7-Day Starter Pack",
+      "criteria": ["lead_magnet=ai-age-starter-pack", "segment=parent"],
+      "nurture": "starter_pack_7_day"
+    },
+    {
+      "key": "creators_coaches",
+      "name": "Creators and Coaches",
+      "criteria": ["segment=creator"],
+      "nurture": "creator_affiliate_invite"
+    },
+    {
+      "key": "schools_preschools",
+      "name": "Schools and Preschools",
+      "criteria": ["segment=preschool"],
+      "nurture": "school_pilot_sequence"
+    },
+    {
+      "key": "clinics",
+      "name": "Clinics and Child Development Centers",
+      "criteria": ["segment=clinic"],
+      "nurture": "clinic_snapshot_sequence"
+    },
+    {
+      "key": "employers",
+      "name": "Employer Benefit Buyers",
+      "criteria": ["segment=employer"],
+      "nurture": "employer_benefit_sequence"
+    }
+  ],
+  "campaignTemplates": [
+    {
+      "key": "starter_pack_7_day",
+      "name": "7-Day AI-Age Starter Pack Nurture",
+      "cadenceDays": [0, 1, 2, 3, 5, 7],
+      "goal": "Convert lead magnet subscribers into app activation and Founder Annual checkout.",
+      "approvalRequiredBeforeImport": true
+    },
+    {
+      "key": "creator_affiliate_invite",
+      "name": "Creator Affiliate Invite",
+      "cadenceDays": [0, 3, 7],
+      "goal": "Recruit trusted parenting educators and homeschool creators.",
+      "approvalRequiredBeforeImport": true
+    },
+    {
+      "key": "school_pilot_sequence",
+      "name": "School Pilot Sequence",
+      "cadenceDays": [0, 4, 10],
+      "goal": "Book demos and sell 60-day pilots.",
+      "approvalRequiredBeforeImport": true
+    },
+    {
+      "key": "clinic_snapshot_sequence",
+      "name": "Clinic Snapshot Sequence",
+      "cadenceDays": [0, 5, 12],
+      "goal": "Get clinics to review the safe observation snapshot flow.",
+      "approvalRequiredBeforeImport": true
+    },
+    {
+      "key": "employer_benefit_sequence",
+      "name": "Employer Family Benefit Sequence",
+      "cadenceDays": [0, 5, 14],
+      "goal": "Book HR/family-benefit discovery calls.",
+      "approvalRequiredBeforeImport": true
+    }
+  ]
+}

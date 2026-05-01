@@ -16,6 +16,7 @@ import { StudioPage } from "./pages/studio/StudioPage.tsx";
 import { StudioJobPage } from "./pages/studio/StudioJobPage.tsx";
 import { SocialPage } from "./pages/social/SocialPage.tsx";
 import { CoveragePartnersPage } from "./pages/coverage/CoveragePartnersPage.tsx";
+import { GrowthCommandCenterPage } from "./pages/growth/GrowthCommandCenterPage.tsx";
 
 const ROUTES: Record<string, React.FC> = {
   "": OverviewPage,
@@ -31,6 +32,7 @@ const ROUTES: Record<string, React.FC> = {
   studio: StudioPage,
   social: SocialPage,
   coverage: CoveragePartnersPage,
+  growth: GrowthCommandCenterPage,
 };
 
 function useHashRoute(): { route: string; param?: string } {

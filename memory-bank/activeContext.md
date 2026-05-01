@@ -1,5 +1,48 @@
 # Active Context
 
+## Current Work Focus
+
+Implement the full NeuroSpark Global Revenue Plan into production-ready repo assets without editing the source plan file:
+
+- Launch foundation, ICP, positioning, pricing, lead magnet, analytics checklist.
+- Pre-launch audience, soft launch, revenue sprint, partnership, global launch, scale, and weekly review playbooks.
+- Revenue-source experiment framework with 12 initial experiments.
+- Campaign seed pack and dry-run weekly-review workflow.
+- Growth Command Center, safety gates, lead capture, Railway hosting prep, and verification.
+
+## Current Status
+
+- `.cursorrules` exists.
+- Core Memory Bank files are initialized.
+- Task complexity: Level 4 Complex System.
+- Fireworks provider layer, route migrations, printable guide generation, image provider routing, rollout flags, cost docs, tests, and verification are implemented.
+- Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run content:validate`, `pnpm run age:report`, `pnpm run build`, and `pnpm run verify`.
+- `global-revenue-growth_c81045bc.plan.md` now includes aggressive revenue milestone ladders, daily OKR system, daily learning loop, overachievement playbook, daily admin workflow, and 200% production-readiness gates.
+- Growth Command Center implementation is now in-repo via migration `00016_growth_command_center.sql`, admin route additions in `supabase/functions/server/admin.tsx`, admin page `admin/src/pages/growth/GrowthCommandCenterPage.tsx`, and runbooks/scaffolding in `docs/` and `automation/`.
+- Pricing alignment and lead capture are now implemented: shared launch pricing module, app paywall aligned to annual/pro offers, marketing pricing aligned to the same offer ladder, `/ai-age-starter-pack` lead magnet, `/growth/lead` endpoint, and admin lead visibility.
+- Verification status for this growth build: IDE lints clean for edited files; `pnpm run growth:check` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm run typecheck` passed; `pnpm --filter marketing-site build` passed; admin build previously passed.
+- Railway hosting preparation is now in-repo: root, admin, and marketing-site Dockerfiles plus `railway.json` files, and `docs/RAILWAY_HOSTING.md`.
+- Full plan implementation assets are now in `docs/growth/`, `automation/growth-campaigns/`, and `automation/n8n/workflows/growth_weekly_review_dry_run.json`.
+- All in-repo plan todos have been completed in the active tracker.
+- Online deployment is currently blocked by environment/auth:
+  - Railway MCP descriptors are not present in the workspace, despite previous context mentioning Railway.
+  - Railway CLI is installed but unauthenticated (`invalid_grant`; must run `railway login` or provide `RAILWAY_TOKEN`).
+  - Supabase CLI migration push found `.env.supabase` but failed because `SUPABASE_DB_PASSWORD` is missing/incorrect.
+  - Docker CLI is installed but Docker Desktop/Linux engine is not running.
+  - Cloudflare deploy path is unavailable (`wrangler` and `CLOUDFLARE_API_TOKEN` absent).
+
+## Verification Commitment
+
+I WILL run the verification checklist appropriate to this task's complexity level before completing it.
+I will maintain `memory-bank/tasks.md` as the single source of truth for task status.
+
+## Immediate Next Steps
+
+1. Authenticate Railway (`railway login` or set `RAILWAY_TOKEN`) and re-run Railway deploys for root app, `admin/`, and `marketing-site/`.
+2. Set `SUPABASE_DB_PASSWORD` or use a working Supabase MCP deploy path, then apply `00016_growth_command_center.sql` and deploy the Edge Function.
+3. Smoke-test `/admin/growth`, `/ai-age-starter-pack`, `/growth/lead`, campaign seeding, and weekly review after deployment.
+# Active Context
+
 ## Current state
 **FUTURE_ROADMAP cross-cutting closures (Apr 2026, night +3, +follow-up #5).** Six strictly-scoped closures stacked back-to-back, **§1.2.I "Cross-cutting hardening" is now fully closed**:
 

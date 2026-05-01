@@ -1,5 +1,6 @@
 import { ACTIVITIES } from "../src/app/data/activities";
 import { buildActivityEditorialChecklist, buildMediaPromptPacket } from "../src/content/media/orchestration";
+import { buildPrintableGuideFallback } from "../src/lib/printables/guideFallback";
 
 const failures: string[] = [];
 
@@ -18,6 +19,22 @@ for (const activity of ACTIVITIES) {
 
   const checklist = buildActivityEditorialChecklist(activity);
   if (checklist.length < 4) failures.push(`${activity.id}: editorial checklist too short`);
+}
+
+const printable = buildPrintableGuideFallback({
+  childName: "Sample child",
+  ageTier: 3,
+  activities: ACTIVITIES.slice(0, 3),
+});
+
+if (!printable.footer.toLowerCase().includes("not diagnosis")) failures.push("printable: footer missing non-diagnosis guardrail");
+for (const card of printable.activities) {
+  if (!card.safetyNote) failures.push(`printable ${card.activityId}: safety note missing`);
+  if (!card.whyThisMatters) failures.push(`printable ${card.activityId}: research/why section missing`);
+  if (card.materials.length === 0) failures.push(`printable ${card.activityId}: materials missing`);
+  if (!card.illustration.prompt.toLowerCase().includes("child-safe") && !card.illustration.prompt.toLowerCase().includes("safe")) {
+    failures.push(`printable ${card.activityId}: illustration prompt missing safety language`);
+  }
 }
 
 if (failures.length > 0) {

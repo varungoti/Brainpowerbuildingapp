@@ -3,6 +3,7 @@ import { routeProvider, ALL_PROVIDERS } from "../index.js";
 
 const KEYS = [
   "IDEOGRAM_API_KEY",
+  "FIREWORKS_API_KEY",
   "BFL_API_KEY",
   "RECRAFT_API_KEY",
   "LEONARDO_API_KEY",
@@ -37,8 +38,8 @@ afterEach(() => {
 });
 
 describe("image router", () => {
-  it("registers all 17 providers", () => {
-    expect(ALL_PROVIDERS).toHaveLength(17);
+  it("registers all 18 providers", () => {
+    expect(ALL_PROVIDERS).toHaveLength(18);
   });
 
   it("throws when no providers are enabled", () => {
@@ -84,6 +85,12 @@ describe("image router", () => {
     } finally {
       delete process.env.DEFAULT_PROVIDER;
     }
+  });
+
+  it("prefers Fireworks FLUX for generic low-cost images", () => {
+    process.env.FIREWORKS_API_KEY = "x";
+    process.env.IDEOGRAM_API_KEY = "y";
+    expect(routeProvider({}).id).toBe("fireworks_flux_schnell");
   });
 
   it("each provider has a non-zero cost estimate", () => {
