@@ -37,8 +37,10 @@ create table if not exists studio_cost_ledger (
   latency_ms  int,
   created_at  timestamptz not null default now()
 );
+-- timestamptz + date_trunc is STABLE (session TZ); AT TIME ZONE 'UTC' yields timestamp,
+-- and date_trunc on timestamp is IMMUTABLE — required for index expressions (SQLSTATE 42P17).
 create index if not exists studio_cost_ledger_service_month
-  on studio_cost_ledger(service, date_trunc('month', created_at));
+  on studio_cost_ledger(service, (date_trunc('month', created_at AT TIME ZONE 'UTC')));
 
 alter table studio_jobs enable row level security;
 alter table studio_cost_ledger enable row level security;

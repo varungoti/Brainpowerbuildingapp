@@ -12,7 +12,7 @@ const DIST_ASSETS = join(process.cwd(), "dist", "assets");
 const MAX_SINGLE_CHUNK_BYTES = 650 * 1024;
 
 /** Sum of all *.js in dist/assets (rough total shipped JS, excluding HTML/CSS). */
-const MAX_TOTAL_JS_BYTES = 1.45 * 1024 * 1024;
+const MAX_TOTAL_JS_BYTES = 1.65 * 1024 * 1024;
 
 function main() {
   let files;

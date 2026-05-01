@@ -6,16 +6,47 @@ This repo is ready to deploy three web services to Railway:
 - Admin app: `admin/Dockerfile`, `admin/railway.json`
 - Marketing site: `marketing-site/Dockerfile`, `marketing-site/railway.json`
 
-## Current Auth Blocker
+## CLI authentication (tokens)
 
-The local Railway CLI is installed, but the current session is not authenticated:
+Two different tokens exist on Railway; only one works with the CLI:
+
+| Token kind | Where created | `pnpm run railway:cli whoami` | GraphQL `project(id)` |
+|---|---|---|---|
+| **Account API token** | [Account → API tokens](https://railway.com/account/tokens) | Works | Works |
+| **Project token** | Project → Settings → Tokens (UUID-shaped) | **Unauthorized** | Works |
+
+Workspace-scoped account tokens can also break the CLI ([issue #845](https://github.com/railwayapp/cli/issues/845)). Prefer a normal account token.
+
+In `.env.local` (gitignored), set:
 
 ```text
-Warning: failed to refresh OAuth token: invalid_grant
-Unauthorized. Please run `railway login` again.
+RAILWAY_API_TOKEN=...account_token_from_account_settings...
+RAILWAY_PROJECT_ID=55a53e74-31d8-4e15-84d9-ecf212214fbe
 ```
 
-Run `railway login` or set `RAILWAY_TOKEN` before deploying.
+Check what you have (does not print secrets):
+
+```bash
+pnpm run railway:token-check
+```
+
+- Exit **0** — account token; CLI deploys work.
+- Exit **2** — project token; replace with an account token, or deploy by **Git** from the dashboard instead of `railway up`.
+
+Run the CLI via the loader so no stale `RAILWAY_*` from your shell overrides the token:
+
+```bash
+pnpm run railway:cli whoami
+pnpm run railway:cli link -p 55a53e74-31d8-4e15-84d9-ecf212214fbe
+```
+
+### List project / environment / service IDs (GraphQL)
+
+If you only have a project token, this still works:
+
+```bash
+node scripts/railway-list-project.mjs
+```
 
 ## Suggested Railway Project
 
