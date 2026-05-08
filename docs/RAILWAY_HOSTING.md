@@ -8,44 +8,77 @@ This repo is ready to deploy three web services to Railway:
 
 ## CLI authentication (tokens)
 
-Two different tokens exist on Railway; only one works with the CLI:
+Preferred variable for an **account** token (from [Account → API tokens](https://railway.com/account/tokens) only):
+
+```text
+RAILWAY_ACCOUNT_API_TOKEN=...
+```
+
+Aliases still supported: `RAILWAY_API_TOKEN`, `RAILWAY_TOKEN`. Values are **normalized** (surrounding quotes removed so `"token"` in `.env.local` does not break Bearer auth).
+
+Two token kinds:
 
 | Token kind | Where created | `pnpm run railway:cli whoami` | GraphQL `project(id)` |
 |---|---|---|---|
 | **Account API token** | [Account → API tokens](https://railway.com/account/tokens) | Works | Works |
 | **Project token** | Project → Settings → Tokens (UUID-shaped) | **Unauthorized** | Works |
 
-Workspace-scoped account tokens can also break the CLI ([issue #845](https://github.com/railwayapp/cli/issues/845)). Prefer a normal account token.
+Workspace-scoped account tokens can also break the CLI ([issue #845](https://github.com/railwayapp/cli/issues/845)). Prefer a normal account token (no workspace restriction if the CLI rejects it).
 
-In `.env.local` (gitignored), set:
+### Use `railway login` instead of a file token
+
+If `railway whoami` works in your terminal after `railway login`, but `pnpm run railway:cli whoami` fails because `.env.local` contains a **project** token, either:
+
+- Remove the file token and add:
 
 ```text
-RAILWAY_API_TOKEN=...account_token_from_account_settings...
+RAILWAY_CLI_USE_LINKED_LOGIN=true
+```
+
+so `scripts/railway-exec.mjs` does **not** inject `RAILWAY_TOKEN` from disk and the CLI uses `~/.railway` (same as plain `railway`); or
+
+- Replace with a real **account** token as `RAILWAY_ACCOUNT_API_TOKEN`.
+
+Use **one** of these patterns (not both a bad file token and linked login at once):
+
+```text
+# A) Account API token only (CI / MCP / pnpm railway:cli)
+RAILWAY_ACCOUNT_API_TOKEN=...
 RAILWAY_PROJECT_ID=55a53e74-31d8-4e15-84d9-ecf212214fbe
 ```
 
-Check what you have (does not print secrets):
+```text
+# B) Linked `railway login` only — omit file tokens or they are ignored when this is set
+RAILWAY_CLI_USE_LINKED_LOGIN=true
+RAILWAY_PROJECT_ID=55a53e74-31d8-4e15-84d9-ecf212214fbe
+```
+
+Check (does not print secrets):
 
 ```bash
 pnpm run railway:token-check
 ```
 
-- Exit **0** — account token; CLI deploys work.
-- Exit **2** — project token; replace with an account token, or deploy by **Git** from the dashboard instead of `railway up`.
+- Exit **0** — account token **or** linked-login mode is valid.
+- Exit **2** — project / limited token for GraphQL; fix token or switch to linked login.
 
-Run the CLI via the loader so no stale `RAILWAY_*` from your shell overrides the token:
+Run the CLI via the loader so no stale `RAILWAY_*` from your shell overrides auth:
 
 ```bash
 pnpm run railway:cli whoami
 pnpm run railway:cli link -p 55a53e74-31d8-4e15-84d9-ecf212214fbe
 ```
 
+### Cursor Railway MCP (`user-railway`)
+
+If the MCP server shows an error in Cursor Settings, set its environment to the **same account token** Railway documents for the API (not a project token). Use the env var name required by that MCP package—often `RAILWAY_API_TOKEN` or `RAILWAY_TOKEN`—with the value from [Account → API tokens](https://railway.com/account/tokens). MCP cannot use browser `railway login`; it needs a token string. This repo’s scripts prefer `RAILWAY_ACCOUNT_API_TOKEN` in `.env.local`; copy that value into the MCP server config if needed.
+
 ### List project / environment / service IDs (GraphQL)
 
-If you only have a project token, this still works:
+Requires **any** token that can call `project(id)` (account or project token):
 
 ```bash
-node scripts/railway-list-project.mjs
+pnpm run railway:list-project
 ```
 
 ## Suggested Railway Project

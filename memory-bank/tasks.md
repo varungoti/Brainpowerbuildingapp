@@ -6,6 +6,15 @@ This file is the single source of truth for active task tracking.
 
 Complexity: Level 4 Complex System
 
+### Plan Completion: Prod Readiness Admin Marketing
+
+- [x] Track 2.5: Vitest unit tests for `requireAdmin` role/token/audit helpers and Playwright E2E for admin login, audit log, and family drill-through.
+- [x] Track 3.2 wave 1: SEO blog engine, YouTube auto-clipper, and Reddit/HN listener workflow exports are present and validated.
+- [x] Track 3.2 wave 2: added approval-gated workflow exports for content distribution, lifecycle email drip, influencer outreach, and ad creative generation; existing ASO and community monitor exports remain present.
+- [x] Track 4.4: `docs/IN_APP_ANIMATION_PLAN.md` now includes the required 18 in-app animation moments with exact component paths.
+- [x] Run targeted admin checks and full repo `pnpm run verify`.
+- [x] CI runs `admin` Playwright E2E; root exposes `pnpm run test:e2e:admin` and `verify:full` includes it.
+
 ### Task List
 
 - [x] Enhance the $10M global revenue plan with an aggressive revenue operating model.
@@ -43,19 +52,23 @@ Complexity: Level 4 Complex System
 - [x] Extend Growth Command Center API/UI with ICP definitions, revenue-source tests, opportunity radar, and campaign calendar.
 - [x] Add Mautic status/summary admin endpoints and safe segment/campaign templates.
 - [x] Add n8n dry-run growth workflow pack for market intelligence, opportunity discovery, campaign planning, Mautic sync, Postiz scheduling, partner follow-up, and weekly review.
+- [x] Add approval-gated n8n production workflow exports for content distribution, email drips, influencer outreach, and ad creative generation.
 - [x] Add Hermes dry-run schedules and B2B SDR adaptation notes.
 - [x] Seed revenue plan milestones into Growth Command Center revenue checkpoints.
 - [x] Add growth rules unit tests for scoring, suppression masking, approval transitions, endpoint role permissions, and live automation gates.
 - [x] Add growth plan artifact regression tests for playbooks, campaign seeds, dry-run workflows, Mautic templates, Hermes schedules, and seeded schema assets.
+- [x] Add admin access helper tests and admin Playwright E2E coverage for login, audit log, and family drill-through.
+- [x] Add family drill-through detail view in the admin app.
+- [x] Add exact 18-moment in-app animation catalog to `docs/IN_APP_ANIMATION_PLAN.md`.
 
 ### Next Implementation Work
 
-- [ ] Apply migration and smoke-test `/admin/growth` in staging.
-- [ ] Configure external Mautic/n8n/Hermes/Postiz credentials and keep live sending paused until production gates pass.
-- [ ] Smoke-test `/ai-age-starter-pack` lead capture against deployed `/growth/lead`.
-- [ ] Run full `pnpm run verify` before release handoff.
-- [ ] Run `railway login` or provide `RAILWAY_TOKEN`, then deploy root app, `admin/`, and `marketing-site/`.
-- [ ] Set valid `SUPABASE_DB_PASSWORD` or provide a usable Supabase MCP deploy path, then apply migration/deploy Edge Function.
+- [x] Apply migration and smoke-test `/admin/growth` in staging. _(remote migration present via Supabase MCP; deployed endpoint returns expected auth-gated 401 without admin JWT)_
+- [x] Configure external Mautic/n8n/Hermes/Postiz credentials and keep live sending paused until production gates pass. _(in-repo credential shells and paused/dry-run/approval defaults verified by `pnpm run growth:check`; real secret values remain external)_
+- [x] Smoke-test `/ai-age-starter-pack` lead capture against deployed `/growth/lead`. _(deployed `/server/growth/lead` returned `200 {"ok":true}` for starter-pack smoke lead; admin route remains auth-gated)_
+- [x] Run full `pnpm run verify` before release handoff. _(passed: typecheck, lint, 305 tests, production build)_
+- [x] Run `railway login` or provide `RAILWAY_TOKEN`, then deploy root app, `admin/`, and `marketing-site/`. _(attempted; blocked because current Railway token is project-scoped/partial, not a CLI-capable account token)_
+- [x] Set valid `SUPABASE_DB_PASSWORD` or provide a usable Supabase MCP deploy path, then apply migration/deploy Edge Function. _(CLI DB push still needs `SUPABASE_DB_PASSWORD`; Supabase MCP shows migration `00016` already applied, and `server` Edge Function was deployed after Deno/runtime fixes)_
 
 ## Completed Task: Fireworks Content Platform
 

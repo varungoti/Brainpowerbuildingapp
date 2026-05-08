@@ -1,0 +1,152 @@
+{
+  "name": "Ad Creative Generator (feature flag -> studio assets -> approval)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ad-creative-generator",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Feature launch webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-840, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $json.body || $json;\nconst feature = body.feature || body.flag || 'NeuroSpark activity packs';\nconst audience = body.audience || 'parents of 3-7 year olds';\nconst variants = [\n  { platform: 'meta', format: 'image', angle: 'busy parent, 5-minute win' },\n  { platform: 'meta', format: 'video', angle: 'brain regions light up' },\n  { platform: 'google', format: 'image', angle: 'privacy-first developmental guidance' },\n  { platform: 'youtube', format: 'short', angle: 'daily printable guide' },\n  { platform: 'tiktok', format: 'short', angle: 'before/after routine moment' },\n  { platform: 'linkedin', format: 'image', angle: 'AI-age skills standard' }\n];\nreturn variants.map((variant) => ({ json: { feature, audience, ...variant } }));"
+      },
+      "id": "variants",
+      "name": "Create six variants",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-640, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"gpt-5\",\"messages\":[{\"role\":\"system\",\"content\":\"Create compliant ad creative for NeuroSpark. No medical claims, no fear-mongering, no targeting sensitive child attributes. Output JSON {headline, primary_text, visual_prompt, cta}.\"},{\"role\":\"user\",\"content\":\"Feature: {{ $json.feature }}\\nAudience: {{ $json.audience }}\\nPlatform: {{ $json.platform }}\\nFormat: {{ $json.format }}\\nAngle: {{ $json.angle }}\"}],\"response_format\":{\"type\":\"json_object\"}}"
+      },
+      "id": "copy",
+      "name": "Draft copy + visual prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-420, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const variant = $('Create six variants').item.json;\nconst creative = JSON.parse($json.choices?.[0]?.message?.content || '{}');\nreturn [{ json: { ...variant, creative, requiresVideo: ['video', 'short'].includes(variant.format) } }];"
+      },
+      "id": "parse",
+      "name": "Parse creative",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            { "value1": "={{ $json.requiresVideo }}", "value2": true }
+          ]
+        }
+      },
+      "id": "video?",
+      "name": "Needs Studio render?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-20, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.STUDIO_ORCHESTRATOR_URL }}/studio/generate",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.STUDIO_ORCHESTRATOR_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"template\":\"BrainStoryShort\",\"brief\":\"{{ $json.creative.visual_prompt }}\",\"durationSec\":15,\"voice\":\"calm-narrator\",\"targetPlatform\":\"{{ $json.platform }}\",\"approvalRequired\":true}"
+      },
+      "id": "studio",
+      "name": "Generate Studio storyboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [200, -100]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ...$('Parse creative').item.json, studioJob: $json.jobId || null } }];"
+      },
+      "id": "merge-video",
+      "name": "Attach studio job",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, -100]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: $('Parse creative').item.json }];"
+      },
+      "id": "image-only",
+      "name": "Image-only variant",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [200, 120]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NS_ADMIN_API_BASE }}/admin/growth/approvals",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.NS_ADMIN_BEARER_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"kind\":\"ad_creative\",\"title\":\"{{ $json.platform }} {{ $json.format }}: {{ $json.angle }}\",\"payload\":{{ JSON.stringify($json) }},\"risk_level\":\"high\",\"status\":\"pending\"}"
+      },
+      "id": "approval",
+      "name": "Create admin approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 20]
+    }
+  ],
+  "connections": {
+    "Feature launch webhook": { "main": [[{ "node": "Create six variants", "type": "main", "index": 0 }]] },
+    "Create six variants": { "main": [[{ "node": "Draft copy + visual prompt", "type": "main", "index": 0 }]] },
+    "Draft copy + visual prompt": { "main": [[{ "node": "Parse creative", "type": "main", "index": 0 }]] },
+    "Parse creative": { "main": [[{ "node": "Needs Studio render?", "type": "main", "index": 0 }]] },
+    "Needs Studio render?": {
+      "main": [
+        [{ "node": "Generate Studio storyboard", "type": "main", "index": 0 }],
+        [{ "node": "Image-only variant", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generate Studio storyboard": { "main": [[{ "node": "Attach studio job", "type": "main", "index": 0 }]] },
+    "Attach studio job": { "main": [[{ "node": "Create admin approval", "type": "main", "index": 0 }]] },
+    "Image-only variant": { "main": [[{ "node": "Create admin approval", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "ads" }, { "name": "approval-gated" }]
+}

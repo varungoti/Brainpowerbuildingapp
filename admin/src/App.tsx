@@ -12,6 +12,7 @@ import { FeedbackPage } from "./pages/Feedback.tsx";
 import { CostsPage } from "./pages/Costs.tsx";
 import { AuditPage } from "./pages/Audit.tsx";
 import { AdminUsersPage } from "./pages/AdminUsers.tsx";
+import { FamilyDetailPage } from "./pages/FamilyDetail.tsx";
 import { StudioPage } from "./pages/studio/StudioPage.tsx";
 import { StudioJobPage } from "./pages/studio/StudioJobPage.tsx";
 import { SocialPage } from "./pages/social/SocialPage.tsx";
@@ -46,10 +47,36 @@ function useHashRoute(): { route: string; param?: string } {
   return { route: route ?? "", param };
 }
 
+function getDevE2ESession(): Session | null {
+  if (!import.meta.env.DEV) return null;
+  if (window.localStorage.getItem("neurospark.admin.e2e.session") !== "1") return null;
+  return {
+    access_token: "admin-e2e-token",
+    token_type: "bearer",
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: "admin-e2e-refresh",
+    user: {
+      id: "admin-e2e",
+      app_metadata: {},
+      user_metadata: {},
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
+      email: "admin.e2e@neurospark.test",
+    },
+  } as Session;
+}
+
 export const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
+    const e2eSession = getDevE2ESession();
+    if (e2eSession) {
+      setSession(e2eSession);
+      setLoading(false);
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
@@ -66,6 +93,7 @@ export const App: React.FC = () => {
 
   let Page = ROUTES[route] ?? OverviewPage;
   if (route === "studio" && param) Page = () => <StudioJobPage jobId={param} />;
+  if (route === "families" && param) Page = () => <FamilyDetailPage userId={param} />;
 
   return (
     <div className="min-h-screen flex">

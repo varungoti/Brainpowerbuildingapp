@@ -21,10 +21,19 @@ Completed all existing plan todos at the repo-implementation level without editi
 - Extended admin Growth overview/API/UI to show ICP definitions, revenue source tests, opportunity radar, and campaign calendar.
 - Added Mautic admin status/summary endpoints and `automation/mautic/segments-and-campaigns.json`.
 - Added n8n dry-run workflow pack for market intelligence, opportunity discovery, campaign planning, Mautic sync, Postiz scheduling, partner follow-up, and weekly review.
+- Added approval-gated n8n production workflow exports for content distribution, lifecycle email drips, influencer outreach, and ad creative generation; ASO and community monitor exports were already present.
 - Added Hermes `schedules.json` and B2B SDR skill adaptation notes.
 - Seeded plan revenue milestones as Growth Command Center revenue checkpoints.
 - Added `src/lib/growth/growthRules.ts` plus `growthRules.test.ts` covering OKR scoring, suppression masking, approval transitions, admin role permissions, and live automation gates.
 - Added `src/lib/growth/growthPlanArtifacts.test.ts` to protect the plan playbooks, campaign seeds, n8n workflows, Mautic templates, Hermes schedules, and seeded Growth Command Center schema assets from regression.
+- Added `supabase/functions/server/admin_access.ts` and `src/utils/adminAccess.test.ts` for role hierarchy, bearer-token parsing, and audit-row regression coverage.
+- Added admin Playwright coverage for magic-link login, audit log visibility, and family drill-through, plus `admin/src/pages/FamilyDetail.tsx`.
+- Updated `docs/IN_APP_ANIMATION_PLAN.md` with the required 18 exact in-app animation moments and component paths.
+- Completed production smoke/deploy hardening for the Global Revenue Plan Edge Function:
+  - Supabase MCP confirms remote migration `00016_growth_command_center` is already applied.
+  - Deployed `server` Edge Function with function-level JWT disabled so public `/growth/lead` can run while protected routes keep route-level auth.
+  - Fixed Deno runtime boot failure by removing the duplicate `timingSafeEqualHex` declaration, removing the custom Deno declaration shim from runtime imports, and adding a `/server/*` path normalizer for hosted Supabase function URLs.
+  - Smoke tests passed: `/server/make-server-76b0ba9a/health` → `200`, `/server/admin/growth/overview` → expected `401`, `/server/growth/lead` → `200 {"ok":true}` for an AI-Age Starter Pack lead.
 
 Verification:
 
@@ -35,6 +44,8 @@ Verification:
 - Final deeper-pass verification: `pnpm run growth:check` passed and `pnpm --filter @neurospark/admin build` passed.
 - Final Phase G test pass: `pnpm exec vitest run src/lib/growth/growthRules.test.ts` passed, and `pnpm run growth:check` passed with the new unit-coverage requirement.
 - Final artifact-regression pass: `pnpm exec vitest run src/lib/growth/growthRules.test.ts src/lib/growth/growthPlanArtifacts.test.ts` passed (11 tests), and `pnpm run growth:check` passed with artifact coverage.
+- Prod-readiness plan completion pass: workflow JSON parse check passed; `pnpm exec vitest run src/utils/adminAccess.test.ts` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm --filter @neurospark/admin e2e` passed; full `pnpm run test` passed (305 tests); full `pnpm run verify` passed after updating the Vitest fork config to the Vitest 4 top-level `forks.singleFork` shape.
+- Global Revenue Plan deployment-smoke pass: `npx deno-bin check --node-modules-dir=auto supabase/functions/server/index.ts` passed; deployed server function smoke tests passed; `pnpm run growth:check` passed; final `pnpm run verify` passed with 305 tests.
 
 ## Growth Command Center production build
 

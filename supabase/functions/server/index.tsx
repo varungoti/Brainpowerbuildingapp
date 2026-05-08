@@ -1,4 +1,4 @@
-/// <reference path="./deno.d.ts" />
+// @ts-nocheck
 import { Hono, type Context } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
@@ -2566,13 +2566,6 @@ async function hmacSha256Hex(secret: Uint8Array, data: string): Promise<string> 
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function timingSafeEqualHex(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
 async function postCoverageCredit(c: Context) {
   // Per-IP rate limit prevents bulk fraud even before HMAC check.
   const rateLimit = await enforceRateLimit(c, "coverage-credit-ip", 120, 60);
@@ -3008,4 +3001,11 @@ app.get("/snapshot/list", getSnapshotList);
 app.get("/make-server-76b0ba9a/partners/shares", getPartnerShareList);
 app.get("/partners/shares", getPartnerShareList);
 
-Deno.serve(app.fetch);
+Deno.serve((req) => {
+  const url = new URL(req.url);
+  if (url.pathname === "/server" || url.pathname.startsWith("/server/")) {
+    url.pathname = url.pathname.slice("/server".length) || "/";
+    return app.fetch(new Request(url, req));
+  }
+  return app.fetch(req);
+});

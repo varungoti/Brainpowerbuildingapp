@@ -1,0 +1,112 @@
+{
+  "name": "SEO Content Distributor (blog publish -> Postiz + newsletter)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "content-distributor",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Blog publish webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-760, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $json.body || $json;\nconst title = body.title || body.name || 'New NeuroSpark article';\nconst url = body.url || `${$env.MARKETING_SITE_URL || 'https://neurospark.app'}/blog/${body.slug || ''}`;\nconst dek = body.dek || body.description || 'A practical brain-building read for parents.';\nconst utm = `${url}${url.includes('?') ? '&' : '?'}utm_source=content_distributor&utm_medium=social&utm_campaign=blog_distribution&ns_source=content_distributor`;\nreturn [{ json: { title, url: utm, dek, body_md: body.body_md || '', tags: body.tags || [] } }];"
+      },
+      "id": "normalise",
+      "name": "Normalize article payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NS_ADMIN_API_BASE }}/admin/growth/approvals",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.NS_ADMIN_BEARER_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"kind\":\"content_distribution\",\"title\":\"Distribute: {{ $json.title }}\",\"payload\":{{ JSON.stringify($json) }},\"risk_level\":\"low\",\"status\":\"pending\"}"
+      },
+      "id": "approval",
+      "name": "Create admin approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $env.N8N_GROWTH_DRY_RUN === 'true' || $env.N8N_GROWTH_REQUIRE_APPROVAL === 'true' }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "dry-run",
+      "name": "Dry run or approval required?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-120, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ok: true, dryRun: true, message: 'Queued for admin approval; no social publishing performed.' } }];"
+      },
+      "id": "halt",
+      "name": "Return dry-run result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [100, -120]
+    },
+    {
+      "parameters": {
+        "functionCode": "const a = $('Normalize article payload').item.json;\nconst short = `${a.title}\\n\\n${a.dek}\\n\\nRead: ${a.url}`;\nconst posts = [\n  { provider: 'linkedin', channelId: $env.POSTIZ_CHANNEL_LINKEDIN, content: short },\n  { provider: 'x', channelId: $env.POSTIZ_CHANNEL_X, content: `${a.title}\\n${a.url}` },\n  { provider: 'threads', channelId: $env.POSTIZ_CHANNEL_THREADS, content: short },\n  { provider: 'bluesky', channelId: $env.POSTIZ_CHANNEL_BLUESKY, content: `${a.title}\\n${a.url}` },\n  { provider: 'medium', channelId: $env.POSTIZ_CHANNEL_MEDIUM, content: a.body_md || short, settings: { __type: 'medium', title: a.title } },\n  { provider: 'devto', channelId: $env.POSTIZ_CHANNEL_DEVTO, content: a.body_md || short, settings: { __type: 'devto', title: a.title, tags: (a.tags || []).slice(0,4) } }\n].filter((p) => !!p.channelId);\nreturn [{ json: { posts, tags: ['source:content_distributor'] } }];"
+      },
+      "id": "fanout",
+      "name": "Build Postiz fan-out",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [100, 120]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "name", "value": "lib/postiz_publish" },
+        "options": {}
+      },
+      "id": "postiz",
+      "name": "Publish via Postiz",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [320, 120]
+    }
+  ],
+  "connections": {
+    "Blog publish webhook": { "main": [[{ "node": "Normalize article payload", "type": "main", "index": 0 }]] },
+    "Normalize article payload": { "main": [[{ "node": "Create admin approval", "type": "main", "index": 0 }]] },
+    "Create admin approval": { "main": [[{ "node": "Dry run or approval required?", "type": "main", "index": 0 }]] },
+    "Dry run or approval required?": {
+      "main": [
+        [{ "node": "Return dry-run result", "type": "main", "index": 0 }],
+        [{ "node": "Build Postiz fan-out", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Postiz fan-out": { "main": [[{ "node": "Publish via Postiz", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "distribution" }, { "name": "approval-gated" }]
+}

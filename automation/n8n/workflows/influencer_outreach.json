@@ -1,0 +1,117 @@
+{
+  "name": "Influencer Outreach (CRM fit score -> approval draft)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "30 8 * * 1" }] }
+      },
+      "id": "weekly",
+      "name": "Mon 08:30 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [-760, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/influencers?fit_score=gte.70&outreach_status=is.null&select=handle,bio,follower_count,last_post_url,fit_score&limit=25",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        }
+      },
+      "id": "fetch",
+      "name": "Fetch high-fit creators",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split",
+      "name": "Split creators",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [-360, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"gpt-5\",\"messages\":[{\"role\":\"system\",\"content\":\"Draft warm, non-spammy creator outreach for a parenting app. Keep under 120 words, mention one specific reason for fit, never imply medical claims, and ask permission before sending anything.\"},{\"role\":\"user\",\"content\":\"Creator: @{{ $json.handle }}\\nBio: {{ $json.bio }}\\nFollowers: {{ $json.follower_count }}\\nRecent post: {{ $json.last_post_url }}\\nFit score: {{ $json.fit_score }}\"}],\"response_format\":{\"type\":\"json_object\"}}"
+      },
+      "id": "draft",
+      "name": "Draft outreach",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const creator = $('Split creators').item.json;\nconst parsed = JSON.parse($json.choices?.[0]?.message?.content || '{}');\nreturn [{ json: { kind: 'influencer_outreach', title: `Outreach draft: @${creator.handle}`, risk_level: 'medium', status: 'pending', payload: { creator, draft: parsed.message || parsed.text || parsed } } }];"
+      },
+      "id": "approval-payload",
+      "name": "Build approval payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NS_ADMIN_API_BASE }}/admin/growth/approvals",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.NS_ADMIN_BEARER_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "approval",
+      "name": "Create admin approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL_ID }}",
+        "text": "=:handshake: Influencer outreach draft queued in Growth Command Center: {{ $('Build approval payload').item.json.title }}",
+        "otherOptions": {}
+      },
+      "id": "slack",
+      "name": "Notify Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Mon 08:30 UTC": { "main": [[{ "node": "Fetch high-fit creators", "type": "main", "index": 0 }]] },
+    "Fetch high-fit creators": { "main": [[{ "node": "Split creators", "type": "main", "index": 0 }]] },
+    "Split creators": { "main": [[{ "node": "Draft outreach", "type": "main", "index": 0 }]] },
+    "Draft outreach": { "main": [[{ "node": "Build approval payload", "type": "main", "index": 0 }]] },
+    "Build approval payload": { "main": [[{ "node": "Create admin approval", "type": "main", "index": 0 }]] },
+    "Create admin approval": { "main": [[{ "node": "Notify Slack", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "influencer" }, { "name": "approval-gated" }]
+}

@@ -1,30 +1,53 @@
 /**
- * Classifies Railway token: project-scoped tokens work for GraphQL `project(id)` but NOT for CLI (`whoami`, `up`).
- * Loads `.env.local`: RAILWAY_API_TOKEN or RAILWAY_TOKEN, RAILWAY_PROJECT_ID (optional).
+ * Validates Railway auth: GraphQL `me` for file token, or `railway whoami` for linked login.
+ *
+ * `.env.local` token vars (first non-empty wins):
+ *   RAILWAY_ACCOUNT_API_TOKEN, RAILWAY_API_TOKEN, RAILWAY_TOKEN
+ *
+ * If RAILWAY_CLI_USE_LINKED_LOGIN=true, skips file token and checks `railway whoami` with no RAILWAY_* injection.
  */
-import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import {
+  defaultLocalEnvPath,
+  parseDotEnvFile,
+  preferRailwayLinkedLogin,
+  resolveRailwayTokenFromVars,
+} from "./railway-local-env.mjs";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const localEnv = resolve(root, ".env.local");
-
-const fileVars = {};
-if (existsSync(localEnv)) {
-  for (const line of readFileSync(localEnv, "utf8").split("\n")) {
-    const t = line.trim();
-    if (!t || t.startsWith("#")) continue;
-    const eq = t.indexOf("=");
-    if (eq <= 0) continue;
-    fileVars[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
-  }
-}
-
-const token = fileVars.RAILWAY_API_TOKEN || fileVars.RAILWAY_TOKEN;
+const localEnv = defaultLocalEnvPath();
+const root = localEnv.replace(/[/\\][^/\\]*$/, "");
+const fileVars = parseDotEnvFile(localEnv);
 const projectId = fileVars.RAILWAY_PROJECT_ID?.trim() || "55a53e74-31d8-4e15-84d9-ecf212214fbe";
 
+if (preferRailwayLinkedLogin(fileVars)) {
+  const childEnv = { ...process.env };
+  for (const k of Object.keys(childEnv)) {
+    if (k.startsWith("RAILWAY")) delete childEnv[k];
+  }
+  const r = spawnSync("npx", ["railway", "whoami", "--json"], {
+    cwd: root,
+    encoding: "utf8",
+    env: childEnv,
+    shell: true,
+  });
+  if ((r.status ?? 1) === 0) {
+    console.log(
+      "railway-token-check: OK — RAILWAY_CLI_USE_LINKED_LOGIN: `railway login` session works (no file token used).",
+    );
+    process.exit(0);
+  }
+  console.error(
+    "railway-token-check: FAIL — linked-login mode but `railway whoami` failed. Run `railway login` in this environment.",
+  );
+  if (r.stderr) process.stderr.write(r.stderr);
+  process.exit(1);
+}
+
+const token = resolveRailwayTokenFromVars(fileVars);
 if (!token) {
-  console.error("railway-token-check: missing RAILWAY_API_TOKEN or RAILWAY_TOKEN in .env.local");
+  console.error(
+    "railway-token-check: missing token — set RAILWAY_ACCOUNT_API_TOKEN (Account → API tokens) or RAILWAY_CLI_USE_LINKED_LOGIN=true",
+  );
   process.exit(1);
 }
 
@@ -51,24 +74,23 @@ const projOk =
   proj.res.ok && proj.json.data?.project?.id && !proj.json.errors?.length;
 
 if (meOk) {
-  console.log("railway-token-check: OK — account token (CLI + API). `pnpm run railway:cli whoami` should work.");
+  console.log(
+    "railway-token-check: OK — account token (GraphQL `me` succeeded). `pnpm run railway:cli whoami` should work.",
+  );
   process.exit(0);
 }
 
 if (projOk) {
   console.error(
-    "railway-token-check: PARTIAL — this is a project token (or limited scope): GraphQL can read project, but Railway CLI will stay Unauthorized.",
+    "PARTIAL — GraphQL `project(id)` works but `me` does not. The CLI usually needs a token from Account → API tokens.",
   );
+  console.error("  https://railway.com/account/tokens — use variable RAILWAY_ACCOUNT_API_TOKEN in .env.local");
   console.error(
-    "  Note: Account API tokens are created only under Account → Tokens (https://railway.com/account/tokens). Tokens copied from Project Settings are project-scoped (often UUID-shaped) and will always show PARTIAL here.",
+    "  If you already use `railway login` successfully, add RAILWAY_CLI_USE_LINKED_LOGIN=true and use `pnpm run railway:cli` without a file token.",
   );
-  console.error(
-    "  Fix: create an Account API Token at https://railway.com/account/tokens (not the Project token from Project Settings) and set RAILWAY_API_TOKEN in .env.local.",
-  );
-  console.error("  Or: connect the repo in the Railway dashboard and deploy via Git push (no CLI upload).");
+  console.error("  Tip: remove wrapping quotes around token values in .env.local if you added any.");
   process.exit(2);
 }
 
-console.error("railway-token-check: FAIL — token rejected for both account and project APIs.");
-console.error("  Replace RAILWAY_API_TOKEN with a new token from Railway.");
+console.error("railway-token-check: FAIL — token rejected for both `me` and `project`.");
 process.exit(1);

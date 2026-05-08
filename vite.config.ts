@@ -55,10 +55,8 @@ export default defineConfig({
     passWithNoTests: false,
     testTimeout: 30000,
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: false,
-      },
+    forks: {
+      singleFork: true,
     },
   },
 })

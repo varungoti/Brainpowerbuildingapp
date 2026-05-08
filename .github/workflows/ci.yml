@@ -64,6 +64,13 @@ jobs:
       - name: E2E paywall checkout (mocked Razorpay)
         run: pnpm run test:e2e:paywall
 
+      - name: Admin app E2E (mocked API + magic-link)
+        run: |
+          cd admin
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install chromium
+          pnpm run e2e
+
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

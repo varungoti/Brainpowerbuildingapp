@@ -1,4 +1,3 @@
-/// <reference path="./deno.d.ts" />
 import { chatJson, generateImage } from "./ai_provider.ts";
 import { printableGuideSchema } from "./ai_schemas.ts";
 

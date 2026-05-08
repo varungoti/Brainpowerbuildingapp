@@ -20,14 +20,18 @@ Implement the full NeuroSpark Global Revenue Plan into production-ready repo ass
 - `global-revenue-growth_c81045bc.plan.md` now includes aggressive revenue milestone ladders, daily OKR system, daily learning loop, overachievement playbook, daily admin workflow, and 200% production-readiness gates.
 - Growth Command Center implementation is now in-repo via migration `00016_growth_command_center.sql`, admin route additions in `supabase/functions/server/admin.tsx`, admin page `admin/src/pages/growth/GrowthCommandCenterPage.tsx`, and runbooks/scaffolding in `docs/` and `automation/`.
 - Pricing alignment and lead capture are now implemented: shared launch pricing module, app paywall aligned to annual/pro offers, marketing pricing aligned to the same offer ladder, `/ai-age-starter-pack` lead magnet, `/growth/lead` endpoint, and admin lead visibility.
-- Verification status for this growth build: IDE lints clean for edited files; `pnpm run growth:check` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm run typecheck` passed; `pnpm --filter marketing-site build` passed; admin build previously passed.
+- Supabase production smoke pass completed for the Global Revenue Plan: remote migration `00016_growth_command_center` is present, `server` Edge Function is deployed with function-level JWT disabled for public routes, `/server/make-server-76b0ba9a/health` returns `200`, `/server/admin/growth/overview` returns the expected route-level `401`, and `/server/growth/lead` accepts a starter-pack smoke lead with `200 {"ok":true}`.
+- Edge Function deployment hardening completed: removed duplicate `timingSafeEqualHex`, removed the custom Deno declaration shim from the runtime graph, added a `/server/*` path normalizer, and verified `npx deno-bin check --node-modules-dir=auto supabase/functions/server/index.ts`.
+- Verification status for this growth build: IDE lints clean for edited files; `pnpm run growth:check` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm run typecheck` passed; `pnpm --filter marketing-site build` passed; admin build previously passed; latest full `pnpm run verify` passed with 305 tests.
 - Railway hosting preparation is now in-repo: root, admin, and marketing-site Dockerfiles plus `railway.json` files, and `docs/RAILWAY_HOSTING.md`.
 - Full plan implementation assets are now in `docs/growth/`, `automation/growth-campaigns/`, and `automation/n8n/workflows/growth_weekly_review_dry_run.json`.
+- The attached `prod-readiness-admin-marketing` plan is now completed in-repo without editing the source plan file: admin access helper tests, admin Playwright login/audit/family drill-through E2E, n8n wave-2 production workflow exports, and the 18-moment in-app animation catalog are implemented.
 - All in-repo plan todos have been completed in the active tracker.
+- Verification passed for this completion pass: n8n workflow JSON parse check, `pnpm exec vitest run src/utils/adminAccess.test.ts`, `pnpm --filter @neurospark/admin typecheck`, `pnpm --filter @neurospark/admin e2e`, `pnpm run test` (305 tests), and full `pnpm run verify`.
 - Online deployment is currently blocked by environment/auth:
   - Railway MCP descriptors are not present in the workspace, despite previous context mentioning Railway.
-  - Railway CLI is installed but unauthenticated (`invalid_grant`; must run `railway login` or provide `RAILWAY_TOKEN`).
-  - Supabase CLI migration push found `.env.supabase` but failed because `SUPABASE_DB_PASSWORD` is missing/incorrect.
+  - Railway CLI deployment is blocked by a partial/project-scoped token; `pnpm run railway:token-check` says GraphQL project access works but `me` does not. A Railway account API token or linked `railway login` is still required for deploys.
+  - Supabase CLI migration push still needs `SUPABASE_DB_PASSWORD`, but Supabase MCP confirms migration `00016` is already applied and the Edge Function deploy/smoke path is complete.
   - Docker CLI is installed but Docker Desktop/Linux engine is not running.
   - Cloudflare deploy path is unavailable (`wrangler` and `CLOUDFLARE_API_TOKEN` absent).
 
@@ -38,9 +42,9 @@ I will maintain `memory-bank/tasks.md` as the single source of truth for task st
 
 ## Immediate Next Steps
 
-1. Authenticate Railway (`railway login` or set `RAILWAY_TOKEN`) and re-run Railway deploys for root app, `admin/`, and `marketing-site/`.
-2. Set `SUPABASE_DB_PASSWORD` or use a working Supabase MCP deploy path, then apply `00016_growth_command_center.sql` and deploy the Edge Function.
-3. Smoke-test `/admin/growth`, `/ai-age-starter-pack`, `/growth/lead`, campaign seeding, and weekly review after deployment.
+1. Provide a Railway account API token or run linked `railway login`, then deploy root app, `admin/`, and `marketing-site/`.
+2. Add a real admin JWT/admin user for deeper `/admin/growth` UI smoke testing beyond the unauthenticated route-level `401`.
+3. Keep Mautic/n8n/Hermes/Postiz live sends paused until legal/compliance, domain email auth, suppression, audit, approval, and kill-switch gates are green.
 # Active Context
 
 ## Current state

@@ -1,49 +1,42 @@
 /**
- * Run Railway CLI with auth loaded from `.env.local` only (avoids stale RAILWAY_* in the shell).
+ * Run Railway CLI with auth from `.env.local`, or use `railway login` session only.
  *
- * Expects in `.env.local`:
- *   RAILWAY_API_TOKEN=...   (or RAILWAY_TOKEN)
- *   RAILWAY_PROJECT_ID=...   optional; exported for CLI subcommands that read it
+ * `.env.local`:
+ *   RAILWAY_ACCOUNT_API_TOKEN=...   (preferred name — Account → API tokens only)
+ *   RAILWAY_API_TOKEN=...           (alias)
+ *   RAILWAY_TOKEN=...               (alias)
+ *   RAILWAY_PROJECT_ID=...          optional
+ *   RAILWAY_CLI_USE_LINKED_LOGIN=true   if set: do NOT inject file token; use ~/.railway (browser `railway login`)
  *
  * Usage: node scripts/railway-exec.mjs whoami
- *        node scripts/railway-exec.mjs link -p <project-uuid>
- *        node scripts/railway-exec.mjs up
  */
-import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import {
+  defaultLocalEnvPath,
+  parseDotEnvFile,
+  preferRailwayLinkedLogin,
+  resolveRailwayTokenFromVars,
+} from "./railway-local-env.mjs";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const localEnv = resolve(root, ".env.local");
-
-function applyEnvFile(path, target) {
-  if (!existsSync(path)) return;
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const t = line.trim();
-    if (!t || t.startsWith("#")) continue;
-    const eq = t.indexOf("=");
-    if (eq <= 0) continue;
-    const k = t.slice(0, eq).trim();
-    const v = t.slice(eq + 1).trim();
-    target[k] = v;
-  }
-}
-
-const fileVars = {};
-applyEnvFile(localEnv, fileVars);
+const root = defaultLocalEnvPath().replace(/[/\\][^/\\]*$/, "");
+const localEnv = defaultLocalEnvPath();
+const fileVars = parseDotEnvFile(localEnv);
 
 const childEnv = { ...process.env };
 for (const k of Object.keys(childEnv)) {
   if (k.startsWith("RAILWAY")) delete childEnv[k];
 }
 
-const token = fileVars.RAILWAY_API_TOKEN || fileVars.RAILWAY_TOKEN;
+const useLinked = preferRailwayLinkedLogin(fileVars);
+const token = useLinked ? "" : resolveRailwayTokenFromVars(fileVars);
+
 if (token) {
   childEnv.RAILWAY_TOKEN = token;
   childEnv.RAILWAY_API_TOKEN = token;
 }
-if (fileVars.RAILWAY_PROJECT_ID) childEnv.RAILWAY_PROJECT_ID = fileVars.RAILWAY_PROJECT_ID;
+if (fileVars.RAILWAY_PROJECT_ID) {
+  childEnv.RAILWAY_PROJECT_ID = fileVars.RAILWAY_PROJECT_ID.trim();
+}
 
 const args = process.argv.slice(2);
 if (args.length === 0) {

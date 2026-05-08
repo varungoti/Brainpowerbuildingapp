@@ -1,23 +1,17 @@
-import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { defaultLocalEnvPath, parseDotEnvFile, resolveRailwayTokenFromVars } from "./railway-local-env.mjs";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const localEnv = resolve(root, ".env.local");
+const root = defaultLocalEnvPath().replace(/[/\\][^/\\]*$/, "");
+const localEnv = defaultLocalEnvPath();
 const projectId = process.argv[2] || "55a53e74-31d8-4e15-84d9-ecf212214fbe";
 
-const fileVars = {};
-if (existsSync(localEnv)) {
-  for (const line of readFileSync(localEnv, "utf8").split("\n")) {
-    const t = line.trim();
-    if (!t || t.startsWith("#")) continue;
-    const eq = t.indexOf("=");
-    if (eq <= 0) continue;
-    fileVars[t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
-  }
+const fileVars = parseDotEnvFile(localEnv);
+const token = resolveRailwayTokenFromVars(fileVars);
+if (!token) {
+  console.error(
+    "railway-list-project: set RAILWAY_ACCOUNT_API_TOKEN or RAILWAY_API_TOKEN in .env.local (GraphQL needs a token).",
+  );
+  process.exit(1);
 }
-
-const token = fileVars.RAILWAY_API_TOKEN || fileVars.RAILWAY_TOKEN;
 const query = `query Q($id: String!) {
   project(id: $id) {
     id

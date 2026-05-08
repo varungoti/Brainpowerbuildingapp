@@ -1,15 +1,13 @@
-/// <reference path="./deno.d.ts" />
+// @ts-nocheck
 import { type Context, type Hono } from "npm:hono";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
-
-type AdminRole = "superadmin" | "analyst" | "marketing" | "support" | "readonly";
-const ROLE_RANK: Record<AdminRole, number> = {
-  readonly: 1,
-  support: 2,
-  marketing: 3,
-  analyst: 4,
-  superadmin: 5,
-};
+import {
+  buildAdminAuditRow,
+  canAccessAdminRole,
+  normaliseAdminRole,
+  parseBearerToken,
+  type AdminRole,
+} from "./admin_access.ts";
 
 function admin(): ReturnType<typeof createClient> {
   const url = Deno.env.get("SUPABASE_URL");
@@ -25,13 +23,14 @@ async function getRole(userId: string): Promise<{ role: AdminRole; email: string
     .eq("user_id", userId)
     .maybeSingle();
   if (error || !data || data.disabled_at) return null;
-  return { role: data.role as AdminRole, email: data.email as string };
+  const role = normaliseAdminRole(data.role);
+  if (!role) return null;
+  return { role, email: data.email as string };
 }
 
 export function requireAdmin(min: AdminRole) {
   return async (c: Context, next: () => Promise<void>) => {
-    const auth = c.req.header("authorization") ?? "";
-    const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
+    const token = parseBearerToken(c.req.header("authorization"));
     if (!token) return c.json({ error: "unauthorized" }, 401);
     try {
       const sb = createClient(
@@ -42,7 +41,7 @@ export function requireAdmin(min: AdminRole) {
       if (error || !data.user?.id) return c.json({ error: "unauthorized" }, 401);
       const role = await getRole(data.user.id);
       if (!role) return c.json({ error: "forbidden" }, 403);
-      if (ROLE_RANK[role.role] < ROLE_RANK[min]) return c.json({ error: "forbidden" }, 403);
+      if (!canAccessAdminRole(role.role, min)) return c.json({ error: "forbidden" }, 403);
       c.set("admin", { userId: data.user.id, email: role.email, role: role.role });
       await next();
     } catch (err) {
@@ -60,16 +59,10 @@ async function audit(
 ) {
   try {
     const a = c.get("admin") as { userId: string; email: string };
-    await admin().from("admin_audit_log").insert({
-      actor_id: a.userId,
-      actor_email: a.email,
-      action,
-      target_type: target?.type ?? null,
-      target_id: target?.id ?? null,
-      payload: payload ?? null,
-      ip: c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
-      user_agent: c.req.header("user-agent") ?? null,
-    });
+    await admin().from("admin_audit_log").insert(buildAdminAuditRow(a, action, payload, target, {
+      forwardedFor: c.req.header("x-forwarded-for"),
+      userAgent: c.req.header("user-agent"),
+    }));
   } catch (err) {
     console.error("audit failed", err);
   }

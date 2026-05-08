@@ -1,4 +1,3 @@
-/// <reference path="./deno.d.ts" />
 import {
   estimateFireworksImageCostUSD,
   estimateTextCostUSD,

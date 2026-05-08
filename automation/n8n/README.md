@@ -40,6 +40,10 @@ open http://localhost:5678
 | `youtube_clipper.json` | hourly | Auto-clip new YouTube videos via Opus Clip → fan out to IG/TikTok/YT Shorts via Postiz |
 | `community_signal_monitor.json` | every 30m | Twitter / Bluesky / Reddit keyword scan → Slack |
 | `seo_blog_engine.json` | daily | LLM drafts blog post → Slack approval → fan out to Medium + dev.to + Hashnode via Postiz |
+| `content_distributor.json` | webhook | Blog publish event → Growth approval → LinkedIn/X/Threads/Bluesky/Medium/dev.to fan-out via Postiz |
+| `email_drip_campaigns.json` | webhook | PostHog lifecycle cohort event → suppression check → Growth approval → Resend lifecycle email |
+| `influencer_outreach.json` | weekly | High-fit creator CRM rows → GPT draft → Growth approval + Slack notice; no auto-send |
+| `ad_creative_generator.json` | webhook | Feature launch → 6 compliant ad variants → optional Studio storyboard → Growth approval |
 | `weekly_intelligence_newsletter.json` | weekly | Email opted-in parents the rolled-up weekly intelligence report |
 | `posthog_daily_digest.json` | daily | DAU / churn / cost rollup → Slack |
 | `influencer_scraper.json` | weekly | Apify Instagram/YouTube scraper → enrich CRM in Supabase |

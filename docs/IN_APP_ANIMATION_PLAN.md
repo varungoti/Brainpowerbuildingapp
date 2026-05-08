@@ -108,7 +108,35 @@
 
 ---
 
-## 4. Reusable hooks (ship these first)
+## 4. Exact 18-Moment Catalog
+
+This is the implementation checklist for the first animation pass. Each item is
+additive and must keep its static fallback for reduced-motion users.
+
+| # | Moment | Component path | Primary tool | Guardrail |
+| --- | --- | --- | --- | --- |
+| 1 | Hero spark orb entrance | `src/app/screens/LandingScreen.tsx` | Anime.js lazy import | No loop after first paint |
+| 2 | Hero headline word reveal | `src/app/screens/LandingScreen.tsx` | Motion stagger | Static headline under reduced motion |
+| 3 | Primary CTA breathing glow | `src/app/screens/LandingScreen.tsx` | CSS keyframes | Pause when tab hidden |
+| 4 | Onboarding step illustration swap | `src/app/screens/OnboardingScreen.tsx` | Motion `LayoutGroup` | Preserve focus order |
+| 5 | Onboarding shape trail | `src/app/screens/OnboardingScreen.tsx` | react-spring lazy import | Max 3 animated shapes |
+| 6 | Today card fade-up stagger | `src/app/screens/HomeScreen.tsx` | `useReveal` + Motion | Cap at 6 cards |
+| 7 | Streak chip increment pop | `src/app/screens/HomeScreen.tsx` | Motion spring | Trigger only when value changes |
+| 8 | Pull-to-refresh rubberband hint | `src/app/screens/HomeScreen.tsx` | Motion drag | Visual-only; no hidden network action |
+| 9 | Brain-region badge trail | `src/app/screens/ActivityDetailScreen.tsx` | react-spring trail | No layout mutation |
+| 10 | AI-age explanation reveal | `src/app/screens/ActivityDetailScreen.tsx` | `useReveal` | Once per view |
+| 11 | Complete CTA reward burst | `src/app/screens/ActivityDetailScreen.tsx` | Anime.js lazy import | Ends within 1.4 s |
+| 12 | Brain map SVG region hover | `src/app/screens/BrainMapScreen.tsx`, `src/components/brain/BrainSvgOverlay.tsx` | react-spring | Keyboard focus mirrors hover |
+| 13 | Coverage radar week morph | `src/app/screens/BrainMapScreen.tsx`, `src/components/competency/CompetencyRadar.tsx` | react-spring + Anime.js | Run only on explicit toggle |
+| 14 | Brain map initial stroke draw | `src/components/brain/BrainCanvas.tsx` | Anime.js lazy import | Skip on low-power devices |
+| 15 | Quest tier-up medal burst | `src/app/screens/QuestsScreen.tsx` | Anime.js + Motion | One-shot, no autoplay loop |
+| 16 | Paywall plan selected glow | `src/app/screens/PaywallScreen.tsx` | Motion spring | CSS fallback only |
+| 17 | Voice mic state bloom | `src/app/screens/AICounselorScreen.tsx`, `src/components/voice/ConversationButton.tsx` | CSS + Motion | Tied to finite voice state |
+| 18 | Blueprint docs scroll sections | `src/app/screens/BlueprintDocsScreen.tsx` | GSAP ScrollTrigger lazy import | Lazy route only |
+
+---
+
+## 5. Reusable hooks (ship these first)
 
 ```ts
 // src/utils/motion/useReveal.ts
@@ -148,7 +176,7 @@ export async function lazyGsap() {
 
 ---
 
-## 5. Implementation phases
+## 6. Implementation phases
 
 | Phase | Scope | Effort | Owner |
 | --- | --- | --- | --- |
@@ -164,7 +192,7 @@ Total: ~5 dev days end-to-end.
 
 ---
 
-## 6. Telemetry & guardrails
+## 7. Telemetry & guardrails
 
 - Add a one-time `voice_settings_change` style event:
   `animations_intensity_change` with `intensity ∈ { full, reduced, off }`.
@@ -176,7 +204,7 @@ Total: ~5 dev days end-to-end.
 
 ---
 
-## 7. References
+## 8. References
 
 - Anime.js v4 docs (stagger + path morphing): https://animejs.com
 - GSAP ScrollTrigger best practices: https://gsap.com/scrolltrigger

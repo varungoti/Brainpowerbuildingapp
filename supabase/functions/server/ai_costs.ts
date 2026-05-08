@@ -1,4 +1,3 @@
-/// <reference path="./deno.d.ts" />
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
 export type AiCostRoute =

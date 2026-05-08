@@ -1,0 +1,162 @@
+{
+  "name": "Lifecycle Email Drips (PostHog cohort -> Resend approval)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "email-drip-campaigns",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "PostHog cohort webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-820, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $json.body || $json;\nconst cohort = body.cohort || body.event || 'onboarding_day_7';\nconst templates = {\n  onboarding_day_7: { subject: 'Your first week of brain-building wins', cta: 'Generate this week\\'s pack' },\n  churn_day_14: { subject: 'A 5-minute reset for a busy week', cta: 'Try a tiny activity' },\n  milestone_day_30: { subject: 'Your 30-day NeuroSpark snapshot is ready', cta: 'Open the weekly report' }\n};\nconst template = templates[cohort] || templates.onboarding_day_7;\nreturn [{ json: { cohort, email: body.email, userId: body.user_id || body.userId, locale: body.locale || 'en', ...template } }];"
+      },
+      "id": "normalise",
+      "name": "Normalize cohort",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-620, 0]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/growth_compliance_suppression?channel=eq.email&value_label=eq.{{ encodeURIComponent($json.email || '') }}&select=id",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        }
+      },
+      "id": "suppression",
+      "name": "Check suppression",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-420, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ Array.isArray($json) ? $json.length : 0 }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "is-suppressed",
+      "name": "Suppressed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-220, 0]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ok: false, suppressed: true, message: 'Email is suppressed; no send attempted.' } }];"
+      },
+      "id": "blocked",
+      "name": "Return suppressed",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [0, -140]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NS_ADMIN_API_BASE }}/admin/growth/approvals",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.NS_ADMIN_BEARER_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"kind\":\"email_drip\",\"title\":\"Send lifecycle email: {{ $('Normalize cohort').item.json.cohort }}\",\"payload\":{{ JSON.stringify($('Normalize cohort').item.json) }},\"risk_level\":\"medium\",\"status\":\"pending\"}"
+      },
+      "id": "approval",
+      "name": "Create admin approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [0, 120]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $env.N8N_GROWTH_DRY_RUN === 'true' || $env.N8N_GROWTH_REQUIRE_APPROVAL === 'true' }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "dry-run",
+      "name": "Dry run or approval required?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 120]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ok: true, dryRun: true, message: 'Lifecycle email queued for review; no email sent.' } }];"
+      },
+      "id": "queued",
+      "name": "Return queued",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.resend.com/emails",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.RESEND_API_KEY }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"from\":\"NeuroSpark <hello@{{ $env.RESEND_FROM_DOMAIN }}>\",\"to\":[\"{{ $('Normalize cohort').item.json.email }}\"],\"subject\":\"{{ $('Normalize cohort').item.json.subject }}\",\"html\":\"<p>Hi,</p><p>Here is a practical NeuroSpark activity for your family this week.</p><p><a href='{{ $env.PUBLIC_APP_WEB_URL }}?utm_source=email_drip&utm_campaign={{ $('Normalize cohort').item.json.cohort }}&ns_source=email_drip'>{{ $('Normalize cohort').item.json.cta }}</a></p><p>You can unsubscribe from email settings anytime.</p>\"}"
+      },
+      "id": "send",
+      "name": "Send via Resend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 240]
+    }
+  ],
+  "connections": {
+    "PostHog cohort webhook": { "main": [[{ "node": "Normalize cohort", "type": "main", "index": 0 }]] },
+    "Normalize cohort": { "main": [[{ "node": "Check suppression", "type": "main", "index": 0 }]] },
+    "Check suppression": { "main": [[{ "node": "Suppressed?", "type": "main", "index": 0 }]] },
+    "Suppressed?": {
+      "main": [
+        [{ "node": "Return suppressed", "type": "main", "index": 0 }],
+        [{ "node": "Create admin approval", "type": "main", "index": 0 }]
+      ]
+    },
+    "Create admin approval": { "main": [[{ "node": "Dry run or approval required?", "type": "main", "index": 0 }]] },
+    "Dry run or approval required?": {
+      "main": [
+        [{ "node": "Return queued", "type": "main", "index": 0 }],
+        [{ "node": "Send via Resend", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "marketing" }, { "name": "email" }, { "name": "approval-gated" }]
+}
