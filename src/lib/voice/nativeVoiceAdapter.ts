@@ -4,7 +4,8 @@
 // `pickAdapter()` returns the strongest adapter available at runtime, in
 // priority order:
 //
-//   1. In-house NeuroSparkVoice (planned, full-stack TTS + STT + barge-in)
+//   1. In-house NeuroSparkVoice Capacitor plugin (native TTS + STT in
+//      `capacitor-plugins/neurospark-voice/` — Android + iOS implementations)
 //   2. @capacitor-community/text-to-speech + @capacitor-community/speech-
 //      recognition — community plugins recommended by FUTURE_ROADMAP §2.4.
 //      Either or both may be present; whichever side is missing falls back
@@ -227,8 +228,8 @@ class NativePluginAdapter implements VoiceAdapter {
 
 /**
  * Composite adapter that uses community plugins for whichever primitive(s)
- * are available, delegating the rest to WebVoiceAdapter. This is what most
- * production builds will use until the in-house NeuroSparkVoice plugin lands.
+ * are available, delegating the rest to WebVoiceAdapter. Used when
+ * NeuroSparkVoice is not selected (e.g. plugin not bundled) while still on native.
  */
 class CommunityPluginAdapter implements VoiceAdapter {
   private webFallback: WebVoiceAdapter;

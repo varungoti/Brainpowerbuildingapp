@@ -2,11 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { ACTIVITIES, getAgeTierConfig } from "../data/activities";
 import { functionsBaseUrl, isSupabaseConfigured, publicAnonKey } from "@/utils/supabase/info";
+import { getSupabaseBrowserClient } from "@/utils/supabase/client";
 import { isPaymentsRemotelyDisabled } from "@/utils/featureFlags";
 import { useRemoteAppFlags } from "@/app/context/RemoteConfigContext";
 import { captureProductEvent } from "@/utils/productAnalytics";
+import { getPaywallVariant, type PaywallVariant } from "@/utils/paywallVariant";
 import { useOnlineStatus } from "@/utils/networkStatus";
 import { LAUNCH_PAYWALL_PLANS, LAUNCH_PRICING_COPY, getLaunchPaywallPlan } from "@/lib/revenue/launchPricing";
+import {
+  getStoreBillingPlatform,
+  purchaseLaunchPlanOnNative,
+  verifyNativeTransactionOnServer,
+} from "@/lib/revenue/storeBilling";
 
 const VALUE_PROPS = [
   { emoji:"🧠", title:"Research-Backed",  desc:"25+ global methods, 15 brain regions, 70+ curated activities" },
@@ -53,13 +60,91 @@ export function PaywallScreen() {
   const missedActivities = ACTIVITIES.filter(a => a.ageTiers.includes(tier > 0 ? tier : 1)).slice(0, 3);
 
   const plan = getLaunchPaywallPlan(selected);
+  const nativeBillingPlatform = getStoreBillingPlatform();
+
+  // Resolve the assigned A/B variant once on mount. Cached read in
+  // captureProductEvent will then auto-attach variant_key on every paywall
+  // event so server-side conversion attribution works without per-event
+  // changes at every call site.
+  const [variant, setVariant] = useState<PaywallVariant | null>(null);
+  useEffect(() => {
+    let alive = true;
+    getPaywallVariant().then((v) => {
+      if (alive) setVariant(v);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (step !== "plan") return;
     captureProductEvent("paywall_view", { age_tier: tier });
-  }, [step, tier]);
+  }, [step, tier, variant?.variant_key]);
 
-  // ─── Real Razorpay payment ─────────────────────────────────────────────────
+  // ─── App Store / Play Billing (Capacitor native) ──────────────────────────
+  const handleNativeStoreCheckout = async () => {
+    if (!isOnline) {
+      setPayError("You're offline. Checkout needs an internet connection.");
+      return;
+    }
+    if (!checkoutReady) {
+      setPayError(
+        paymentsKilled
+          ? "Checkout is temporarily unavailable. Please try again later."
+          : "Checkout is not configured in this environment yet.",
+      );
+      return;
+    }
+    const platform = nativeBillingPlatform;
+    if (!platform) return;
+
+    setProcessing(true);
+    setPayError(null);
+    captureProductEvent("paywall_checkout_start", {
+      age_tier: tier,
+      plan_id: plan.id,
+      days: plan.days,
+    });
+    try {
+      const supabase = getSupabaseBrowserClient();
+      let userId: string | null = null;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        userId = session?.user?.id ?? null;
+      }
+      if (!userId) {
+        setPayError("Please sign in to complete purchase.");
+        return;
+      }
+
+      const { transaction } = await purchaseLaunchPlanOnNative(plan.id, userId);
+      const ver = await verifyNativeTransactionOnServer(platform, transaction);
+      if (!ver.ok) {
+        throw new Error(ver.error ?? "Store verification failed");
+      }
+      captureProductEvent("paywall_purchase_success", {
+        age_tier: tier,
+        plan_id: plan.id,
+        days: plan.days,
+      });
+      addCredits(plan.days);
+      setStep("success");
+    } catch (err: unknown) {
+      const msg = String(err instanceof Error ? err.message : err);
+      console.error("Native store payment error:", err);
+      setPayError(msg);
+      captureProductEvent("paywall_purchase_fail", {
+        age_tier: tier,
+        plan_id: plan.id,
+        fail_reason: msg.slice(0, 80),
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ─── Real Razorpay payment (web + non-billing-native) ─────────────────────
   const handleRazorpay = async () => {
     if (!isOnline) {
       setPayError("You're offline. Checkout and payment verification need an internet connection.");
@@ -82,15 +167,34 @@ export function PaywallScreen() {
       amount_inr: plan.priceInr,
     });
     try {
+      const supabase = getSupabaseBrowserClient();
+      let accessToken: string | null = null;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        accessToken = session?.access_token ?? null;
+      } else if (import.meta.env.VITE_E2E_SUPPRESS_SB_CLIENT === "true") {
+        /* Playwright paywall E2E: no SB client; mocked Edge never validates this string. */
+        accessToken = "e2e_paywall_checkout_token";
+      }
+      if (!accessToken) {
+        setPayError("Please sign in to complete purchase.");
+        return;
+      }
+      const edgeAuthHeaders: Record<string, string> = {
+        Authorization: `Bearer ${accessToken}`,
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      };
+
       // 1. Load Razorpay SDK
       await loadRazorpaySDK();
 
-      // 2. Create order on server
+      // 2. Create order on server (user JWT + anon apikey)
       const orderRes = await fetch(
         `${functionsBaseUrl}/razorpay/create-order`,
         {
           method: "POST",
-          headers: { "Authorization": `Bearer ${publicAnonKey}`, "Content-Type": "application/json" },
+          headers: edgeAuthHeaders,
           body: JSON.stringify({ amount: plan.priceInr }),
         }
       );
@@ -119,7 +223,7 @@ export function PaywallScreen() {
                 `${functionsBaseUrl}/razorpay/verify-payment`,
                 {
                   method: "POST",
-                  headers: { "Authorization": `Bearer ${publicAnonKey}`, "Content-Type": "application/json" },
+                  headers: edgeAuthHeaders,
                   body: JSON.stringify(response),
                 }
               );
@@ -156,6 +260,11 @@ export function PaywallScreen() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handlePrimaryCheckout = () => {
+    if (nativeBillingPlatform) void handleNativeStoreCheckout();
+    else void handleRazorpay();
   };
 
   // ─── Success screen ────────────────────────────────────────────────────────
@@ -209,8 +318,8 @@ export function PaywallScreen() {
           <span className="text-white/50 text-xs">‹ Back</span>
         </button>
         <div className="text-4xl mb-2">⚡</div>
-        <div className="text-white font-black text-xl mb-1">Unlock Today's Brain Pack</div>
-        <div className="text-white/60 text-xs">Personalised for {activeChild?.name} · {tierCfg.label} · AGE Algorithm</div>
+        <div className="text-white font-black text-xl mb-1">{variant?.headline || "Unlock Today's Brain Pack"}</div>
+        <div className="text-white/60 text-xs">{variant?.sub_copy || `Personalised for ${activeChild?.name} · ${tierCfg.label} · AGE Algorithm`}</div>
       </div>
 
       <div className="px-4 pb-8 space-y-5">
@@ -359,11 +468,11 @@ export function PaywallScreen() {
           </div>
         )}
 
-        {/* Razorpay CTA */}
+        {/* Checkout: Play / App Store on native Capacitor; Razorpay on web */}
         <button
           type="button"
           data-testid="paywall-pay-button"
-          onClick={handleRazorpay}
+          onClick={handlePrimaryCheckout}
           disabled={processing || !isOnline || !checkoutReady}
           className="w-full py-4 rounded-2xl font-black text-white text-base relative overflow-hidden"
           style={{
@@ -374,8 +483,10 @@ export function PaywallScreen() {
           {processing ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-              Connecting to Razorpay...
+              {nativeBillingPlatform ? "Opening store checkout..." : "Connecting to Razorpay..."}
             </span>
+          ) : nativeBillingPlatform ? (
+            `Continue with ${nativeBillingPlatform === "ios" ? "App Store" : "Google Play"} →`
           ) : (
             `Pay ₹${plan.priceInr.toLocaleString()} via Razorpay →`
           )}
@@ -390,7 +501,9 @@ export function PaywallScreen() {
           <div className="w-px h-3 bg-white/10"/>
           <div className="flex items-center gap-1">
             <span className="text-white/25 text-xs">🏦</span>
-            <span className="text-white/25 text-xs">Razorpay secured</span>
+            <span className="text-white/25 text-xs">
+              {nativeBillingPlatform ? "Store-billed account" : "Razorpay secured"}
+            </span>
           </div>
           <div className="w-px h-3 bg-white/10"/>
           <div className="flex items-center gap-1">

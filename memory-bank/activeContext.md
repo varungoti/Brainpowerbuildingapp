@@ -19,10 +19,11 @@ Implement the full NeuroSpark Global Revenue Plan into production-ready repo ass
 - Verification passed: `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run content:validate`, `pnpm run age:report`, `pnpm run build`, and `pnpm run verify`.
 - `global-revenue-growth_c81045bc.plan.md` now includes aggressive revenue milestone ladders, daily OKR system, daily learning loop, overachievement playbook, daily admin workflow, and 200% production-readiness gates.
 - Growth Command Center implementation is now in-repo via migration `00016_growth_command_center.sql`, admin route additions in `supabase/functions/server/admin.tsx`, admin page `admin/src/pages/growth/GrowthCommandCenterPage.tsx`, and runbooks/scaffolding in `docs/` and `automation/`.
+- **Mission HQ** — gamified operational checklist for admins: mission catalog + XP/levels/streak/badges; persistence via `00017_admin_mission_completions.sql`; `GET/POST/DELETE /admin/missions` with audit events; `admin/src/pages/missions/MissionHQPage.tsx` (`#missions`); hash routing accepts both `#missions` and `#/missions`; Growth page links to Mission HQ and vice versa. Production requires applying `00017` and redeploying the Edge `server` bundle that includes mission routes.
 - Pricing alignment and lead capture are now implemented: shared launch pricing module, app paywall aligned to annual/pro offers, marketing pricing aligned to the same offer ladder, `/ai-age-starter-pack` lead magnet, `/growth/lead` endpoint, and admin lead visibility.
 - Supabase production smoke pass completed for the Global Revenue Plan: remote migration `00016_growth_command_center` is present, `server` Edge Function is deployed with function-level JWT disabled for public routes, `/server/make-server-76b0ba9a/health` returns `200`, `/server/admin/growth/overview` returns the expected route-level `401`, and `/server/growth/lead` accepts a starter-pack smoke lead with `200 {"ok":true}`.
 - Edge Function deployment hardening completed: removed duplicate `timingSafeEqualHex`, removed the custom Deno declaration shim from the runtime graph, added a `/server/*` path normalizer, and verified `npx deno-bin check --node-modules-dir=auto supabase/functions/server/index.ts`.
-- Verification status for this growth build: IDE lints clean for edited files; `pnpm run growth:check` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm run typecheck` passed; `pnpm --filter marketing-site build` passed; admin build previously passed; latest full `pnpm run verify` passed with 305 tests.
+- Verification status for this growth build: IDE lints clean for edited files; `pnpm run growth:check` passed; `pnpm --filter @neurospark/admin typecheck` passed; `pnpm run typecheck` passed; `pnpm --filter marketing-site build` passed; admin build previously passed; latest full `pnpm run verify` passed with 309 root Vitest tests; admin Playwright E2E includes Mission HQ smoke.
 - Railway hosting preparation is now in-repo: root, admin, and marketing-site Dockerfiles plus `railway.json` files, and `docs/RAILWAY_HOSTING.md`.
 - Full plan implementation assets are now in `docs/growth/`, `automation/growth-campaigns/`, and `automation/n8n/workflows/growth_weekly_review_dry_run.json`.
 - The attached `prod-readiness-admin-marketing` plan is now completed in-repo without editing the source plan file: admin access helper tests, admin Playwright login/audit/family drill-through E2E, n8n wave-2 production workflow exports, and the 18-moment in-app animation catalog are implemented.
@@ -44,7 +45,8 @@ I will maintain `memory-bank/tasks.md` as the single source of truth for task st
 
 1. Provide a Railway account API token or run linked `railway login`, then deploy root app, `admin/`, and `marketing-site/`.
 2. Add a real admin JWT/admin user for deeper `/admin/growth` UI smoke testing beyond the unauthenticated route-level `401`.
-3. Keep Mautic/n8n/Hermes/Postiz live sends paused until legal/compliance, domain email auth, suppression, audit, approval, and kill-switch gates are green.
+3. **Mission HQ remote:** Migration `00017` and `server` redeploy are done for the linked Supabase project (CLI `db push` + `functions deploy server`). Repeat for any other Supabase projects you use.
+4. Keep Mautic/n8n/Hermes/Postiz live sends paused until legal/compliance, domain email auth, suppression, audit, approval, and kill-switch gates are green.
 # Active Context
 
 ## Current state

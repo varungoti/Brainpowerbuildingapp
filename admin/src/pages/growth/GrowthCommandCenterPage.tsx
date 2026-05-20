@@ -13,6 +13,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { api } from "../../lib/api.ts";
+import { GrowthLeversSection } from "./GrowthLeversSection.tsx";
 
 type OkrStatus = "planned" | "in_progress" | "missed" | "base_hit" | "stretch_hit" | "overachieved" | "cancelled";
 
@@ -243,6 +244,12 @@ export const GrowthCommandCenterPage: React.FC = () => {
           <p className="text-slate-600 max-w-3xl mt-2">
             Daily OKRs, revenue checkpoints, approval-gated automation, readiness scores, and kill switches. Live automation stays blocked until readiness and compliance gates are green.
           </p>
+          <p className="text-sm text-slate-600 max-w-3xl mt-2">
+            <a className="text-primary font-semibold hover:underline" href="#missions">
+              Mission HQ
+            </a>{" "}
+            — gamified ops checklist (XP, streaks, badges) synced per admin; complements this dashboard for day-to-day execution.
+          </p>
         </div>
         <button
           onClick={() => overview.refetch()}
@@ -267,6 +274,11 @@ export const GrowthCommandCenterPage: React.FC = () => {
       </div>
 
       <GateBanner overview={data} />
+
+      {/* Growth Levers — closed-loop measurement + optimization for user-base
+          and subscription growth. Lives above the daily ops controls so its
+          signal informs which levers to pull today. */}
+      <GrowthLeversSection />
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <DailyOkrPanel overview={data} />

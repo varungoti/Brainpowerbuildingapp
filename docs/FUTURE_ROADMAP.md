@@ -298,15 +298,15 @@ roadmap effort moves to Part 1 / Part 2 surfaces.
 | 1.2 D | Streaks + Quest board surfaced | ✅ shipped | `HomeScreen` quest section, `QuestBoard` |
 | 1.2 E | Milestone predictor + Weekly Narrative on Brain Map | ✅ shipped | `BrainMapScreen` "Brain" tab |
 | 1.2 F | Offline pack — "Download this week" + SW prefetch | ✅ shipped | `OfflinePackButton`, `public/sw.js` `PREFETCH_PACK_ASSETS` |
-| 1.2 G | `/billing/entitlement` + restore-purchases shim | ✅ shipped (web shim) | `src/lib/subscription/entitlement.ts`, Edge Function |
-| 1.2 H / Part 2 | Conversational voice — adapter + FSM + UI + Edge | ✅ shipped (web fallback live, native plugin stubbed) | `src/lib/voice/*`, `ConversationButton`, `VoiceSettingsCard`, `/voice/turn` SSE |
+| 1.2 G | `/billing/entitlement` + restore-purchases shim | ✅ shipped (server KV + Paywall Razorpay path) | `src/lib/subscription/entitlement.ts`, `PaywallScreen`, Edge `billing/entitlement` + verify |
+| 1.2 H / Part 2 | Conversational voice — adapter + FSM + UI + Edge | ✅ shipped (web + **NeuroSparkVoice** native TTS/STT, community fallback) | `capacitor-plugins/neurospark-voice/`, `src/lib/voice/*`, `/voice/turn` SSE |
 | 1.2 I | Telemetry batched sink with `sendBeacon` | ✅ shipped | `src/utils/productAnalytics.ts` |
 
 Open follow-ups (not blocking 110% production-ready):
-- In-house full-stack `NeuroSparkVoice` Capacitor plugin — adapter still picks it first when present. Community-plugin path below covers most of the gap until then.
-- ✅ **Community voice plugins now wire end-to-end (Apr 2026, night +3, +follow-up #2).** `pickAdapter()` now also detects `@capacitor-community/text-to-speech` and `@capacitor-community/speech-recognition` on `window.Capacitor.Plugins`, composes them with `WebVoiceAdapter` for whichever side is missing, and maps the plugin APIs onto the existing `VoiceAdapter` contract (TTS rate/pitch/locale, STT permission flow + partial-results listener + final transcript). Priority order is now: NeuroSparkVoice (full-stack) → community plugins (partial) → web. 9 new vitests in `nativeVoiceAdapter.test.ts` cover all branches; suite is 211/211.
-- Picovoice Porcupine wake-word integration (Part 2 §2.4).
-- Native IAP via `@capacitor-community/in-app-purchases-2` once a sandbox account is provisioned.
+- **NeuroSparkVoice** — ships in-repo (Android `TextToSpeech`/`SpeechRecognizer`, iOS `AVSpeechSynthesizer`/`SFSpeechRecognizer`). Adapter prefers it on native; remaining work is **device QA matrix** and optional wake-word (Porcupine), not greenfield TTS/STT.
+- ✅ **Community voice plugins** when NeuroSparkVoice is absent (`CommunityPluginAdapter`, `nativeVoiceAdapter.test.ts`).
+- **Picovoice Porcupine** wake-word integration (Part 2 §2.4).
+- **Native IAP** via `@capacitor-community/in-app-purchases-2` (or equivalent) + `NeuroSparkBilling` / `restorePurchases` + Edge receipt verification — outstanding. **Razorpay** web verify now requires a **user JWT**, stores per-order meta, and **merges `billing:entitlement`** on success.
 - ~~Migrate `user_sync_state` blob from Edge KV to the Postgres table created in `00009_sync_state.sql`~~ ✅ **Shipped (Apr 2026, night +3).** `postSyncState` / `getSyncState` now write/read `public.user_sync_state` first; KV is consulted only as a one-time fallback so devices last synced under the KV-only path don't lose their blob (lazy-hydrated on next pull). Wire contract unchanged → `cloudSync.ts` + its 8 tests untouched. KV write still fires when Postgres is unreachable (single-region availability fallback). 202/202 vitest green.
 
 ### 1.1 The 10 "Innovation Lab" ideas — STATUS: shipped
@@ -332,111 +332,20 @@ marketing copy. Current status, with the file/screen that owns each:
 patch). Marketing copy on the public side should describe *capabilities*, not
 "coming soon" badges.
 
-### 1.2 What's actually still on the runway
+### 1.2 Forward backlog (supersedes older “runway” drafts)
 
-These are the genuinely unfinished items pulled from `memory-bank/`,
-`ULTRA_FEATURES_BLUEPRINT.md`, in-code comments, and known gaps. Each is
-sized roughly so they can be sequenced into a real backlog.
+**Source of truth:** the **§1.0 implementation snapshot** lists what shipped (including 1.2 A–G). Older text that claimed cloud sync, caregiver tokens, notifications, streaks UI, offline pack UI, milestone surfaces, or “stub” native voice were unfinished is **obsolete** — verify there before reopening epics.
 
-#### A. Cloud sync (cross-device profile + history) — Size: M
+**Accurate gaps to plan against:**
 
-- **Problem.** Profile/backup is local-file only today. Comment in
-  `ProfileScreen.tsx:105`: *"Backup / new device (local file — cloud sync
-  still planned)"*. Switching devices loses everything.
-- **Plan.**
-  1. Reuse `supabase/migrations/00007_narrative_cache.sql` pattern: add
-     `app_state_snapshots(user_id PK, payload jsonb, version, updated_at)`
-     with RLS `auth.uid() = user_id`.
-  2. New Edge Function `/sync/state` with `GET` (latest snapshot) and `PUT`
-     (debounced, last-writer-wins with version check).
-  3. Client: in `AppContext` debounce serialize-to-cloud every 30s when
-     `isSupabaseConfigured() && session`. Conflict resolver merges
-     `feedPosts`, `portfolio`, `routine` arrays by `id`.
-  4. UI: Profile gets a "Cloud sync" toggle + last-synced timestamp.
-- **Risks.** Quota — payload should stay <200 KB; strip `adaptiveModel`
-  history older than 60 days before upload. Privacy — explicit opt-in,
-  payload encrypted at rest by Supabase.
-- **Acceptance.** Sign in on a second device → portfolio/feed/routine appear
-  within 10s. Offline edits reconcile on reconnect.
+| Area | What is left | Pointers |
+|------|----------------|----------|
+| **Store billing** | Apple / Google IAP, server receipt validation, `NeuroSparkBilling` + `restorePurchases()` | `src/lib/subscription/entitlement.ts`, Edge billing routes |
+| **Web billing** | Razorpay webhooks + ops reconciliation (client verify now merges `billing:entitlement` on success) | `supabase/functions/server/index.tsx` |
+| **Voice** | Wake word (Porcupine); Part 2 agent-loop depth | Part 2 below |
+| **Premium semantics** | Decide when gates rely on server `expiresAt` vs local pack credits only | `BrainPanel`, `PaywallScreen`, `useEntitlement` |
 
-#### B. Caregiver invite flow + permission model — Size: M
-
-- **Status.** UI shell exists (`CaregiversScreen.tsx`,
-  `00006_caregivers.sql`), but invite tokens, accept-link, and per-caregiver
-  scope (read-only / co-parent / educator) are not wired end-to-end.
-- **Plan.**
-  1. `caregiver_invites(token PK, owner_user_id, scope, email, expires_at,
-     accepted_at)`; insert via Edge Function `/caregivers/invite` (auth
-     required).
-  2. Magic link `https://app/invite?token=…` opens an "Accept invitation"
-     screen → calls `/caregivers/accept`, writes a row to `caregivers`.
-  3. Read scope filters which screens the caregiver sees (no payments, no
-     PII edit) using an existing `useCaregiverScope()` hook.
-- **Acceptance.** Owner sends invite → caregiver opens link, accepts, sees
-  child profile + history but cannot edit billing or delete data.
-
-#### C. Notifications & smart reminders — Size: M
-
-- **Status.** `src/lib/notifications/{smartScheduler,notificationChannel}.ts`
-  scaffold exists; Capacitor local-notifications plugin not integrated;
-  push not wired.
-- **Plan.**
-  1. Add `@capacitor/local-notifications`. On Android, request
-     `POST_NOTIFICATIONS` (API 33+) and exact-alarm permission.
-  2. Daily 7-PM "today's activity" + weekly Sunday "report ready" reminders,
-     scheduled by `smartScheduler` based on past completion times.
-  3. Optional Push: FCM via `@capacitor-firebase/messaging`, gated behind
-     remote `enable_push` flag in `/remote-config`.
-  4. Quiet hours (22:00–07:00 local) honored everywhere.
-- **Acceptance.** Reminder fires at the user's median completion hour ±30
-  min; mute toggle in Profile turns it off within one tick.
-
-#### D. Gamified streaks + quest board — Size: S–M
-
-- **Status.** `src/lib/gamification/{questEngine,streakSystem}.ts` and
-  `QuestsScreen.tsx`/`QuestBoard.tsx` exist but are not yet linked from
-  HomeScreen primary nav; no badge persistence in `AppContext`.
-- **Plan.** Persist `streak`, `longestStreak`, `unlockedBadges[]` in
-  `AppPersistedState`; surface a small streak chip on Home; weekly
-  `quests` get generated by `questEngine` from the child's weakest 3
-  intelligences.
-- **Acceptance.** Completing an activity 3 days in a row shows a 3-day
-  streak chip + "Bronze consistency" badge; resets gracefully if a day is
-  missed.
-
-#### E. Milestone predictor + bonding analytics — Size: M
-
-- **Status.** Modules `milestonePredictor.ts`, `bondingAnalytics.ts`,
-  `PredictorCard.tsx`, `WeeklyNarrative.tsx` exist but are not surfaced.
-- **Plan.** Wire `PredictorCard` into `BrainMapScreen` "insights" tab;
-  generate weekly narrative on Sunday using the existing
-  `/narrative/generate` Edge Function and cache via
-  `00007_narrative_cache.sql`.
-
-#### F. Offline activity packs — Size: S
-
-- **Status.** `src/lib/offline/offlinePackManager.ts` exists; UI to download
-  a "this week" pack does not.
-- **Plan.** Add a "Download this week" button on Home that pre-caches the
-  next 7 activities (text + images) into IndexedDB so the app works fully
-  offline for the school run.
-
-#### G. Premium / subscription productionization — Size: M
-
-- **Status.** `src/lib/subscription/premiumCheck.ts` + Razorpay scaffolding
-  in `supabase/functions/server`; missing receipt validation, restore-
-  purchases for iOS/Play, and a hardened entitlement check.
-- **Plan.**
-  1. Server-side: `subscriptions(user_id, status, plan, current_period_end,
-     provider, provider_ref)`; `/billing/webhook` validates Razorpay
-     signature (already timing-safe), updates row.
-  2. Client checks entitlement via `/billing/entitlement` rather than a
-     local boolean.
-  3. Add Play Billing & App Store IAP via `@capacitor-community/in-app-
-     purchases-2` for stores that mandate native IAP.
-- **Acceptance.** Premium gates respect server entitlement; subscription
-  cancellation revokes within 1 minute; restoring purchase on a fresh
-  install works.
+For **historical** shipped details (telemetry, WCAG brain canvas, auth E2E), see **§1.2.I** below — those items are **done** and kept for audit trail only.
 
 #### H. Conversational voice mode (NEW) — Size: L
 
@@ -511,24 +420,15 @@ See **Part 2** below for the full plan.
   including a parametric per-region pass that will fail loudly if anyone
   adds a new region color or changes the legend/tooltip foregrounds.
 
-### 1.3 Suggested sequencing (next 12 weeks)
+### 1.3 Forward sequencing (replaces obsolete 12-week table)
 
-The AI-Age Readiness UI rollout is now sequenced alongside the existing
-infrastructure roadmap. Engine ships today (Part 0); UI follows.
+Part 0 §0.8 and §1.0 rows for 1.2 A–F are **already shipped** — do not re-sequence “Week 3 cloud sync” style work from older drafts.
 
-| Week | Theme | Deliverables |
-|------|-------|--------------|
-| 1 | **AI-Age Readiness — Phase A** | CompetencyRadar tab, Today's Focus chip, per-activity badges |
-| 2 | **AI-Age Readiness — Phase B** | Weekly Intelligence Report 12-dim page rebuild |
-| 3 | Cloud sync foundation | Migration + `/sync/state` + opt-in toggle |
-| 4 | Notifications | Capacitor local notifications + reminder scheduler |
-| 5 | Caregiver invites | Tokenized invite + accept flow + scope guard |
-| 6 | Conversational voice — Phase 1 (TTS-only upgrade) | Native TTS via Capacitor plugin, voice picker, locale-aware fallback |
-| 7–8 | Conversational voice — Phase 2 (STT + barge-in) | Native STT plugin, push-to-talk, partial transcripts |
-| 9 | Conversational voice — Phase 3 (agent loop) | Coach + Counselor talk-back, tool calls, safety filter |
-| 10 | **AI-Age Readiness — Phase C/D** | Author 25 new activities + per-competency adaptive weights |
-| 11 | **AI-Age Readiness — Phase E/F** | Parent coaching "Why AI-age" + Family AI-Hygiene playbook |
-| 12 | Polish + launch readiness | Streaks/quests surface, milestone predictor surface, paid restore-purchases |
+| Horizon | Focus |
+|---------|--------|
+| **Now** | Native IAP + `restorePurchases`; Razorpay webhooks; clarify premium = server entitlement vs local credits for each gate |
+| **Next** | Porcupine wake word; deeper conversational agent loop (Part 2) |
+| **Ongoing** | Telemetry, accessibility, growth ops (`docs/growth/`, Mission HQ, GCC) |
 
 ---
 

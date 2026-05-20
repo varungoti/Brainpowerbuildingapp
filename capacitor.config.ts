@@ -18,8 +18,8 @@ const config: CapacitorConfig = {
     // versionName is shown in Play Store listings and device Settings > Apps.
     // versionCode must increase with every upload (Play Store rejects identical codes).
     // Keep these in sync with package.json "version" and your release checklist.
-    versionName: "1.0.0",
-    versionCode: 1,
+    versionName: "1.0.1",
+    versionCode: 2,
   },
 
   server: {

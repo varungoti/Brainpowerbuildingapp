@@ -8,6 +8,8 @@ import {
   parseBearerToken,
   type AdminRole,
 } from "./admin_access.ts";
+import { ADMIN_MISSIONS, getMissionByKey } from "./admin_mission_catalog.ts";
+import { summarizeMissions } from "./mission_gamification.ts";
 
 function admin(): ReturnType<typeof createClient> {
   const url = Deno.env.get("SUPABASE_URL");
@@ -108,6 +110,21 @@ async function sha256Hex(input: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+/**
+ * Helper bag shared with growth_levers.ts so it can register routes alongside
+ * the existing admin routes without duplicating helper definitions. Intentionally
+ * narrow — every export here is already used by admin.tsx itself.
+ */
+export const adminHelpers = {
+  admin,
+  requireAdmin,
+  audit,
+  cleanString,
+  optionalString,
+  numberInRange,
+  jsonObject,
+};
 
 export function registerAdminRoutes(app: Hono): void {
   // ── Identity ────────────────────────────────────────────────────────────
@@ -1041,6 +1058,58 @@ export function registerAdminRoutes(app: Hono): void {
       .limit(limit);
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ data });
+  });
+
+  // ── Mission HQ (gamified admin checklist) ───────────────────────────────
+  app.get("/admin/missions", requireAdmin("readonly"), async (c) => {
+    const adminUser = c.get("admin") as { userId: string };
+    const { data, error } = await admin()
+      .from("admin_mission_completions")
+      .select("mission_key, completed_at, xp_awarded")
+      .eq("user_id", adminUser.userId);
+    if (error) return c.json({ error: error.message }, 500);
+    const completions = (data ?? []).map((row: Record<string, unknown>) => ({
+      mission_key: row.mission_key as string,
+      completed_at: row.completed_at as string,
+      xp_awarded: Number(row.xp_awarded),
+    }));
+    const { merged, stats } = summarizeMissions(ADMIN_MISSIONS, completions);
+    return c.json({ missions: merged, stats });
+  });
+
+  app.post("/admin/missions/:key/complete", requireAdmin("marketing"), async (c) => {
+    const key = c.req.param("key");
+    const m = getMissionByKey(key);
+    if (!m) return c.json({ error: "unknown_mission" }, 404);
+    const adminUser = c.get("admin") as { userId: string };
+    const { error } = await admin()
+      .from("admin_mission_completions")
+      .upsert(
+        {
+          user_id: adminUser.userId,
+          mission_key: key,
+          xp_awarded: m.xp,
+          completed_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,mission_key" },
+      );
+    if (error) return c.json({ error: error.message }, 500);
+    await audit(c, "admin_mission_complete", { key, xp: m.xp }, { type: "admin_mission", id: key });
+    return c.json({ ok: true, xp_awarded: m.xp });
+  });
+
+  app.delete("/admin/missions/:key/complete", requireAdmin("marketing"), async (c) => {
+    const key = c.req.param("key");
+    if (!getMissionByKey(key)) return c.json({ error: "unknown_mission" }, 404);
+    const adminUser = c.get("admin") as { userId: string };
+    const { error } = await admin()
+      .from("admin_mission_completions")
+      .delete()
+      .eq("user_id", adminUser.userId)
+      .eq("mission_key", key);
+    if (error) return c.json({ error: error.message }, 500);
+    await audit(c, "admin_mission_uncomplete", { key }, { type: "admin_mission", id: key });
+    return c.json({ ok: true });
   });
 
   // ── Audit log (analyst+) ───────────────────────────────────────────────

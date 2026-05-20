@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/layout-v26/abc_screen_toolbar.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-appcompat-1.7.0-18:/layout-v26/abc_screen_toolbar.xml"
+    }
+]

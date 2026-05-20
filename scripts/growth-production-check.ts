@@ -10,6 +10,7 @@ const paywall = read("src/app/screens/PaywallScreen.tsx");
 const pricing = read("marketing-site/src/pages/pricing.astro");
 const growthPage = read("admin/src/pages/growth/GrowthCommandCenterPage.tsx");
 const growthMigration = read("supabase/migrations/00016_growth_command_center.sql");
+const missionMigration = read("supabase/migrations/00017_admin_mission_completions.sql");
 const n8nGate = read("automation/n8n/workflows/lib/growth_approval_gate.json");
 const mauticEnv = read("automation/mautic/.env.example");
 const campaignSeeds = read("automation/growth-campaigns/seed-campaigns.json");
@@ -21,6 +22,8 @@ const n8nMauticSync = read("automation/n8n/workflows/growth_mautic_sync_dry_run.
 const growthRules = read("src/lib/growth/growthRules.ts");
 const growthRulesTest = read("src/lib/growth/growthRules.test.ts");
 const growthArtifactsTest = read("src/lib/growth/growthPlanArtifacts.test.ts");
+const missionHQ = read("admin/src/pages/missions/MissionHQPage.tsx");
+const adminServer = read("supabase/functions/server/admin.tsx");
 
 checks.push({
   name: "App paywall uses shared launch pricing",
@@ -55,6 +58,23 @@ checks.push({
     growthMigration.includes("growth_icp_definitions") &&
     growthMigration.includes("growth_revenue_sources"),
   detail: "Database must support approvals, kill switches, suppression, and readiness.",
+});
+
+checks.push({
+  name: "Mission HQ migration exists",
+  pass:
+    missionMigration.includes("admin_mission_completions") &&
+    missionMigration.includes("primary key (user_id, mission_key)"),
+  detail: "Gamified admin checklist must persist per-user completion.",
+});
+
+checks.push({
+  name: "Mission HQ is wired in admin UI and Edge",
+  pass:
+    missionHQ.includes("/admin/missions") &&
+    adminServer.includes("/admin/missions") &&
+    adminServer.includes("admin_mission_completions"),
+  detail: "Operators need API + UI for Mission HQ.",
 });
 
 checks.push({

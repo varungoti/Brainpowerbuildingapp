@@ -5,6 +5,17 @@ const read = (path: string) => readFileSync(path, "utf8");
 const readJson = <T>(path: string): T => JSON.parse(read(path)) as T;
 
 describe("global revenue plan artifacts", () => {
+  it("keeps the Growth Command Center production runbook aligned with shipped gates and Mission HQ", () => {
+    const path = "docs/GROWTH_COMMAND_CENTER_PRODUCTION.md";
+    expect(existsSync(path), `${path} should exist`).toBe(true);
+    const body = read(path);
+    expect(body.length, `${path} should not be trivially short`).toBeGreaterThan(800);
+    expect(body).toContain("pnpm run growth:check");
+    expect(body).toContain("00016_growth_command_center.sql");
+    expect(body).toContain("00017_admin_mission_completions.sql");
+    expect(body).toMatch(/Mission HQ|\/admin\/missions/);
+  });
+
   it("keeps every phase playbook present and actionable", () => {
     const requiredDocs = [
       "docs/growth/LAUNCH_FOUNDATION.md",
@@ -103,5 +114,14 @@ describe("global revenue plan artifacts", () => {
     expect(migration).toContain("employer_family_benefit");
     expect(migration).toContain("Milestone: first $1k revenue");
     expect(migration).toContain("Milestone: $10M signed or collected revenue");
+  });
+
+  it("keeps admin Mission HQ catalog in sync between app and Edge", () => {
+    const root = read("src/lib/growth/adminMissionCatalog.ts");
+    const edge = read("supabase/functions/server/admin_mission_catalog.ts");
+    const rootCount = (root.match(/mission\(/g) ?? []).length;
+    const edgeCount = (edge.match(/mission\(/g) ?? []).length;
+    expect(rootCount).toBe(edgeCount);
+    expect(rootCount).toBeGreaterThanOrEqual(48);
   });
 });

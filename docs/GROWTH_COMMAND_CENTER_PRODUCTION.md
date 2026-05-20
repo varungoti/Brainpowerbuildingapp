@@ -20,9 +20,10 @@ Live outbound automation is blocked unless all are true:
 Morning:
 
 1. Open Admin → `$10M Growth`.
-2. Create today’s OKR with base/stretch/overachievement revenue targets.
-3. Review pending approvals and kill switches.
-4. Confirm production readiness before any traffic or outreach push.
+2. Open Admin → **Mission HQ** (`#missions`) to clear launch/ops checklist items; completions are per admin user, award XP, and write to the audit log.
+3. Create today’s OKR with base/stretch/overachievement revenue targets.
+4. Review pending approvals and kill switches.
+5. Confirm production readiness before any traffic or outreach push.
 
 Midday:
 
@@ -52,19 +53,21 @@ Never automate:
 ## Deployment Steps
 
 1. Apply `supabase/migrations/00016_growth_command_center.sql`.
-2. Deploy Supabase Edge Functions with the updated admin routes.
-3. Deploy the admin app.
-4. Set `PUBLIC_GROWTH_LEAD_ENDPOINT` on the marketing site to the deployed `/growth/lead` endpoint.
-5. Add at least one marketing admin in `admin_users`.
-6. Configure Mautic, n8n, Postiz, and Hermes credentials outside the client app.
-7. Run one lead-capture smoke test from `/ai-age-starter-pack`.
-8. Run one dry-run workflow and confirm it appears in Admin → `$10M Growth`.
-9. Test every kill switch.
-10. Test suppression before any send.
-11. Confirm audit log entries for all writes.
-12. Confirm `GET /admin/growth/mautic/status` reports the expected safe state.
-13. Confirm Hermes scheduled jobs write only briefs/opportunities/approval drafts.
-14. Only then approve a small live campaign.
+2. Apply `supabase/migrations/00017_admin_mission_completions.sql` (Mission HQ persistence).
+3. Deploy Supabase Edge Functions with the updated admin routes (includes `GET/POST/DELETE /admin/missions`).
+4. Deploy the admin app.
+5. Set `PUBLIC_GROWTH_LEAD_ENDPOINT` on the marketing site to the deployed `/growth/lead` endpoint.
+6. Add at least one marketing admin in `admin_users`.
+7. Configure Mautic, n8n, Postiz, and Hermes credentials outside the client app.
+8. Run one lead-capture smoke test from `/ai-age-starter-pack`.
+9. Run one dry-run workflow and confirm it appears in Admin → `$10M Growth`.
+10. In Admin → Mission HQ, complete and uncomplete a test mission; confirm `admin_mission_completions` and audit events.
+11. Test every kill switch.
+12. Test suppression before any send.
+13. Confirm audit log entries for all writes.
+14. Confirm `GET /admin/growth/mautic/status` reports the expected safe state.
+15. Confirm Hermes scheduled jobs write only briefs/opportunities/approval drafts.
+16. Only then approve a small live campaign.
 
 ## Current Known Manual Dependencies
 

@@ -18,6 +18,8 @@ import { StudioJobPage } from "./pages/studio/StudioJobPage.tsx";
 import { SocialPage } from "./pages/social/SocialPage.tsx";
 import { CoveragePartnersPage } from "./pages/coverage/CoveragePartnersPage.tsx";
 import { GrowthCommandCenterPage } from "./pages/growth/GrowthCommandCenterPage.tsx";
+import { MissionHQPage } from "./pages/missions/MissionHQPage.tsx";
+import { MarketingOsPage } from "./pages/marketing/MarketingOsPage.tsx";
 
 const ROUTES: Record<string, React.FC> = {
   "": OverviewPage,
@@ -34,12 +36,20 @@ const ROUTES: Record<string, React.FC> = {
   social: SocialPage,
   coverage: CoveragePartnersPage,
   growth: GrowthCommandCenterPage,
+  missions: MissionHQPage,
+  marketing: MarketingOsPage,
 };
 
+function normalizeHashFragment(raw: string): string {
+  let h = raw.startsWith("#") ? raw.slice(1) : raw;
+  if (h.startsWith("/")) h = h.slice(1);
+  return h;
+}
+
 function useHashRoute(): { route: string; param?: string } {
-  const [hash, setHash] = useState(window.location.hash.slice(1));
+  const [hash, setHash] = useState(() => normalizeHashFragment(window.location.hash));
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash.slice(1));
+    const onHash = () => setHash(normalizeHashFragment(window.location.hash));
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);

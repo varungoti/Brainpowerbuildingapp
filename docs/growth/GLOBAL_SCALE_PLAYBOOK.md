@@ -89,3 +89,7 @@ Scale to `$10M` complete:
 - **Milestone seeds** for `$100k` / `$1M` / `$10M` in the Growth Command Center reference this playbook in `supabase/migrations/00016_growth_command_center.sql`.
 - **Artifact coverage**: `src/lib/growth/growthPlanArtifacts.test.ts` includes this file.
 - **Consumer pricing**: Family Premium annual **`$79/yr`** aligns with `LAUNCH_PRICING_COPY.globalPremiumAnnual` in `src/lib/revenue/launchPricing.ts`; India uses INR tiers on the paywall for the same ladder.
+- **Mission HQ (ops checklist)**: `supabase/migrations/00017_admin_mission_completions.sql` backs gamified admin missions in the admin app (`#missions`). Apply the migration on each Supabase project, then redeploy the Edge `server` function so `/admin/missions` can persist rows. Sanity check:  
+  `select exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'admin_mission_completions');`
+- **Consumer/engineering roadmap** (AI-age UX, voice, native): see `docs/FUTURE_ROADMAP.md` (Part 1 snapshot + Part 2 conversational voice). The files under `docs/growth/` are revenue/GTM/ops; they do not supersede that roadmap.
+- **India web checkout (Razorpay):** paywall calls Edge with a **signed-in user JWT**; successful verify merges **`billing:entitlement:{userId}`** in KV (aligned with `GET /billing/entitlement`). INR amounts are allowlisted to match `LAUNCH_PAYWALL_PLANS`. Native IAP remains a separate track (`FUTURE_ROADMAP.md` forward backlog).

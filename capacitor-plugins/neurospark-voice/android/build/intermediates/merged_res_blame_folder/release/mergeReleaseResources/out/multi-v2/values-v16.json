@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.neurospark.app.neurosparkvoice.neurospark-voice-mergeReleaseResources-24:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\varun\\.gradle\\caches\\8.11.1\\transforms\\dda665aa4a1576cfb1759fb2bbcd5279\\transformed\\appcompat-1.7.0\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "5",
+                        "endColumns": "12",
+                        "endOffsets": "223"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\varun\\.gradle\\caches\\8.11.1\\transforms\\dda665aa4a1576cfb1759fb2bbcd5279\\transformed\\appcompat-1.7.0\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "5",
+                        "endColumns": "12",
+                        "endOffsets": "223"
+                    }
+                }
+            ]
+        }
+    ]
+}

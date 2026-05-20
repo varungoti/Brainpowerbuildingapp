@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { AppProvider, useApp, AppView } from "./context/AppContext";
 import { FeedProvider } from "./context/FeedContext";
 import { RemoteConfigProvider } from "./context/RemoteConfigContext";
@@ -232,8 +233,10 @@ function ScreenContent() {
 }
 
 function AppShell() {
-  const { view, user } = useApp();
+  const { view, user, goBack, canGoBack, navigate } = useApp();
   const mainRef = useRef<HTMLDivElement | null>(null);
+  const nativeNavRef = useRef({ goBack, canGoBack, view, navigate, user });
+  nativeNavRef.current = { goBack, canGoBack, view, navigate, user };
   const isOnline = useOnlineStatus();
   const isFullScreen = FULL_SCREEN_VIEWS.includes(view);
   const isAuthenticated = !!user;
@@ -258,6 +261,34 @@ function AppShell() {
   useEffect(() => {
     void hydrateTextScaleFromNativePreferences();
     captureAttributionFromUrl();
+  }, []);
+
+  // Android / iOS hardware back: use in-app navigation stack first (matches header back).
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let cancelled = false;
+    let listener: { remove: () => Promise<void> } | undefined;
+    void import("@capacitor/app").then(({ App }) => {
+      if (cancelled) return;
+      void App.addListener("backButton", () => {
+        const { goBack: gb, canGoBack: backOk, view: v, navigate: nav } = nativeNavRef.current;
+        if (backOk) {
+          gb();
+          return;
+        }
+        if (v === "auth") {
+          nav("landing");
+          return;
+        }
+        void App.exitApp();
+      }).then((h) => {
+        listener = h;
+      });
+    });
+    return () => {
+      cancelled = true;
+      void listener?.remove();
+    };
   }, []);
 
   // Caregiver invite deep-link: /invite?token=… (or any URL containing the

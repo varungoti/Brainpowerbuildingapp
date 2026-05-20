@@ -20,7 +20,7 @@ Use this as your personal launch backlog. Tick items when done.
 
 ## Mobile stores
 
-- [ ] **Android:** create release keystore, enable **Play App Signing**, bump `versionCode` / `versionName` in `capacitor.config.ts` + `android/app/build.gradle` per release, build **AAB**, complete Play Console privacy & content questionnaires.
+- [ ] **Android:** create release keystore, enable **Play App Signing**, bump `versionCode` / `versionName` in `capacitor.config.ts` + `android/app/build.gradle` per release, build **AAB**, complete Play Console privacy & content questionnaires. Step-by-step: **[GOOGLE_PLAY_DEPLOY.md](./GOOGLE_PLAY_DEPLOY.md)**.
 - [ ] **iOS:** Apple Developer account, certificates, **Xcode** archive, **App Privacy** labels, **Pods** on a Mac, TestFlight then App Store review.
 - [ ] Test **safe areas**, keyboard, and **offline** behaviour on real devices (not only the desktop phone frame).
 

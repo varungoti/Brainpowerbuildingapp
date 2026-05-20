@@ -4,7 +4,7 @@ dist
 .env.supabase
 .env.local
 .env.*.local
-coverage
+/coverage
 playwright-report
 test-results
 *.log
@@ -14,3 +14,4 @@ Thumbs.db
 *.tsbuildinfo
 .docs
 memory-bank
+.vercel

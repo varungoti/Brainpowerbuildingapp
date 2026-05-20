@@ -23,6 +23,61 @@ export function AuthScreen() {
   const valid = email.includes("@") && pass.length >= 6 && (authMode === "login" || name.trim().length >= 2);
   const useRemoteAuth = isSupabaseAuthConfigured();
 
+  const demoEmail = import.meta.env.VITE_DEMO_LOGIN_EMAIL?.trim() ?? "";
+  const demoPass = import.meta.env.VITE_DEMO_LOGIN_PASSWORD ?? "";
+  /** QA/staging APK only — credentials are baked into the bundle; never ship to Play production. */
+  const showDemoLogin =
+    import.meta.env.VITE_SHOW_DEMO_LOGIN === "true" &&
+    demoEmail.length > 0 &&
+    demoPass.length >= 6 &&
+    useRemoteAuth;
+
+  const handleDemoLogin = async () => {
+    setError("");
+    setLoading(true);
+    const dwell = Math.max(
+      0,
+      Math.round(
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) - mountedAtRef.current,
+      ),
+    );
+    captureProductEvent("auth_submit_attempt", {
+      screen: "auth",
+      auth_mode: "login",
+      dwell_ms: dwell,
+    });
+    const client = getSupabaseBrowserClient();
+    if (!client) {
+      setLoading(false);
+      setError("Demo login requires Supabase to be configured.");
+      return;
+    }
+    try {
+      const { data, error: e } = await client.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPass,
+      });
+      if (e) throw e;
+      const u = data.user;
+      const nm =
+        (typeof u.user_metadata?.full_name === "string" && u.user_metadata.full_name) ||
+        u.email?.split("@")[0] ||
+        "Demo Parent";
+      captureProductEvent("auth_submit_success", { screen: "auth", auth_mode: "login" });
+      loginUser(u.email!, nm, { supabaseUid: u.id });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      captureProductEvent("auth_submit_fail", {
+        screen: "auth",
+        auth_mode: "login",
+        fail_reason: classifySupabaseAuthError(msg),
+      });
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!valid) { setError("Please fill all fields correctly."); return; }
     setError("");
@@ -187,6 +242,22 @@ export function AuthScreen() {
             }
             {valid && !loading && <div className="absolute inset-0 animate-shimmer"/>}
           </button>
+
+          {showDemoLogin && (
+            <button
+              type="button"
+              onClick={() => void handleDemoLogin()}
+              disabled={loading}
+              className="w-full py-3 rounded-2xl text-sm font-semibold border transition-all"
+              style={{
+                borderColor: "rgba(255,255,255,0.25)",
+                color: "rgba(255,255,255,0.85)",
+                background: "rgba(255,255,255,0.06)",
+              }}
+            >
+              Demo login (QA build)
+            </button>
+          )}
         </div>
 
         {/* Social proof */}

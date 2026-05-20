@@ -6,6 +6,7 @@
  * — Auto-attaches first-touch UTM/ns_source attribution on every event.
  */
 import { getFirstTouchAttribution, getLastTouchAttribution } from "./attribution";
+import { actorIdHeader, getCachedPaywallVariantKey } from "./paywallVariant";
 import { forwardEventsToPostHog } from "./posthogForwarder";
 
 export type ProductEventName =
@@ -102,6 +103,8 @@ export interface ProductEventPayload extends ProductEventProps {
   ns_source?: string;
   ns_medium?: string;
   ns_campaign?: string;
+  /** Active paywall A/B variant for this device (auto-attached when present). */
+  variant_key?: string;
 }
 
 function getEndpoint(): string | undefined {
@@ -152,7 +155,7 @@ function flushBatch(useBeacon: boolean) {
   if (!url) return;
 
   const body = JSON.stringify({ batch });
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...actorIdHeader() };
   const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
   if (anon) headers.Authorization = `Bearer ${anon}`;
 
@@ -178,6 +181,10 @@ function flushBatch(useBeacon: boolean) {
 export function captureProductEvent(name: ProductEventName, props: ProductEventProps = {}): void {
   const first = getFirstTouchAttribution();
   const last = getLastTouchAttribution();
+  // Auto-attach paywall variant on every event so server-side conversion
+  // attribution for A/B tests doesn't depend on each call site remembering.
+  // Cached read is sync and falls back to undefined when no variant exists.
+  const variantKey = getCachedPaywallVariantKey() ?? undefined;
   const payload: ProductEventPayload = {
     event: name,
     ts: new Date().toISOString(),
@@ -193,6 +200,7 @@ export function captureProductEvent(name: ProductEventName, props: ProductEventP
     ...(last && last !== first
       ? { ns_source: last.source, ns_medium: last.medium, ns_campaign: last.campaign }
       : {}),
+    ...(variantKey ? { variant_key: variantKey } : {}),
     ...props,
   };
 

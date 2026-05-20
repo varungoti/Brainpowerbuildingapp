@@ -1,6 +1,7 @@
 import { supabase } from "./supabase.ts";
+import { getEdgeBaseUrl } from "./supabaseConfig.ts";
 
-const BASE = import.meta.env.VITE_EDGE_BASE_URL ?? "";
+const BASE = getEdgeBaseUrl();
 
 async function authHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();

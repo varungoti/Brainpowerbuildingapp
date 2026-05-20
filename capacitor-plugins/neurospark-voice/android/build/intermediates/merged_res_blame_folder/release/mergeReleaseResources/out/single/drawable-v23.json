@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/drawable-v23/abc_control_background_material.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-appcompat-1.7.0-18:/drawable-v23/abc_control_background_material.xml"
+    }
+]

@@ -1,8 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "./supabaseConfig.ts";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-if (!url || !key) {
-  console.warn("admin: VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY not set");
+const url = getSupabaseUrl();
+const key = getSupabaseAnonKey();
+
+if (!isSupabaseConfigured()) {
+  console.error(
+    "admin: Set VITE_SUPABASE_URL (or VITE_SUPABASE_PROJECT_ID) and VITE_SUPABASE_ANON_KEY. " +
+      "On Vercel: Project Settings → Environment Variables for neurospark-admin.",
+  );
 }
-export const supabase = createClient(url ?? "http://localhost", key ?? "anon");
+
+export const supabase = createClient(
+  url || "https://invalid.supabase.co",
+  key || "missing-anon-key",
+  { auth: { persistSession: true, autoRefreshToken: true } },
+);
+
+export { isSupabaseConfigured };

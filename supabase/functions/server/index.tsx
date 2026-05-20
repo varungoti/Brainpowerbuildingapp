@@ -11,7 +11,8 @@ import {
   type CoachChildProfile,
   type CoachResponse,
 } from "./coach_shared.ts";
-import { registerAdminRoutes } from "./admin.tsx";
+import { adminHelpers, registerAdminRoutes } from "./admin.tsx";
+import { recordFunnelEvent, registerGrowthLeversRoutes } from "./growth_levers.ts";
 import { chatJson, chatText, streamChat } from "./ai_provider.ts";
 import {
   activityCoachingSchema,
@@ -141,25 +142,59 @@ const ALLOWED_ANALYTICS_EVENTS = new Set([
   "activity_complete",
 ]);
 
-// ─── Product analytics (daily rollups in kv) ───────────────────────────────────
+// ─── Product analytics (daily rollups in kv + funnel events table) ────────────
+//
+// Single endpoint, two storage layers:
+//   1. KV daily counter (legacy, lightweight, for the existing dashboard).
+//   2. growth_funnel_events row (new, for activation funnel + cohort retention
+//      + paywall A/B conversion). Only funnel-relevant events are persisted —
+//      see FUNNEL_EVENTS in growth_levers.ts. Best-effort: if the table
+//      doesn't exist yet (pre-migration-00020 environment), we silently skip.
+async function ingestAnalyticsBody(c: Context, body: Record<string, unknown>): Promise<Response | null> {
+  const event = body?.event;
+  if (!event || typeof event !== "string" || !ALLOWED_ANALYTICS_EVENTS.has(event)) {
+    return c.json({ ok: false, error: "invalid_event" }, 400);
+  }
+  const day = typeof body.ts === "string" && body.ts.length >= 10 ? (body.ts as string).slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const key = `analytics:counts:${day}`;
+  const prev = (await kv.get(key)) as Record<string, number> | null;
+  const counts: Record<string, number> = { ...(prev ?? {}) };
+  counts[event] = (counts[event] ?? 0) + 1;
+  await kv.set(key, counts);
+  // Best-effort funnel ingest — never blocks the 204 response on failure.
+  // Uses adminHelpers (admin client + jsonObject + optionalString) which
+  // recordFunnelEvent's Deps interface declares.
+  await recordFunnelEvent(adminHelpers as never, c, {
+    event,
+    ts: typeof body.ts === "string" ? body.ts : undefined,
+    props: (body.props as Record<string, unknown>) ?? undefined,
+    variant_key: typeof body.variant_key === "string" ? body.variant_key : (typeof body.variant === "string" ? (body.variant as string) : undefined),
+    utm_source: typeof body.utm_source === "string" ? body.utm_source : undefined,
+    utm_campaign: typeof body.utm_campaign === "string" ? body.utm_campaign : undefined,
+  });
+  return null;
+}
+
 app.post("/make-server-76b0ba9a/analytics/event", async (c) => {
   try {
     const rateLimit = await enforceRateLimit(c, "analytics-event", 120, 300);
     if (rateLimit) return rateLimit;
     const body = await c.req.json();
-    const event = body?.event;
-    if (!event || typeof event !== "string" || !ALLOWED_ANALYTICS_EVENTS.has(event)) {
-      return c.json({ ok: false, error: "invalid_event" }, 400);
+
+    // Batched payload support — productAnalytics.ts now ships a `{ batch: [...] }`
+    // body. Process all entries; reply 204 if any succeeded so the client doesn't
+    // retry the whole batch on a single bad event.
+    if (Array.isArray((body as Record<string, unknown>)?.batch)) {
+      let okCount = 0;
+      for (const entry of (body as { batch: Record<string, unknown>[] }).batch) {
+        const errResp = await ingestAnalyticsBody(c, entry);
+        if (!errResp) okCount += 1;
+      }
+      return c.body(null, okCount > 0 ? 204 : 400);
     }
-    const day =
-      typeof body.ts === "string" && body.ts.length >= 10
-        ? body.ts.slice(0, 10)
-        : new Date().toISOString().slice(0, 10);
-    const key = `analytics:counts:${day}`;
-    const prev = (await kv.get(key)) as Record<string, number> | null;
-    const counts: Record<string, number> = { ...(prev ?? {}) };
-    counts[event] = (counts[event] ?? 0) + 1;
-    await kv.set(key, counts);
+
+    const errResp = await ingestAnalyticsBody(c, body);
+    if (errResp) return errResp;
     return c.body(null, 204);
   } catch (e) {
     console.log("analytics/event error:", e);
@@ -1632,6 +1667,33 @@ app.get("/remote-config", getRemoteConfig);
 const RAZORPAY_ID_RE = /^[A-Za-z0-9_]{1,64}$/;
 const RAZORPAY_SIG_RE = /^[a-f0-9]{64}$/;
 
+/** Keep in sync with `src/lib/revenue/launchPricing.ts` — `LAUNCH_PAYWALL_PLANS` `priceInr` / `id` / `days`. */
+const RAZORPAY_INR_WHITELIST: Array<{ inr: number; planId: string; days: number }> = [
+  { inr: 100, planId: "day1", days: 1 },
+  { inr: 600, planId: "day7", days: 7 },
+  { inr: 2000, planId: "day30", days: 30 },
+  { inr: 6999, planId: "premium_year", days: 365 },
+  { inr: 14999, planId: "family_pro_year", days: 365 },
+];
+
+function resolveRazorpayInrPlan(amountInr: number): { planId: string; days: number } | null {
+  const row = RAZORPAY_INR_WHITELIST.find((x) => x.inr === amountInr);
+  return row ? { planId: row.planId, days: row.days } : null;
+}
+
+function mergeBillingEntitlement(
+  existing: { plan?: string; expiresAt?: string; source?: string } | null | undefined,
+  planId: string,
+  days: number,
+  source: string,
+): { plan: string; expiresAt: string; source: string } {
+  const candidateEnd = Date.now() + days * 24 * 60 * 60 * 1000;
+  const existingEnd = existing?.expiresAt ? new Date(existing.expiresAt).getTime() : 0;
+  const finalEnd = Math.max(existingEnd, candidateEnd);
+  const plan = candidateEnd >= existingEnd ? planId : (existing?.plan ?? planId);
+  return { plan, expiresAt: new Date(finalEnd).toISOString(), source };
+}
+
 async function postRazorpayCreateOrder(c: Context) {
   try {
     const auth = await requireUser(c);
@@ -1644,6 +1706,8 @@ async function postRazorpayCreateOrder(c: Context) {
     const bodyRaw = await c.req.json().catch(() => null);
     const amount = bodyRaw ? clampNumber((bodyRaw as { amount?: unknown }).amount, 1, 1_000_000) : null;
     if (amount === null) return c.json({ error: "invalid_amount" }, 400);
+    const resolvedPlan = resolveRazorpayInrPlan(amount);
+    if (!resolvedPlan) return c.json({ error: "invalid_amount" }, 400);
 
     const keyId     = Deno.env.get("RAZORPAY_KEY_ID");
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
@@ -1663,6 +1727,13 @@ async function postRazorpayCreateOrder(c: Context) {
       return c.json({ error: "create_order_failed" }, 502);
     }
     const order = await res.json();
+    await kv.set(`razorpay_order:${order.id}`, {
+      userId,
+      planId: resolvedPlan.planId,
+      days: resolvedPlan.days,
+      amountInr: amount,
+      ts: Date.now(),
+    });
     return c.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId });
   } catch (e) {
     console.error("razorpay create-order error:", e);
@@ -1701,6 +1772,15 @@ async function postRazorpayVerifyPayment(c: Context) {
       return c.json({ error: "invalid_payload" }, 400);
     }
 
+    const payKey = `payment:${razorpay_payment_id}`;
+    const existingPay = (await kv.get(payKey)) as { userId?: string } | null;
+    if (existingPay?.userId) {
+      if (existingPay.userId !== userId) {
+        return c.json({ error: "payment_already_claimed" }, 409);
+      }
+      return c.json({ success: true, paymentId: razorpay_payment_id, idempotent: true });
+    }
+
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
     if (!keySecret) {
       console.error("razorpay: secret not configured");
@@ -1717,12 +1797,38 @@ async function postRazorpayVerifyPayment(c: Context) {
       console.warn(`razorpay signature mismatch for user ${userId.slice(0, 8)}…`);
       return c.json({ error: "signature_verification_failed" }, 400);
     }
-    await kv.set(`payment:${razorpay_payment_id}`, {
+
+    const meta = (await kv.get(`razorpay_order:${razorpay_order_id}`)) as {
+      userId?: string;
+      planId?: string;
+      days?: number;
+    } | null;
+    if (!meta?.userId || !meta.planId || typeof meta.days !== "number") {
+      return c.json({ error: "order_meta_missing" }, 400);
+    }
+    if (meta.userId !== userId) {
+      return c.json({ error: "order_user_mismatch" }, 403);
+    }
+
+    const billingKey = `billing:entitlement:${userId}`;
+    const prior = (await kv.get(billingKey)) as { plan?: string; expiresAt?: string; source?: string } | null;
+    const merged = mergeBillingEntitlement(prior, meta.planId, meta.days, "razorpay");
+    await kv.set(billingKey, merged);
+
+    await kv.set(payKey, {
       orderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
       userId,
+      planId: meta.planId,
       ts: Date.now(),
     });
+
+    try {
+      await kv.del(`razorpay_order:${razorpay_order_id}`);
+    } catch {
+      /* non-fatal cleanup */
+    }
+
     return c.json({ success: true, paymentId: razorpay_payment_id });
   } catch (e) {
     console.error("razorpay verify-payment error:", e);
@@ -2278,12 +2384,116 @@ app.post("/caregivers/invite", postCaregiverInvite);
 app.post("/make-server-76b0ba9a/caregivers/accept", postCaregiverAccept);
 app.post("/caregivers/accept", postCaregiverAccept);
 
+// ─── App Store / Play Billing — keep product ids aligned with `src/lib/revenue/storeBilling.ts` defaults + env SKUs
+const STORE_PRODUCT_ENTITLEMENT: Array<{ productId: string; planId: string; days: number }> = [
+  { productId: "com.neurospark.app.day1", planId: "day1", days: 1 },
+  { productId: "com.neurospark.app.day7", planId: "day7", days: 7 },
+  { productId: "com.neurospark.app.day30", planId: "day30", days: 30 },
+  { productId: "com.neurospark.app.premium_year", planId: "premium_year", days: 365 },
+  { productId: "com.neurospark.app.family_pro_year", planId: "family_pro_year", days: 365 },
+];
+
+function decodeJwsPayloadLoose(jws: string): Record<string, unknown> | null {
+  const parts = jws.split(".");
+  if (parts.length < 2) return null;
+  const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+  const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
+  try {
+    const json = atob(b64 + pad);
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** Extract store product id from Android purchase originalJson or iOS StoreKit JWS (payload decode only). */
+function extractStoreProductId(platform: "ios" | "android", transaction: string): string | null {
+  const t = transaction.trim();
+  if (!t) return null;
+  try {
+    if (platform === "android") {
+      const j = JSON.parse(t) as Record<string, unknown>;
+      if (typeof j.productId === "string" && j.productId) return j.productId;
+      const ids = j.productIds;
+      if (Array.isArray(ids) && ids[0] != null) return String(ids[0]);
+      return null;
+    }
+    const payload = decodeJwsPayloadLoose(t);
+    if (!payload) return null;
+    if (typeof payload.productId === "string" && payload.productId) return payload.productId;
+    if (typeof payload.productID === "string" && payload.productID) return payload.productID;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function postBillingStoreVerify(c: Context) {
+  try {
+    const auth = await requireUser(c);
+    if (auth instanceof Response) return auth;
+    const { userId } = auth;
+
+    const rateLimit = await enforceRateLimit(c, "billing-store-verify", 30, 600, userId);
+    if (rateLimit) return rateLimit;
+
+    const bodyRaw = await c.req.json().catch(() => null);
+    if (!bodyRaw || typeof bodyRaw !== "object") {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+    const body = bodyRaw as Record<string, unknown>;
+    const platform = body.platform === "ios" || body.platform === "android" ? body.platform : null;
+    if (!platform) return c.json({ error: "invalid_platform" }, 400);
+
+    const transaction = truncateString(body.transaction, 65536);
+    if (!transaction) return c.json({ error: "missing_transaction" }, 400);
+
+    const productId = extractStoreProductId(platform, transaction);
+    if (!productId) return c.json({ error: "unreadable_transaction" }, 400);
+
+    const row = STORE_PRODUCT_ENTITLEMENT.find((x) => x.productId === productId);
+    if (!row) return c.json({ error: "unknown_product" }, 400);
+
+    const trustUnverified = Deno.env.get("BILLING_STORE_TRUST_UNVERIFIED") === "true";
+    if (!trustUnverified) {
+      console.warn(
+        "billing/store/verify: rejected (set BILLING_STORE_TRUST_UNVERIFIED=true only for local dev until Play/App Store verification is wired)",
+      );
+      return c.json({ error: "store_verify_unavailable" }, 503);
+    }
+
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(transaction));
+    const txHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const idemKey = `store_verify:${userId}:${txHash}`;
+    const priorIdem = await kv.get(idemKey);
+    if (priorIdem) {
+      return c.json({ success: true, idempotent: true });
+    }
+
+    const billingKey = `billing:entitlement:${userId}`;
+    const prior = (await kv.get(billingKey)) as { plan?: string; expiresAt?: string; source?: string } | null;
+    const source = platform === "ios" ? "ios" : "android";
+    const merged = mergeBillingEntitlement(prior, row.planId, row.days, source);
+    await kv.set(billingKey, merged);
+    await kv.set(idemKey, { userId, productId, ts: Date.now() });
+
+    return c.json({ success: true });
+  } catch (e) {
+    console.error("billing store-verify error:", e);
+    return c.json({ error: "verify_failed" }, 500);
+  }
+}
+
+app.post("/make-server-76b0ba9a/billing/store/verify", postBillingStoreVerify);
+app.post("/billing/store/verify", postBillingStoreVerify);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GET /billing/entitlement — single source of truth for premium state
 // ───────────────────────────────────────────────────────────────────────────
-// Reads the user's current entitlement (if any) from kv. Mobile clients
-// will call this on launch + after restorePurchases. The Razorpay verify
-// handler already persists the entitlement when a payment succeeds.
+// Reads the user's current entitlement (if any) from kv. Populated when
+// Razorpay verify-payment succeeds (`billing:entitlement:${userId}`) or
+// `POST /billing/store/verify` for Capacitor builds (trusted / dev path today).
+// Mobile clients call this on launch + after restorePurchases.
 // ═══════════════════════════════════════════════════════════════════════════
 async function getBillingEntitlement(c: Context) {
   const auth = await requireUser(c);
@@ -2311,6 +2521,11 @@ app.get("/make-server-76b0ba9a/billing/entitlement", getBillingEntitlement);
 app.get("/billing/entitlement", getBillingEntitlement);
 
 registerAdminRoutes(app);
+
+// Growth Levers routes piggyback on the same Hono app. They live in a
+// separate module so admin.tsx stays readable; we hand them the existing
+// rate-limit helper + the admin helper bag so they don't reinvent auth.
+registerGrowthLeversRoutes(app, { ...adminHelpers, enforceRateLimit });
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Open AI-Age Standard — public, unauthenticated, rate-limited.

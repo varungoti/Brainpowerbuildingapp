@@ -1,0 +1,19 @@
+project_id = "nurospark-local"
+
+[functions.portal]
+verify_jwt = false
+
+[functions.crm]
+verify_jwt = false
+
+[functions.social-os]
+verify_jwt = false
+
+[functions.social-publish-worker]
+verify_jwt = false
+
+[functions.ai-growth]
+verify_jwt = false
+
+[functions.razorpay-webhook]
+verify_jwt = false

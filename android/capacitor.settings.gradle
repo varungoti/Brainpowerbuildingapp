@@ -2,6 +2,12 @@
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../node_modules/.pnpm/@capacitor+android@7.6.1_@capacitor+core@7.6.1/node_modules/@capacitor/android/capacitor')
 
+include ':adplorg-capacitor-in-app-purchase'
+project(':adplorg-capacitor-in-app-purchase').projectDir = new File('../node_modules/.pnpm/@adplorg+capacitor-in-app-p_b5e905889d8b7c50f57e87faa7a5cd4b/node_modules/@adplorg/capacitor-in-app-purchase/android')
+
+include ':capacitor-app'
+project(':capacitor-app').projectDir = new File('../node_modules/.pnpm/@capacitor+app@7.1.2_@capacitor+core@7.6.1/node_modules/@capacitor/app/android')
+
 include ':capacitor-preferences'
 project(':capacitor-preferences').projectDir = new File('../node_modules/.pnpm/@capacitor+preferences@7.0.4_@capacitor+core@7.6.1/node_modules/@capacitor/preferences/android')
 

@@ -11,6 +11,8 @@ install! 'cocoapods', :disable_input_output_paths => true
 def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/.pnpm/@capacitor+ios@7.6.1_@capacitor+core@7.6.1/node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/.pnpm/@capacitor+ios@7.6.1_@capacitor+core@7.6.1/node_modules/@capacitor/ios'
+  pod 'AdplorgCapacitorInAppPurchase', :path => '../../node_modules/.pnpm/@adplorg+capacitor-in-app-p_b5e905889d8b7c50f57e87faa7a5cd4b/node_modules/@adplorg/capacitor-in-app-purchase'
+  pod 'CapacitorApp', :path => '../../node_modules/.pnpm/@capacitor+app@7.1.2_@capacitor+core@7.6.1/node_modules/@capacitor/app'
   pod 'CapacitorPreferences', :path => '../../node_modules/.pnpm/@capacitor+preferences@7.0.4_@capacitor+core@7.6.1/node_modules/@capacitor/preferences'
   pod 'NeurosparkVoice', :path => '../../capacitor-plugins/neurospark-voice'
 end

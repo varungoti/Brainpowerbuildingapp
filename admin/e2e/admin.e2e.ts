@@ -59,6 +59,41 @@ async function mockAdminApi(page: Page) {
       },
     }),
   );
+  await page.route("**/admin/missions", (route) =>
+    route.fulfill({
+      json: {
+        missions: [
+          {
+            key: "prod_verify_green",
+            trackId: "launch_prod",
+            trackLabel: "Launch & production",
+            title: "Green verify gate",
+            description: "Run verify in CI.",
+            xp: 25,
+            tier: "standard",
+            sortOrder: 1,
+            completed: false,
+            completed_at: null,
+            xp_awarded: null,
+          },
+        ],
+        stats: {
+          totalXp: 0,
+          level: 1,
+          xpIntoLevel: 0,
+          xpForNextLevel: 400,
+          streak: 0,
+          completedCount: 0,
+          totalMissions: 54,
+          percent: 0,
+          badges: [
+            { id: "first_step", title: "First step", description: "Complete any mission.", emoji: "👣", unlocked: false },
+          ],
+          byTrack: { launch_prod: { label: "Launch & production", done: 0, total: 1 } },
+        },
+      },
+    }),
+  );
 }
 
 test("admin login sends a magic link", async ({ page }) => {
@@ -94,4 +129,17 @@ test("authenticated admin can view audit log and drill into a family", async ({ 
   await expect(page.getByRole("heading", { name: "Family detail" })).toBeVisible();
   await expect(page.getByText("Maya")).toBeVisible();
   await expect(page.getByText("active")).toBeVisible();
+});
+
+test("authenticated admin can open Mission HQ", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("neurospark.admin.e2e.session", "1");
+  });
+  await mockAdminApi(page);
+
+  await page.goto("/#/missions");
+  await expect(page.getByText("Mission HQ", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ops quests/ })).toBeVisible();
+  await expect(page.getByText("Operator level")).toBeVisible();
+  await expect(page.getByText("Green verify gate")).toBeVisible();
 });

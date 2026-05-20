@@ -1,0 +1,13 @@
+{
+  "name": "nurospark-supabase-edge-hosting-package",
+  "created_at": "2026-05-19T09:51:00.602977Z",
+  "functions": [
+    "portal",
+    "crm",
+    "social-os",
+    "social-publish-worker",
+    "ai-growth",
+    "razorpay-webhook"
+  ],
+  "database_migration": "supabase/migrations/20260519000000_nurospark_crm_social_os.sql"
+}

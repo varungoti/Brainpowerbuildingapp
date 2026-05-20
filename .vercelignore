@@ -1,0 +1,21 @@
+android/
+ios/
+android/app/build/
+**/build/
+**/.gradle/
+**/dist/
+admin/dist/
+**/*.apk
+**/*.aab
+**/*.keystore
+graphify-out/
+**/*.log
+.env
+.env.local
+.env.*.local
+nurospark_supabase_edge_hosting_package/
+nurospark_supabase_edge_hosting_package.zip
+test-results/
+playwright-report/
+# Jest/vitest HTML coverage output only — do NOT ignore src/components/coverage/
+/coverage/

@@ -82,3 +82,8 @@ export const LAUNCH_PAYWALL_PLANS: LaunchPaywallPlan[] = [
 export function getLaunchPaywallPlan(planId: string): LaunchPaywallPlan {
   return LAUNCH_PAYWALL_PLANS.find((plan) => plan.id === planId) ?? LAUNCH_PAYWALL_PLANS[2];
 }
+
+/** INR amounts accepted by Edge `razorpay/create-order` — must match `RAZORPAY_INR_WHITELIST` in `supabase/functions/server/index.tsx`. */
+export function resolveLaunchPlanFromInr(amountInr: number): LaunchPaywallPlan | null {
+  return LAUNCH_PAYWALL_PLANS.find((plan) => plan.priceInr === amountInr) ?? null;
+}

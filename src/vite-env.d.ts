@@ -29,6 +29,13 @@ interface ImportMetaEnv {
   readonly VITE_FEATURE_FLAGS?: string;
   /** E2E paywall build: skip creating Supabase browser client (avoids calls to fake host). */
   readonly VITE_E2E_SUPPRESS_SB_CLIENT?: string;
+  /**
+   * Internal QA only: show “Demo login” on the auth screen. Requires VITE_DEMO_LOGIN_EMAIL +
+   * VITE_DEMO_LOGIN_PASSWORD. Never enable on Play Store builds (credentials are in the bundle).
+   */
+  readonly VITE_SHOW_DEMO_LOGIN?: string;
+  readonly VITE_DEMO_LOGIN_EMAIL?: string;
+  readonly VITE_DEMO_LOGIN_PASSWORD?: string;
 }
 
 interface ImportMeta {

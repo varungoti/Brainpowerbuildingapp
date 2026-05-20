@@ -18,6 +18,8 @@ Copy from `.env.example`:
 
 Never commit `.env`. `VITE_APP_VERSION` is injected from `package.json` at build time.
 
+For a **staging demo parent** account (QA APK / dogfood), see **`docs/DEMO_ACCOUNT.md`** (`pnpm run demo:create-user`).
+
 ## 2. Supabase Edge Function secrets
 
 Deploy the function in `supabase/functions/server/` (your project’s deploy flow / Dashboard).

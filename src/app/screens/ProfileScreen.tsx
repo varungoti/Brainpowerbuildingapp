@@ -105,7 +105,7 @@ export function ProfileScreen() {
           </div>
         </Section>
 
-        {/* Backup / new device (local file — cloud sync still planned) */}
+        {/* Backup / new device — opt-in cloud sync lives in Profile when signed in */}
         <Section title="Backup & new device" icon="💾">
           <p className="text-gray-500 text-xs mb-2 leading-relaxed">
             Download a JSON backup before switching phones or browsers. The file includes child names and any notes —{" "}

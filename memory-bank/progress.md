@@ -69,6 +69,16 @@ Verification performed:
 - `pnpm run typecheck` passed.
 - `pnpm --filter marketing-site build` passed.
 
+## Mission HQ (gamified admin ops checklist)
+
+- Added `supabase/migrations/00017_admin_mission_completions.sql` (`admin_mission_completions`, RLS on, Edge writes via service role).
+- Extended `supabase/functions/server/admin.tsx` with Mission HQ routes; catalog and gamification mirrored under `supabase/functions/server/` for Deno; audit actions on complete/uncomplete.
+- Root: `src/lib/growth/adminMissionCatalog.ts`, `missionGamification.ts`, Vitest coverage; `growthPlanArtifacts.test.ts` asserts catalog `mission(` count parity with Edge copy.
+- Admin: `admin/src/pages/missions/MissionHQPage.tsx`, hash route `missions`, sidebar link; `#missions` and `#/missions` both work; Growth Command Center header links to Mission HQ; Mission HQ links back to `$10M Growth`.
+- `pnpm run growth:check` includes migration and wiring checks; admin Playwright covers Mission HQ smoke.
+
+Remote (linked Supabase project): migration `00017_admin_mission_completions` applied; `server` Edge Function redeployed with Mission HQ bundle.
+
 ## Railway/online hosting preparation
 
 Added hosting artifacts:

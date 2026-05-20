@@ -1,0 +1,11 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.neurospark.app.neurosparkvoice" >
+4
+5    <uses-sdk android:minSdkVersion="23" />
+6
+7    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+7-->F:\Kids Brain improvement app\Brainpowerbuildingapp\node_modules\neurospark-voice\android\src\main\AndroidManifest.xml:2:5-71
+7-->F:\Kids Brain improvement app\Brainpowerbuildingapp\node_modules\neurospark-voice\android\src\main\AndroidManifest.xml:2:22-68
+8
+9</manifest>

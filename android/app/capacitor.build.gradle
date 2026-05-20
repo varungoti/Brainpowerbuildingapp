@@ -9,6 +9,8 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation project(':adplorg-capacitor-in-app-purchase')
+    implementation project(':capacitor-app')
     implementation project(':capacitor-preferences')
     implementation project(':neurospark-voice')
 

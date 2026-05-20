@@ -266,6 +266,32 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/server/index.ts"
 
+# Marketing OS — admin-only revenue sprint controls (CRM + Social OS + AI).
+# verify_jwt=true so the admin must auth; the function uses the service role
+# client internally to bypass RLS on marketing tables. See migration 00018.
+[functions.marketing-os]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/marketing-os/index.ts"
+
+# Razorpay webhook — public endpoint authenticated by HMAC signature.
+[functions.razorpay-webhook]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/razorpay-webhook/index.ts"
+
+# Social publish worker — drains scheduled posts. Authenticated by CRON_SECRET.
+[functions.social-publish-worker]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/social-publish-worker/index.ts"
+
+# Public lead capture for landing page. JWT off, honeypot + rate-limited.
+[functions.marketing-public]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/marketing-public/index.ts"
+
 [analytics]
 enabled = true
 port = 54327

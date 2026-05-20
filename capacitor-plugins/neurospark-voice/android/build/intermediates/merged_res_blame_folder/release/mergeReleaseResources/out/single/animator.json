@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_fade_exit.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_fade_exit.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_open_enter.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_open_enter.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_open_exit.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_open_exit.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_fade_enter.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_fade_enter.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_close_exit.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_close_exit.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/animator/fragment_close_enter.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-fragment-1.8.4-11:/animator/fragment_close_enter.xml"
+    }
+]

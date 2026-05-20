@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/layout-v21/notification_template_custom_big.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-core-1.15.0-8:/layout-v21/notification_template_custom_big.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/layout-v21/notification_template_icon_group.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-core-1.15.0-8:/layout-v21/notification_template_icon_group.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/layout-v21/notification_action.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-core-1.15.0-8:/layout-v21/notification_action.xml"
+    },
+    {
+        "merged": "com.neurospark.app.neurosparkvoice.neurospark-voice-release-26:/layout-v21/notification_action_tombstone.xml",
+        "source": "com.neurospark.app.neurosparkvoice.neurospark-voice-core-1.15.0-8:/layout-v21/notification_action_tombstone.xml"
+    }
+]

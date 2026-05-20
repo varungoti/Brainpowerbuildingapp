@@ -61,14 +61,22 @@ Complexity: Level 4 Complex System
 - [x] Add family drill-through detail view in the admin app.
 - [x] Add exact 18-moment in-app animation catalog to `docs/IN_APP_ANIMATION_PLAN.md`.
 
+### Mission HQ (gamified admin ops checklist)
+
+- [x] Catalog, XP/levels/streak/badges, `admin_mission_completions` migration `00017`, `/admin/missions` API with audit on complete/uncomplete.
+- [x] Admin UI `MissionHQPage`, sidebar `#missions`, hash normalization for `#/missions` vs `#missions`.
+- [x] Vitest for gamification helpers, growth artifact parity test for mission catalog, `growth:check` wiring, admin Playwright Mission HQ smoke.
+- [x] Cross-links: Growth Command Center header → Mission HQ; Mission HQ hero → $10M Growth.
+
 ### Next Implementation Work
 
 - [x] Apply migration and smoke-test `/admin/growth` in staging. _(remote migration present via Supabase MCP; deployed endpoint returns expected auth-gated 401 without admin JWT)_
 - [x] Configure external Mautic/n8n/Hermes/Postiz credentials and keep live sending paused until production gates pass. _(in-repo credential shells and paused/dry-run/approval defaults verified by `pnpm run growth:check`; real secret values remain external)_
 - [x] Smoke-test `/ai-age-starter-pack` lead capture against deployed `/growth/lead`. _(deployed `/server/growth/lead` returned `200 {"ok":true}` for starter-pack smoke lead; admin route remains auth-gated)_
-- [x] Run full `pnpm run verify` before release handoff. _(passed: typecheck, lint, 305 tests, production build)_
+- [x] Run full `pnpm run verify` before release handoff. _(passed: typecheck, lint, root Vitest suite including Mission HQ tests, production build)_
 - [x] Run `railway login` or provide `RAILWAY_TOKEN`, then deploy root app, `admin/`, and `marketing-site/`. _(attempted; blocked because current Railway token is project-scoped/partial, not a CLI-capable account token)_
 - [x] Set valid `SUPABASE_DB_PASSWORD` or provide a usable Supabase MCP deploy path, then apply migration/deploy Edge Function. _(CLI DB push still needs `SUPABASE_DB_PASSWORD`; Supabase MCP shows migration `00016` already applied, and `server` Edge Function was deployed after Deno/runtime fixes)_
+- [x] Apply `00017_admin_mission_completions.sql` and redeploy Edge `server` on each target project so Mission HQ persistence works in that environment. _(Linked project: `supabase db push` applied `00017`; `functions deploy server` succeeded; MCP confirms migration `00017` and table `admin_mission_completions`.)_
 
 ## Completed Task: Fireworks Content Platform
 
