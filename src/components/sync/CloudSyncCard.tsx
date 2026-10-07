@@ -15,6 +15,7 @@ import { useApp } from "../../app/context/AppContext";
 import {
   isCloudSyncEnabled,
   setCloudSyncEnabled,
+  captureCloudSyncOperation,
   pushStateNow,
   pullState,
 } from "../../lib/sync/cloudSync";
@@ -51,16 +52,18 @@ export function CloudSyncCard() {
     setEnabled(next);
     setCloudSyncEnabled(next);
     if (next) {
+      const syncOperation = captureCloudSyncOperation();
       setBusy("pull");
-      const r = await pullState(await getJwt());
+      const r = await pullState(await getJwt(), syncOperation);
       setBusy(r.ok ? "ok" : "err");
     }
   };
 
   const handleSyncNow = async () => {
+    const syncOperation = captureCloudSyncOperation();
     setBusy("push");
     const snapshot = JSON.parse(app.exportLocalDataBackup()) as unknown;
-    const r = await pushStateNow(snapshot, await getJwt());
+    const r = await pushStateNow(snapshot, await getJwt(), syncOperation);
     setBusy(r.ok ? "ok" : "err");
   };
 
