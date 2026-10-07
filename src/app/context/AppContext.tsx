@@ -14,7 +14,7 @@ import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../util
 import { trainFromLogs } from "../../lib/ml/adaptiveEngine";
 import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
 import { canAccessBlueprint } from "../../utils/adminAccess";
-import { isCloudSyncEnabled, pushStateDebounced } from "../../lib/sync/cloudSync";
+import { captureCloudSyncOperation, pushStateDebounced } from "../../lib/sync/cloudSync";
 export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -499,7 +499,8 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   // into a single round-trip.
   useEffect(() => {
     if (!p.user) return;
-    if (!isCloudSyncEnabled()) return;
+    const syncOperation = captureCloudSyncOperation();
+    if (!syncOperation) return;
     const client = getSupabaseBrowserClient();
     if (!client) return;
     let cancelled = false;
@@ -509,7 +510,7 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
         if (cancelled) return;
         const jwt = data.session?.access_token ?? null;
         if (!jwt) return;
-        pushStateDebounced(JSON.parse(buildNeurosparkBackupFile(p)) as unknown, jwt);
+        pushStateDebounced(JSON.parse(buildNeurosparkBackupFile(p)) as unknown, jwt, syncOperation);
       } catch {
         /* ignore — local-first stays correct */
       }

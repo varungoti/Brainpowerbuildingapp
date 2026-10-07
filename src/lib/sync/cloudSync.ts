@@ -51,20 +51,53 @@ function authHeader(jwt: string | null): Record<string, string> {
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 const PUSH_DEBOUNCE_MS = 4000;
+// An explicit opt-out must remain effective in this session even if storage
+// still contains an old opt-in because its write failed.
+let cloudSyncRevokedForSession = false;
+let consentGeneration = 0;
 
-export function pushStateDebounced(state: unknown, jwt: string | null, onResult?: (r: SyncResult) => void) {
-  if (pushTimer) clearTimeout(pushTimer);
+export interface CloudSyncOperation {
+  readonly consentGeneration: number;
+}
+
+/** Capture before any asynchronous session lookup or snapshot preparation. */
+export function captureCloudSyncOperation(): CloudSyncOperation | null {
+  return isCloudSyncEnabled() ? { consentGeneration } : null;
+}
+
+function operationError(operation: CloudSyncOperation | null): string | null {
+  if (!isCloudSyncEnabled()) return "Cloud sync is disabled";
+  if (!operation || operation.consentGeneration !== consentGeneration) return "Cloud sync consent has changed";
+  return null;
+}
+
+function cancelPendingPush() {
+  if (pushTimer !== null) clearTimeout(pushTimer);
+  pushTimer = null;
+}
+
+export function pushStateDebounced(state: unknown, jwt: string | null, operation: CloudSyncOperation | null, onResult?: (r: SyncResult) => void) {
+  // A stale caller must not cancel a newer, authorized caller's queued work.
+  if (operationError(operation)) return;
+  cancelPendingPush();
   pushTimer = setTimeout(async () => {
     pushTimer = null;
-    const result = await pushStateNow(state, jwt);
+    if (operationError(operation)) return;
+    const result = await pushStateNow(state, jwt, operation);
     onResult?.(result);
   }, PUSH_DEBOUNCE_MS);
 }
 
-export async function pushStateNow(state: unknown, jwt: string | null): Promise<SyncResult> {
+export async function pushStateNow(state: unknown, jwt: string | null, operation: CloudSyncOperation | null): Promise<SyncResult> {
+  const denied = operationError(operation);
+  if (denied) return { ok: false, errorMessage: denied };
   try {
     const body = JSON.stringify({ state, deviceId: deviceId() });
     const kb = Math.round(body.length / 1024);
+    // Recheck at the network boundary, including manual calls resumed after
+    // session lookup and state serialization that may revoke consent.
+    const consentChanged = operationError(operation);
+    if (consentChanged) return { ok: false, errorMessage: consentChanged };
     const resp = await fetch(`${FUNCTIONS_BASE}/sync/state`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeader(jwt) },
@@ -84,7 +117,9 @@ export async function pushStateNow(state: unknown, jwt: string | null): Promise<
   }
 }
 
-export async function pullState(jwt: string | null): Promise<PullResult> {
+export async function pullState(jwt: string | null, operation: CloudSyncOperation | null): Promise<PullResult> {
+  const denied = operationError(operation);
+  if (denied) return { ok: false, errorMessage: denied };
   try {
     const resp = await fetch(`${FUNCTIONS_BASE}/sync/state`, {
       method: "GET",
@@ -102,6 +137,7 @@ export async function pullState(jwt: string | null): Promise<PullResult> {
 const LS_ENABLED = "neurospark_cloud_sync_enabled";
 
 export function isCloudSyncEnabled(): boolean {
+  if (cloudSyncRevokedForSession) return false;
   try {
     return localStorage.getItem(LS_ENABLED) === "1";
   } catch {
@@ -110,8 +146,16 @@ export function isCloudSyncEnabled(): boolean {
 }
 
 export function setCloudSyncEnabled(v: boolean) {
+  if (!v) {
+    cloudSyncRevokedForSession = true;
+    consentGeneration += 1;
+    // Only pending work can be canceled; a request already handed to fetch
+    // may have reached the server and cannot be recalled by this preference.
+    cancelPendingPush();
+  }
   try {
     localStorage.setItem(LS_ENABLED, v ? "1" : "0");
+    if (v) cloudSyncRevokedForSession = false;
     if (v) captureProductEvent("cloud_sync_enable", {});
   } catch {
     /* private mode */
