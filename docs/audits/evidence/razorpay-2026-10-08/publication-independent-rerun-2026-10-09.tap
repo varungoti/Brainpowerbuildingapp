@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: capture receipt has wrong order identity
+ok 1 - capture receipt has wrong order identity
+  ---
+  duration_ms: 15.075078
+  type: 'test'
+  ...
+# Subtest: capture receipt omits order identity
+ok 2 - capture receipt omits order identity
+  ---
+  duration_ms: 2.336607
+  type: 'test'
+  ...
+# Subtest: refund receipt contradicts individual refund amount
+ok 3 - refund receipt contradicts individual refund amount
+  ---
+  duration_ms: 4.429696
+  type: 'test'
+  ...
+# Subtest: refund receipt omits individual refund amount
+ok 4 - refund receipt omits individual refund amount
+  ---
+  duration_ms: 1.976037
+  type: 'test'
+  ...
+# Subtest: refund-only payload can use a matching committed historical capture projection
+ok 5 - refund-only payload can use a matching committed historical capture projection
+  ---
+  duration_ms: 4.280777
+  type: 'test'
+  ...
+# Subtest: late capture can acknowledge an already fully refunded current projection
+ok 6 - late capture can acknowledge an already fully refunded current projection
+  ---
+  duration_ms: 2.326262
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.103131

@@ -1,0 +1,170 @@
+{
+  "repository": "varungoti/Brainpowerbuildingapp",
+  "base_sha": "836da44bcb96faab395ce2bf15df7d312b4eea63",
+  "scope": "bounded payment webhook slice only",
+  "overall_status": "independent_review_ready_not_deployable",
+  "candidate_patch_sha256": "4a2ee230ad52329214358f2c193cd92cc23342650edb783197a981a273e7b8c5",
+  "tests": {
+    "pass": 84,
+    "fail": 0,
+    "database_tests_run": false
+  },
+  "requirements": [
+    {
+      "requirement_ids": [
+        "NS-D02",
+        "NS-D08",
+        "NS-R01",
+        "NS-R02"
+      ],
+      "scope": "Current source and readiness reconciliation",
+      "code": [
+        "supabase/functions/razorpay-webhook/index.ts"
+      ],
+      "evidence": [
+        "source-records.json",
+        "tree.json",
+        "evidence/patch-application.txt"
+      ],
+      "status": "source_verified_runtime_open",
+      "gates": [
+        "Verify deployed Edge source/hash versus main and vulnerable legacy copy",
+        "Verify schema/merchant account/environment/subscriptions",
+        "Preserve consent PR1 owner and files"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-R23",
+        "NS-S19-P0067",
+        "NS-S19-P0074",
+        "NS-S19-P0082"
+      ],
+      "scope": "Server payment verification and webhook reconciliation",
+      "code": [
+        "supabase/functions/razorpay-webhook/webhook.ts:verified",
+        "supabase/functions/razorpay-webhook/webhook.ts:normalize",
+        "supabase/functions/razorpay-webhook/webhook.ts:terminalReceipt"
+      ],
+      "tests": [
+        "raw-body signature denial/acceptance",
+        "authorized-event ignore",
+        "capture/order business identity",
+        "receipt identity and committed-state rejection"
+      ],
+      "status": "candidate_tests_passed_not_integrated",
+      "gates": [
+        "Implement atomic RPC and disposable database tests",
+        "Verify entitlement/user/order authority separately",
+        "Native receipt verification remains separate"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-D03",
+        "NS-D06"
+      ],
+      "scope": "Secrets and purpose-bound minimization",
+      "code": [
+        "supabase/functions/razorpay-webhook/webhook.ts:createRazorpayWebhookHandler"
+      ],
+      "tests": [
+        "missing/blank secret503",
+        "no raw payload in normalized input",
+        "sanitized database errors"
+      ],
+      "status": "candidate_tests_passed_runtime_open",
+      "gates": [
+        "Actual secret/rotation and log retention verification",
+        "Actual table/RPC permissions and RLS tests"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-D05",
+        "NS-S05-P0008"
+      ],
+      "scope": "Scaffold/deployment authority",
+      "code": [
+        "nurospark_supabase_edge_hosting_package/supabase/functions/razorpay-webhook/index.ts (unchanged baseline)"
+      ],
+      "evidence": [
+        "Legacy blob ea43ba2b3a127b99f392c7ec1024502bf17b1a9b"
+      ],
+      "status": "release_blocked",
+      "gates": [
+        "Confirm active source/owner",
+        "Approved atomic migration and rollout",
+        "Prevent legacy package redeployment"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-S30-P0063",
+        "NS-D04",
+        "NS-D10",
+        "NS-R15",
+        "NS-R16"
+      ],
+      "scope": "Revenue, replay and refunds",
+      "code": [
+        "supabase/functions/razorpay-webhook/webhook.ts:createAtomicIngest",
+        "supabase/functions/razorpay-webhook/webhook.ts:normalize"
+      ],
+      "tests": [
+        "four exact-source baseline reproductions",
+        "refund-specific amounts",
+        "three protocol-only in-memory contract-model scenarios"
+      ],
+      "status": "contract_proposal_only_database_proof_missing",
+      "gates": [
+        "Database uniqueness and per-payment transaction serialization",
+        "Capture/order alias dedupe even with different unsigned header IDs",
+        "Partial refund identity and out-of-order balance tests",
+        "Crash-after-commit replay and rollback tests",
+        "Historical ledger reconciliation",
+        "CRM view and Marketing OS net/gross/currency tests"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-S25-P0009",
+        "NS-S28-P0006",
+        "NS-S28-P0024"
+      ],
+      "scope": "Operational billing/refund readiness",
+      "code": [
+        "docs/audits/razorpay-webhook-2026-10-08.md"
+      ],
+      "status": "open",
+      "gates": [
+        "Finite-retry operations and durable pending reconciliation",
+        "Named owner and alerting",
+        "Refund policy/tax/business review",
+        "Approved provider/device verification"
+      ]
+    },
+    {
+      "requirement_ids": [
+        "NS-S31-P0022",
+        "NS-S31-P0023"
+      ],
+      "scope": "INR and actual webhook mode/environment",
+      "code": [
+        "supabase/functions/razorpay-webhook/webhook.ts:normalize"
+      ],
+      "tests": [
+        "unsupported currency503",
+        "known nonsettlement ignored",
+        "unsupported authentic event503"
+      ],
+      "status": "candidate_tests_passed_environment_open",
+      "gates": [
+        "Verify configured merchant/currency/test-live mode/subscribed events",
+        "Legacy aggregate payment.refunded separate contract"
+      ]
+    }
+  ],
+  "revision": "v1",
+  "review_revision": "Independent review found order/individual amount binding gaps in v0; corrected with eight signed negative cases, awaiting re-review."
+}
