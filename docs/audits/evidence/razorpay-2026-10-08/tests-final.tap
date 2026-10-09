@@ -1,0 +1,514 @@
+TAP version 13
+# Subtest: missing/blank secret undefined fails closed
+ok 1 - missing/blank secret undefined fails closed
+  ---
+  duration_ms: 5.0721
+  type: 'test'
+  ...
+# Subtest: missing/blank secret "" fails closed
+ok 2 - missing/blank secret "" fails closed
+  ---
+  duration_ms: 0.555927
+  type: 'test'
+  ...
+# Subtest: missing/blank secret "   " fails closed
+ok 3 - missing/blank secret "   " fails closed
+  ---
+  duration_ms: 0.49163
+  type: 'test'
+  ...
+# Subtest: bad HMAC undefined is denied
+ok 4 - bad HMAC undefined is denied
+  ---
+  duration_ms: 0.666835
+  type: 'test'
+  ...
+# Subtest: bad HMAC  is denied
+ok 5 - bad HMAC  is denied
+  ---
+  duration_ms: 1.5865
+  type: 'test'
+  ...
+# Subtest: bad HMAC 00 is denied
+ok 6 - bad HMAC 00 is denied
+  ---
+  duration_ms: 0.373803
+  type: 'test'
+  ...
+# Subtest: bad HMAC ggggg is denied
+ok 7 - bad HMAC ggggg is denied
+  ---
+  duration_ms: 0.336457
+  type: 'test'
+  ...
+# Subtest: bad HMAC 00000 is denied
+ok 8 - bad HMAC 00000 is denied
+  ---
+  duration_ms: 7.107985
+  type: 'test'
+  ...
+# Subtest: valid HMAC uses exact original whitespace and unicode bytes
+ok 9 - valid HMAC uses exact original whitespace and unicode bytes
+  ---
+  duration_ms: 2.208206
+  type: 'test'
+  ...
+# Subtest: changing a signed body or secret is denied
+ok 10 - changing a signed body or secret is denied
+  ---
+  duration_ms: 1.706791
+  type: 'test'
+  ...
+# Subtest: authentic malformed body { is not ingested
+ok 11 - authentic malformed body { is not ingested
+  ---
+  duration_ms: 1.116702
+  type: 'test'
+  ...
+# Subtest: authentic malformed body  is not ingested
+ok 12 - authentic malformed body  is not ingested
+  ---
+  duration_ms: 0.738622
+  type: 'test'
+  ...
+# Subtest: authentic malformed body null is not ingested
+ok 13 - authentic malformed body null is not ingested
+  ---
+  duration_ms: 0.553224
+  type: 'test'
+  ...
+# Subtest: authentic malformed body [] is not ingested
+ok 14 - authentic malformed body [] is not ingested
+  ---
+  duration_ms: 0.516948
+  type: 'test'
+  ...
+# Subtest: authentic malformed body {} is not ingested
+ok 15 - authentic malformed body {} is not ingested
+  ---
+  duration_ms: 0.746835
+  type: 'test'
+  ...
+# Subtest: authentic malformed body � is not ingested
+ok 16 - authentic malformed body � is not ingested
+  ---
+  duration_ms: 1.061469
+  type: 'test'
+  ...
+# Subtest: payment.authorized does not count as settled
+ok 17 - payment.authorized does not count as settled
+  ---
+  duration_ms: 0.672874
+  type: 'test'
+  ...
+# Subtest: payment.failed does not count as settled
+ok 18 - payment.failed does not count as settled
+  ---
+  duration_ms: 0.739844
+  type: 'test'
+  ...
+# Subtest: payment.pending does not count as settled
+ok 19 - payment.pending does not count as settled
+  ---
+  duration_ms: 0.73051
+  type: 'test'
+  ...
+# Subtest: refund.created does not count as settled
+ok 20 - refund.created does not count as settled
+  ---
+  duration_ms: 0.552512
+  type: 'test'
+  ...
+# Subtest: refund.failed does not count as settled
+ok 21 - refund.failed does not count as settled
+  ---
+  duration_ms: 0.482066
+  type: 'test'
+  ...
+# Subtest: refund.speed_changed does not count as settled
+ok 22 - refund.speed_changed does not count as settled
+  ---
+  duration_ms: 0.94233
+  type: 'test'
+  ...
+# Subtest: payment.refunded is reconciliation-required, never silently acknowledged
+ok 23 - payment.refunded is reconciliation-required, never silently acknowledged
+  ---
+  duration_ms: 0.912414
+  type: 'test'
+  ...
+# Subtest: unrecognized.event is reconciliation-required, never silently acknowledged
+ok 24 - unrecognized.event is reconciliation-required, never silently acknowledged
+  ---
+  duration_ms: 2.026061
+  type: 'test'
+  ...
+# Subtest: missing/invalid event identity undefined is unavailable
+ok 25 - missing/invalid event identity undefined is unavailable
+  ---
+  duration_ms: 0.628026
+  type: 'test'
+  ...
+# Subtest: missing/invalid event identity  is unavailable
+ok 26 - missing/invalid event identity  is unavailable
+  ---
+  duration_ms: 0.631571
+  type: 'test'
+  ...
+# Subtest: missing/invalid event identity bad e is unavailable
+ok 27 - missing/invalid event identity bad e is unavailable
+  ---
+  duration_ms: 0.712102
+  type: 'test'
+  ...
+# Subtest: missing/invalid event identity xxxxx is unavailable
+ok 28 - missing/invalid event identity xxxxx is unavailable
+  ---
+  duration_ms: 0.496217
+  type: 'test'
+  ...
+# Subtest: missing payment cannot create revenue
+ok 29 - missing payment cannot create revenue
+  ---
+  duration_ms: 0.763109
+  type: 'test'
+  ...
+# Subtest: order id substituted for payment id cannot create revenue
+ok 30 - order id substituted for payment id cannot create revenue
+  ---
+  duration_ms: 1.065435
+  type: 'test'
+  ...
+# Subtest: authorized state with capture event cannot create revenue
+ok 31 - authorized state with capture event cannot create revenue
+  ---
+  duration_ms: 0.867807
+  type: 'test'
+  ...
+# Subtest: captured false cannot create revenue
+ok 32 - captured false cannot create revenue
+  ---
+  duration_ms: 0.851072
+  type: 'test'
+  ...
+# Subtest: zero amount cannot create revenue
+ok 33 - zero amount cannot create revenue
+  ---
+  duration_ms: 0.632994
+  type: 'test'
+  ...
+# Subtest: negative amount cannot create revenue
+ok 34 - negative amount cannot create revenue
+  ---
+  duration_ms: 0.637169
+  type: 'test'
+  ...
+# Subtest: fractional amount cannot create revenue
+ok 35 - fractional amount cannot create revenue
+  ---
+  duration_ms: 0.718071
+  type: 'test'
+  ...
+# Subtest: string amount cannot create revenue
+ok 36 - string amount cannot create revenue
+  ---
+  duration_ms: 0.784001
+  type: 'test'
+  ...
+# Subtest: overflow amount cannot create revenue
+ok 37 - overflow amount cannot create revenue
+  ---
+  duration_ms: 0.687686
+  type: 'test'
+  ...
+# Subtest: unsupported currency cannot create revenue
+ok 38 - unsupported currency cannot create revenue
+  ---
+  duration_ms: 0.628366
+  type: 'test'
+  ...
+# Subtest: missing account cannot create revenue
+ok 39 - missing account cannot create revenue
+  ---
+  duration_ms: 0.904387
+  type: 'test'
+  ...
+# Subtest: missing occurrence time cannot create revenue
+ok 40 - missing occurrence time cannot create revenue
+  ---
+  duration_ms: 0.708918
+  type: 'test'
+  ...
+# Subtest: capture and order.paid both use the payment business identity, not the order
+ok 41 - capture and order.paid both use the payment business identity, not the order
+  ---
+  duration_ms: 1.950337
+  type: 'test'
+  ...
+# Subtest: processed partial refund uses refund id and amount, not payment total or cumulative refund
+ok 42 - processed partial refund uses refund id and amount, not payment total or cumulative refund
+  ---
+  duration_ms: 0.986506
+  type: 'test'
+  ...
+# Subtest: full refund needs a fully refunded terminal projection
+ok 43 - full refund needs a fully refunded terminal projection
+  ---
+  duration_ms: 0.802389
+  type: 'test'
+  ...
+# Subtest: missing refund id cannot affect ledger
+ok 44 - missing refund id cannot affect ledger
+  ---
+  duration_ms: 0.844672
+  type: 'test'
+  ...
+# Subtest: refund/payment mismatch cannot affect ledger
+ok 45 - refund/payment mismatch cannot affect ledger
+  ---
+  duration_ms: 0.712313
+  type: 'test'
+  ...
+# Subtest: refund not processed cannot affect ledger
+ok 46 - refund not processed cannot affect ledger
+  ---
+  duration_ms: 0.726284
+  type: 'test'
+  ...
+# Subtest: refund currency mismatch cannot affect ledger
+ok 47 - refund currency mismatch cannot affect ledger
+  ---
+  duration_ms: 0.735257
+  type: 'test'
+  ...
+# Subtest: refund above capture cannot affect ledger
+ok 48 - refund above capture cannot affect ledger
+  ---
+  duration_ms: 0.640264
+  type: 'test'
+  ...
+# Subtest: refund before missing capture remains unavailable until transaction reports reconciliation complete
+ok 49 - refund before missing capture remains unavailable until transaction reports reconciliation complete
+  ---
+  duration_ms: 0.81649
+  type: 'test'
+  ...
+# Subtest: mismatched receipt contract_version=2 is never acknowledged
+ok 50 - mismatched receipt contract_version=2 is never acknowledged
+  ---
+  duration_ms: 2.429789
+  type: 'test'
+  ...
+# Subtest: mismatched receipt processing_state=pending is never acknowledged
+ok 51 - mismatched receipt processing_state=pending is never acknowledged
+  ---
+  duration_ms: 2.565173
+  type: 'test'
+  ...
+# Subtest: mismatched receipt outcome=accepted is never acknowledged
+ok 52 - mismatched receipt outcome=accepted is never acknowledged
+  ---
+  duration_ms: 0.762369
+  type: 'test'
+  ...
+# Subtest: mismatched receipt provider=other is never acknowledged
+ok 53 - mismatched receipt provider=other is never acknowledged
+  ---
+  duration_ms: 2.598685
+  type: 'test'
+  ...
+# Subtest: mismatched receipt account_id=acc_other is never acknowledged
+ok 54 - mismatched receipt account_id=acc_other is never acknowledged
+  ---
+  duration_ms: 0.631671
+  type: 'test'
+  ...
+# Subtest: mismatched receipt event_id=evt_other is never acknowledged
+ok 55 - mismatched receipt event_id=evt_other is never acknowledged
+  ---
+  duration_ms: 0.701357
+  type: 'test'
+  ...
+# Subtest: mismatched receipt body_sha256=0000000000000000000000000000000000000000000000000000000000000000 is never acknowledged
+ok 56 - mismatched receipt body_sha256=0000000000000000000000000000000000000000000000000000000000000000 is never acknowledged
+  ---
+  duration_ms: 0.703129
+  type: 'test'
+  ...
+# Subtest: mismatched receipt event_type=order.paid is never acknowledged
+ok 57 - mismatched receipt event_type=order.paid is never acknowledged
+  ---
+  duration_ms: 0.477369
+  type: 'test'
+  ...
+# Subtest: mismatched receipt payment_id=pay_other is never acknowledged
+ok 58 - mismatched receipt payment_id=pay_other is never acknowledged
+  ---
+  duration_ms: 0.560815
+  type: 'test'
+  ...
+# Subtest: mismatched receipt order_id=order_other is never acknowledged
+ok 59 - mismatched receipt order_id=order_other is never acknowledged
+  ---
+  duration_ms: 0.570379
+  type: 'test'
+  ...
+# Subtest: mismatched receipt amount_minor=1 is never acknowledged
+ok 60 - mismatched receipt amount_minor=1 is never acknowledged
+  ---
+  duration_ms: 0.526012
+  type: 'test'
+  ...
+# Subtest: mismatched receipt refund_id=rfnd_other is never acknowledged
+ok 61 - mismatched receipt refund_id=rfnd_other is never acknowledged
+  ---
+  duration_ms: 0.789148
+  type: 'test'
+  ...
+# Subtest: mismatched receipt currency=USD is never acknowledged
+ok 62 - mismatched receipt currency=USD is never acknowledged
+  ---
+  duration_ms: 0.641496
+  type: 'test'
+  ...
+# Subtest: mismatched receipt captured_amount_minor=1 is never acknowledged
+ok 63 - mismatched receipt captured_amount_minor=1 is never acknowledged
+  ---
+  duration_ms: 0.588697
+  type: 'test'
+  ...
+# Subtest: mismatched receipt refunded_amount_minor=-1 is never acknowledged
+ok 64 - mismatched receipt refunded_amount_minor=-1 is never acknowledged
+  ---
+  duration_ms: 0.642919
+  type: 'test'
+  ...
+# Subtest: mismatched receipt refunded_amount_minor=50001 is never acknowledged
+ok 65 - mismatched receipt refunded_amount_minor=50001 is never acknowledged
+  ---
+  duration_ms: 0.551851
+  type: 'test'
+  ...
+# Subtest: mismatched receipt ledger_state=Paid is never acknowledged
+ok 66 - mismatched receipt ledger_state=Paid is never acknowledged
+  ---
+  duration_ms: 0.672533
+  type: 'test'
+  ...
+# Subtest: payment.captured receipt missing order_id is unavailable
+ok 67 - payment.captured receipt missing order_id is unavailable
+  ---
+  duration_ms: 0.714326
+  type: 'test'
+  ...
+# Subtest: payment.captured receipt missing amount_minor is unavailable
+ok 68 - payment.captured receipt missing amount_minor is unavailable
+  ---
+  duration_ms: 0.622487
+  type: 'test'
+  ...
+# Subtest: refund.processed receipt missing order_id is unavailable
+ok 69 - refund.processed receipt missing order_id is unavailable
+  ---
+  duration_ms: 0.53751
+  type: 'test'
+  ...
+# Subtest: refund.processed receipt missing amount_minor is unavailable
+ok 70 - refund.processed receipt missing amount_minor is unavailable
+  ---
+  duration_ms: 0.55155
+  type: 'test'
+  ...
+# Subtest: refund receipt cannot replace the individual applied amount with a larger cumulative total
+ok 71 - refund receipt cannot replace the individual applied amount with a larger cumulative total
+  ---
+  duration_ms: 0.702638
+  type: 'test'
+  ...
+# Subtest: refund-only null order binding must be echoed explicitly, not invented or omitted
+ok 72 - refund-only null order binding must be echoed explicitly, not invented or omitted
+  ---
+  duration_ms: 1.197363
+  type: 'test'
+  ...
+# Subtest: nonreceipt null fails closed
+ok 73 - nonreceipt null fails closed
+  ---
+  duration_ms: 0.803089
+  type: 'test'
+  ...
+# Subtest: nonreceipt true fails closed
+ok 74 - nonreceipt true fails closed
+  ---
+  duration_ms: 0.749349
+  type: 'test'
+  ...
+# Subtest: nonreceipt {} fails closed
+ok 75 - nonreceipt {} fails closed
+  ---
+  duration_ms: 1.559118
+  type: 'test'
+  ...
+# Subtest: nonreceipt [] fails closed
+ok 76 - nonreceipt [] fails closed
+  ---
+  duration_ms: 0.515246
+  type: 'test'
+  ...
+# Subtest: nonreceipt {"ok":true} fails closed
+ok 77 - nonreceipt {"ok":true} fails closed
+  ---
+  duration_ms: 0.700746
+  type: 'test'
+  ...
+# Subtest: database failure and missing RPC return sanitized503, no fallback INSERT
+ok 78 - database failure and missing RPC return sanitized503, no fallback INSERT
+  ---
+  duration_ms: 0.794457
+  type: 'test'
+  ...
+# Subtest: RPC throwing after an uncertain commit is unavailable, allowing idempotent retry
+ok 79 - RPC throwing after an uncertain commit is unavailable, allowing idempotent retry
+  ---
+  duration_ms: 0.758362
+  type: 'test'
+  ...
+# Subtest: only a matching committed duplicate receipt acknowledges a replay
+ok 80 - only a matching committed duplicate receipt acknowledges a replay
+  ---
+  duration_ms: 1.238345
+  type: 'test'
+  ...
+# Subtest: OPTIONS and nonPOST do not instantiate persistence
+ok 81 - OPTIONS and nonPOST do not instantiate persistence
+  ---
+  duration_ms: 0.369837
+  type: 'test'
+  ...
+# Subtest: contract model: capture aliases, changed unsigned event header and concurrent replays credit once
+ok 82 - contract model: capture aliases, changed unsigned event header and concurrent replays credit once
+  ---
+  duration_ms: 3.546602
+  type: 'test'
+  ...
+# Subtest: contract model: partial refunds accumulate once despite out-of-order capture and late aliases
+ok 83 - contract model: partial refunds accumulate once despite out-of-order capture and late aliases
+  ---
+  duration_ms: 2.457051
+  type: 'test'
+  ...
+# Subtest: contract model: event-id reuse with changed signed content must not return duplicate success
+ok 84 - contract model: event-id reuse with changed signed content must not return duplicate success
+  ---
+  duration_ms: 1.24759
+  type: 'test'
+  ...
+1..84
+# tests 84
+# suites 0
+# pass 84
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.039517
