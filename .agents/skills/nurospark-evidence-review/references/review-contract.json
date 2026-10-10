@@ -1,0 +1,25 @@
+{
+  "project": "NuroSpark",
+  "repo": "varungoti/Brainpowerbuildingapp",
+  "base": "836da44bcb96faab395ce2bf15df7d312b4eea63",
+  "slug": "nurospark-evidence-review",
+  "required": [
+    "consent_generation",
+    "guardian_scope",
+    "claim_appraisal",
+    "adult_ux"
+  ],
+  "aliases": [
+    "NS-D06",
+    "NS-D07",
+    "NS-R07-NS-R13",
+    "WP06",
+    "WP10",
+    "IMP"
+  ],
+  "blockers": [
+    "Existing consent PR1 is unmerged; main does not contain its repair",
+    "Payment PR2 lacks atomic ingest RPC/migration and is blocked for release",
+    "Full integration, browser/native and child-safety acceptance are unverified"
+  ]
+}

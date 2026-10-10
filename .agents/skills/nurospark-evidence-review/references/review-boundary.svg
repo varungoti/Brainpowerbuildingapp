@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="450" viewBox="0 0 960 450" role="img" aria-labelledby="title desc">
+<title id="title">NuroSpark inspected source and candidate review boundary</title>
+<desc id="desc">Solid boxes are separately inspected main source responsibilities; no runtime data-flow edges are asserted. Dashed boxes are unmerged candidate and blocked runtime gates. No deployment or application test is established by this diagram.</desc>
+<rect width="960" height="450" fill="#f8fafc"/>
+<g font-family="system-ui, sans-serif" fill="#0f172a">
+<text x="34" y="45" font-size="23" font-weight="700">NuroSpark: bounded source review</text>
+<text x="34" y="75" font-size="15">Inspected main source, not deployed/runtime proof</text>
+<rect x="34" y="104" width="274" height="92" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+<text x="50" y="139" font-size="15">AppContext / CloudSyncCard</text>
+<text x="50" y="171" font-size="13">Existing source responsibility</text>
+<rect x="343" y="104" width="274" height="92" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+<text x="359" y="139" font-size="15">cloudSync transport</text>
+<text x="359" y="171" font-size="13">Existing source responsibility</text>
+<rect x="652" y="104" width="274" height="92" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+<text x="668" y="139" font-size="15">Weekly report / competency copy</text>
+<text x="668" y="171" font-size="13">Existing source responsibility</text>
+<rect x="34" y="235" width="892" height="150" rx="12" fill="#fffbeb" stroke="#a16207" stroke-width="2" stroke-dasharray="8 5"/>
+<text x="52" y="265" font-size="16" font-weight="700">Separate unmerged candidate / acceptance gates</text>
+<text x="52" y="299" font-size="16">Consent PR1: unmerged generation/caller repair</text>
+<text x="52" y="328" font-size="16">Payment PR2: missing atomic ingest RPC</text>
+<text x="52" y="360" font-size="14">Synthetic review metadata cannot certify release, provider receipts or domain validity</text>
+<text x="34" y="422" font-size="13">Original offline vector diagram. System fonts only. No network assets, records, credentials or scripts.</text>
+</g></svg>

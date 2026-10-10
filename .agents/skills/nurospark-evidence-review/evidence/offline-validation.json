@@ -1,0 +1,27 @@
+{
+  "project": "NuroSpark",
+  "date": "2026-10-10",
+  "scope": "original offline workflow-classifier tests only",
+  "runtime": "Python 3.12.14",
+  "unit_tests_passed": 23,
+  "synthetic_status_cases_passed": 5,
+  "application_checks_executed": 0,
+  "source_receipt_authenticity_verified": false,
+  "release_status": "not_assessed",
+  "results": [
+    {
+      "command": "python3 .agents/skills/nurospark-evidence-review/scripts/check_review.py --self-test",
+      "exit_code": 0,
+      "stdout": "{\"project\": \"NuroSpark\", \"synthetic_classifier_cases_passed\": 5, \"application_checks_executed\": 0}\n",
+      "stderr": ""
+    },
+    {
+      "command": "python3 -m unittest discover -s .agents/skills/nurospark-evidence-review/scripts -p test_*.py -v",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_boolean_status_is_rejected (test_check_review.ReviewTests.test_boolean_status_is_rejected) ... ok\ntest_config_cannot_change_project_contract (test_check_review.ReviewTests.test_config_cannot_change_project_contract) ... ok\ntest_deep_stdin_json_is_controlled_failure (test_check_review.ReviewTests.test_deep_stdin_json_is_controlled_failure) ... ok\ntest_digest_required_for_executed_claim (test_check_review.ReviewTests.test_digest_required_for_executed_claim) ... ok\ntest_duplicate_fixture_category_cannot_pass (test_check_review.ReviewTests.test_duplicate_fixture_category_cannot_pass) ... ok\ntest_duplicate_json_keys_cannot_hide_failure (test_check_review.ReviewTests.test_duplicate_json_keys_cannot_hide_failure) ... ok\ntest_duplicate_or_unknown_check (test_check_review.ReviewTests.test_duplicate_or_unknown_check) ... ok\ntest_empty_fixtures_cannot_pass (test_check_review.ReviewTests.test_empty_fixtures_cannot_pass) ... ok\ntest_empty_or_overlong_metadata_is_rejected (test_check_review.ReviewTests.test_empty_or_overlong_metadata_is_rejected) ... ok\ntest_failure_takes_precedence_over_unavailable (test_check_review.ReviewTests.test_failure_takes_precedence_over_unavailable) ... ok\ntest_foreign_project_or_repo (test_check_review.ReviewTests.test_foreign_project_or_repo) ... ok\ntest_input_size_is_bounded (test_check_review.ReviewTests.test_input_size_is_bounded) ... ok\ntest_missing_fixture_category_cannot_pass (test_check_review.ReviewTests.test_missing_fixture_category_cannot_pass) ... ok\ntest_missing_or_bad_candidate_sha (test_check_review.ReviewTests.test_missing_or_bad_candidate_sha) ... ok\ntest_missing_or_malformed_config_is_controlled_failure (test_check_review.ReviewTests.test_missing_or_malformed_config_is_controlled_failure) ... ok\ntest_missing_required_check (test_check_review.ReviewTests.test_missing_required_check) ... ok\ntest_not_applicable_stays_blocked (test_check_review.ReviewTests.test_not_applicable_stays_blocked) ... ok\ntest_positive_failure_and_blocked_propagate (test_check_review.ReviewTests.test_positive_failure_and_blocked_propagate) ... ok\ntest_private_record_or_extra_field_is_rejected (test_check_review.ReviewTests.test_private_record_or_extra_field_is_rejected) ... ok\ntest_release_claim_is_rejected (test_check_review.ReviewTests.test_release_claim_is_rejected) ... ok\ntest_symlinked_config_is_denied (test_check_review.ReviewTests.test_symlinked_config_is_denied) ... ok\ntest_unexecuted_check_cannot_carry_execution_digest (test_check_review.ReviewTests.test_unexecuted_check_cannot_carry_execution_digest) ... ok\ntest_unknown_status (test_check_review.ReviewTests.test_unknown_status) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 0.009s\n\nOK\n"
+    }
+  ],
+  "diagram_validation": "SVG XML parsed; no scripts, external links or assets; primitive-equivalent PNG viewed via installed Pillow with all text bounding boxes in canvas. Native SVG-browser rendering unavailable; dashed outline differs in primitive QA preview.",
+  "command_path_note": "Executed against standalone frozen skill directory; repository-root equivalent commands shown. No application source tests were executed."
+}

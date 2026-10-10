@@ -1,0 +1,207 @@
+[
+  {
+    "name": "known-positive",
+    "input": {
+      "project": "NuroSpark",
+      "repository": "varungoti/Brainpowerbuildingapp",
+      "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": "bounded_workflow_review",
+      "evidence_kind": "synthetic_fixture",
+      "checks": [
+        {
+          "id": "consent_generation",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "guardian_scope",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "claim_appraisal",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "adult_ux",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "expected": "passed"
+  },
+  {
+    "name": "intentional-failure",
+    "input": {
+      "project": "NuroSpark",
+      "repository": "varungoti/Brainpowerbuildingapp",
+      "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": "bounded_workflow_review",
+      "evidence_kind": "synthetic_fixture",
+      "checks": [
+        {
+          "id": "consent_generation",
+          "status": "failed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "guardian_scope",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "claim_appraisal",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "adult_ux",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "expected": "failed"
+  },
+  {
+    "name": "blocked-dependency",
+    "input": {
+      "project": "NuroSpark",
+      "repository": "varungoti/Brainpowerbuildingapp",
+      "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": "bounded_workflow_review",
+      "evidence_kind": "synthetic_fixture",
+      "checks": [
+        {
+          "id": "consent_generation",
+          "status": "blocked",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": null
+        },
+        {
+          "id": "guardian_scope",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "claim_appraisal",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "adult_ux",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "expected": "blocked"
+  },
+  {
+    "name": "unavailable-evaluator",
+    "input": {
+      "project": "NuroSpark",
+      "repository": "varungoti/Brainpowerbuildingapp",
+      "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": "bounded_workflow_review",
+      "evidence_kind": "synthetic_fixture",
+      "checks": [
+        {
+          "id": "consent_generation",
+          "status": "unavailable",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": null
+        },
+        {
+          "id": "guardian_scope",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "claim_appraisal",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "adult_ux",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "expected": "blocked"
+  },
+  {
+    "name": "never-executed",
+    "input": {
+      "project": "NuroSpark",
+      "repository": "varungoti/Brainpowerbuildingapp",
+      "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": "bounded_workflow_review",
+      "evidence_kind": "synthetic_fixture",
+      "checks": [
+        {
+          "id": "consent_generation",
+          "status": "not_run",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": null
+        },
+        {
+          "id": "guardian_scope",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "claim_appraisal",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "id": "adult_ux",
+          "status": "passed",
+          "reason": "Synthetic status-classification example; not an application execution",
+          "command": "synthetic classifier fixture",
+          "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ]
+    },
+    "expected": "blocked"
+  }
+]
