@@ -1,4 +1,68 @@
-# NuroSpark cloud sync consent race audit
+# NuroSpark cloud sync consent and account-boundary audit
+
+## 23 October 2026 update: source-reviewed draft, acceptance incomplete
+
+This update supersedes the current-scope and current-acceptance statements in the historical 7 October record below. It extends the existing consent PR #1; payment PR #2 is unchanged. Starting PR head: `8fde2bd7f151f10eb09c5e3c234ac286853e496f`. Main remains `836da44bcb96faab395ce2bf15df7d312b4eea63` at this checkpoint. A complete repository checkout was used for this update.
+
+Requirements were reconciled against the current project registry, consolidated NuroSpark master version 3, and retained-source companion version 1. Relevant consent/authority and exact-source acceptance references remain NS-D06, NS-D08, NS-S19-P0061 and NS-S52-P0420. This patch does not close the master plan's broader guardian/backend, release, or cross-device requirements.
+
+### Additional demonstrated defects
+
+Synthetic execution of the exact starting-PR source reproduced:
+
+- A failed opt-in preference write left the card visually enabled although transport consent was off
+- Old pull/upload results could unlock or overwrite a newer operation's status after off/on
+- A captured account A snapshot could be sent using a subsequently resolved account B session
+- Queued uploads and suspended session lookups could continue while asynchronous logout was pending
+- An auth identity transition did not immediately invalidate queued work
+- Logout retained derived family data; a later B login and re-opt-in could send that retained A data under B
+- An older logout completion could clear a newer login's child or a just-restored family
+
+These are source-verified risks using synthetic fixtures, not findings of production exposure.
+
+### Current repair and compatibility
+
+The existing transport consent-generation contract is preserved. The preference setter now reports effective state and persistence success, and in-process observers keep the card aligned with lifecycle revocation. Failed opt-out writes remain denied for the current session; the warning explicitly describes the reload limitation. UI generations ignore obsolete completions and invalidate pending handlers on unmount. A successful GET check is no longer called a completed sync; only a successful POST is labeled uploaded.
+
+Auto and manual callers capture independent snapshot ownership before session lookup and require an exact matching session user and a nonempty token. Logout and auth identity changes revoke consent synchronously, before asynchronous cleanup. Session generations and the pending-logout marker prevent old logout callbacks/completions from deleting newer account or restored local work, while preserving explicit local-only logout. Same-account token refresh does not revoke consent.
+
+`cloudSyncOwnerId` and `cloudSyncQuarantined` are optional persisted metadata. A genuinely empty new family can bind to its first authenticated account. Previously marked same-owner snapshots remain eligible. Provenance survives logout and is never reassigned by signing in as another user. Account mixing, ambiguous ownership, and imported backups are quarantined. Successful backup import also invalidates pending work.
+
+**Intentional migration limitation:** every unmarked legacy signed-in family and every imported backup remains locally usable but cloud-quarantined. The old current-user label is not ownership proof: exact old-version A logout → B login retained A's derived collections while labeling the state B. No data is deleted by this migration. Signing in again, returning to the original account, or toggling sync does not remove quarantine. The UI immediately explains the paused state and effective consent is revoked. A separately reviewed ownership-recovery/migration experience remains required; this patch does not invent an automatic transfer or an ownership override.
+
+The existing opt-in GET response is checked but **never imported or merged**. Old-account pulls cannot restore A's data into B because no response application exists; obsolete completion feedback is ignored. This is not cross-device restore acceptance.
+
+No routes, payment implementation, backend/API endpoints, authentication configuration, package manifests, lockfiles or dependency versions are changed. The transport's established result/error and already-dispatched-request semantics are preserved.
+
+### Current executed evidence
+
+Runtime: Node `24.19.0`. No packages were installed. Node's native TypeScript stripping executed the exact extracted handlers/effects and actual transport/session/backup/ownership functions with synthetic hooks, storage, sessions, timers and fetch. TCP/TLS connection entrypoints were denied. These checks are not React rendering, Vitest, or a TypeScript typecheck.
+
+- Three UI negative controls reproduced on the starting PR; all three candidate scenarios passed: failed-save effective state, stale pull status, and stale upload status
+- Seven account/restore negative controls reproduced on the starting PR; all ten candidate scenarios passed: session-owner mismatch denial, queued logout cancellation, suspended lookup cancellation, auth-transition cancellation, retained-data non-relabeling, newer-login preservation, restored-family preservation, explicit local-only logout, preserved same-owner upload, and effect cleanup of suspended lookup
+- Exact historical upgrade control passed: execute the starting PR's `clearPersistedRemoteSession(A)` and `syncPersistedSessionUser(B)`, serialize/reload their unmarked output, then initialize the candidate ownership metadata. A's narrative/report history remains local, owner is null, and cloud eligibility is denied
+- Independent source review reran the bounded evidence and additional delayed-event/restore/local-only logout checks. Reported migration and logout findings were repaired and rereviewed; no remaining material defect was found in this bounded source review
+- `git diff --check`: passed
+
+The checked-in canonical regression suite now has **69 cases** across transport (33), ownership (10), card (14), and provider lifecycle (12). These counts describe tests authored, **not a passing Vitest run**. Existing session and backup helper suites also need rerunning. Exact new coverage includes A → logout → B → re-opt-in, old-version upgrade, storage failures, overlapping off/on, unmount, old-account pull completion, local-only logout, and restore during delayed logout.
+
+The pinned `pnpm 10.30.3` / TypeScript `5.8.2` dependencies were unavailable in this validation workspace. Current canonical typecheck, lint, Vitest, build, React/StrictMode integration, browser/Capacitor/device and multi-tab tests remain **unrun**. Historical 7 October passing counts below do not qualify this expanded candidate. Required commands in a prepared checkout:
+
+```sh
+pnpm exec vitest run src/lib/sync/cloudSync.test.ts src/lib/sync/cloudSyncOwnership.test.ts src/components/sync/CloudSyncCard.test.tsx src/app/context/AppContext.cloudSync.test.tsx src/app/logic/sessionSync.test.ts src/utils/neurosparkBackup.test.ts
+pnpm run verify
+```
+
+The repository requires `verify` after substantive edits and `verify:full` before full release confidence. This draft is not a claim that either gate passed. Browser/admin setup scripts require their own prepared test environment; no production credentials or real family data should be used.
+
+### Current boundaries and rollback
+
+Opt-out cannot recall a request already handed to fetch, erase prior cloud records, or guarantee a failed preference write survives reload. The in-process listener and consent generation are not multi-tab/cross-device synchronization, backend authorization or guardian identity proof. Tenant isolation, server retention/deletion, real auth-event ordering, and a safe legacy/import recovery path remain independent acceptance gates.
+
+Current scope is six production files (`cloudSync.ts`, `cloudSyncOwnership.ts`, `CloudSyncCard.tsx`, `AppContext.tsx`, `sessionSync.ts`, `neurosparkBackup.ts`), four focused test files, and this audit. Keep transport/callers/provenance logic coherent when reviewing or reverting. Removing provenance enforcement would reopen the identified privacy boundary; do not interpret a mechanical revert as an acceptable data migration. No merge, deployment, real user session, provider transaction or database mutation was performed.
+
+## Historical 7 October record (v1 only)
+
 
 Date: 7 October 2026. Scope: NS-D06 guardian authority and current cloud-sync opt-in enforcement; NS-D08 exact-source acceptance.
 

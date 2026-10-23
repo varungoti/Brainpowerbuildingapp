@@ -18,6 +18,9 @@ import {
   pullState,
   isCloudSyncEnabled,
   setCloudSyncEnabled,
+  getOwnedCloudSyncJwt,
+  isCloudSyncOperationCurrent,
+  subscribeCloudSyncEnabled,
 } from "./cloudSync";
 import { captureProductEvent } from "../../utils/productAnalytics";
 
@@ -53,10 +56,48 @@ describe("cloudSync", () => {
   });
 
   it("setCloudSyncEnabled persists the flag", () => {
-    setCloudSyncEnabled(true);
+    expect(setCloudSyncEnabled(true)).toEqual({ enabled: true, persisted: true });
     expect(isCloudSyncEnabled()).toBe(true);
-    setCloudSyncEnabled(false);
+    expect(setCloudSyncEnabled(false)).toEqual({ enabled: false, persisted: true });
     expect(isCloudSyncEnabled()).toBe(false);
+  });
+
+  it("reports a failed opt-in write without enabling sync", () => {
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("storage unavailable"); });
+    expect(setCloudSyncEnabled(true)).toEqual({ enabled: false, persisted: false });
+    expect(captureCloudSyncOperation()).toBeNull();
+    expect(captureProductEvent).not.toHaveBeenCalled();
+  });
+
+  it("reports session-only opt-out when its write fails", () => {
+    setCloudSyncEnabled(true);
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("storage unavailable"); });
+    expect(setCloudSyncEnabled(false)).toEqual({ enabled: false, persisted: false });
+    expect(localStorage.getItem("neurospark_cloud_sync_enabled")).toBe("1");
+    expect(captureCloudSyncOperation()).toBeNull();
+  });
+
+  it("requires the captured family owner to match the resolved authenticated session", () => {
+    const session = { user: { id: "synthetic-a" }, access_token: "synthetic-jwt" };
+    expect(getOwnedCloudSyncJwt("synthetic-a", session)).toBe("synthetic-jwt");
+    expect(getOwnedCloudSyncJwt("synthetic-b", session)).toBeNull();
+    expect(getOwnedCloudSyncJwt(null, session)).toBeNull();
+    expect(getOwnedCloudSyncJwt("synthetic-a", null)).toBeNull();
+    expect(getOwnedCloudSyncJwt("synthetic-a", { ...session, access_token: " " })).toBeNull();
+  });
+
+  it("notifies views of session-only revocation and supports unsubscription", () => {
+    setCloudSyncEnabled(true);
+    const operation = captureCloudSyncOperation();
+    const listener = vi.fn();
+    const unsubscribe = subscribeCloudSyncEnabled(listener);
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("storage unavailable"); });
+    setCloudSyncEnabled(false);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(isCloudSyncOperationCurrent(operation)).toBe(false);
+    unsubscribe();
+    setCloudSyncEnabled(false);
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 
   it("pushStateNow returns ok with version on success", async () => {

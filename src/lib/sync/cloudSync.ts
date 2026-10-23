@@ -55,6 +55,7 @@ const PUSH_DEBOUNCE_MS = 4000;
 // still contains an old opt-in because its write failed.
 let cloudSyncRevokedForSession = false;
 let consentGeneration = 0;
+const preferenceListeners = new Set<() => void>();
 
 export interface CloudSyncOperation {
   readonly consentGeneration: number;
@@ -69,6 +70,25 @@ function operationError(operation: CloudSyncOperation | null): string | null {
   if (!isCloudSyncEnabled()) return "Cloud sync is disabled";
   if (!operation || operation.consentGeneration !== consentGeneration) return "Cloud sync consent has changed";
   return null;
+}
+
+export function isCloudSyncOperationCurrent(operation: CloudSyncOperation | null): boolean {
+  return operationError(operation) === null;
+}
+
+/** Match a captured snapshot owner to the resolved session before using its JWT. */
+export function getOwnedCloudSyncJwt(
+  ownerId: string | null | undefined,
+  session: { access_token: string; user: { id: string } } | null | undefined,
+): string | null {
+  if (!ownerId || session?.user?.id !== ownerId || !session.access_token?.trim()) return null;
+  return session.access_token;
+}
+
+/** Observe in-process preference changes, including auth-lifecycle revocation. */
+export function subscribeCloudSyncEnabled(listener: () => void): () => void {
+  preferenceListeners.add(listener);
+  return () => { preferenceListeners.delete(listener); };
 }
 
 function cancelPendingPush() {
@@ -145,7 +165,8 @@ export function isCloudSyncEnabled(): boolean {
   }
 }
 
-export function setCloudSyncEnabled(v: boolean) {
+/** The effective preference can differ from the requested value if storage fails. */
+export function setCloudSyncEnabled(v: boolean): { enabled: boolean; persisted: boolean } {
   if (!v) {
     cloudSyncRevokedForSession = true;
     consentGeneration += 1;
@@ -153,11 +174,18 @@ export function setCloudSyncEnabled(v: boolean) {
     // may have reached the server and cannot be recalled by this preference.
     cancelPendingPush();
   }
+  let persisted = false;
   try {
     localStorage.setItem(LS_ENABLED, v ? "1" : "0");
+    persisted = true;
     if (v) cloudSyncRevokedForSession = false;
     if (v) captureProductEvent("cloud_sync_enable", {});
   } catch {
     /* private mode */
   }
+  const result = { enabled: isCloudSyncEnabled(), persisted };
+  for (const listener of preferenceListeners) {
+    try { listener(); } catch { /* A view cannot prevent revocation. */ }
+  }
+  return result;
 }

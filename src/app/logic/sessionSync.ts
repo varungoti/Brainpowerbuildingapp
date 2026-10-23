@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 import type { AppPersistedState, AppView, User } from "../context/AppContext";
+import { initializeCloudSyncOwnership, withCloudSyncAccount } from "../../lib/sync/cloudSyncOwnership";
 
 export function getSessionDisplayName(user: NonNullable<Session["user"]>): string {
   return (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name) || (user.email?.split("@")[0] ?? "Parent");
@@ -27,20 +28,23 @@ export function syncPersistedSessionUser(
   const nextUser = buildUserFromSession(session, nowIso);
   if (!nextUser) return prev;
 
+  const owned = withCloudSyncAccount(prev, nextUser.supabaseUid ?? null);
+
   const existingUser = prev.user;
   if (existingUser && existingUser.supabaseUid === nextUser.supabaseUid) {
-    if (existingUser.email === nextUser.email && existingUser.name === nextUser.name) return prev;
-    return { ...prev, user: { ...existingUser, email: nextUser.email, name: nextUser.name } };
+    if (existingUser.email === nextUser.email && existingUser.name === nextUser.name
+      && prev.cloudSyncOwnerId === owned.cloudSyncOwnerId && prev.cloudSyncQuarantined === owned.cloudSyncQuarantined) return prev;
+    return { ...owned, user: { ...existingUser, email: nextUser.email, name: nextUser.name } };
   }
 
-  if (existingUser) return prev;
-  return { ...prev, user: nextUser };
+  if (existingUser) return owned;
+  return { ...owned, user: nextUser };
 }
 
 export function clearPersistedRemoteSession(prev: AppPersistedState): AppPersistedState {
   if (!prev.user?.supabaseUid) return prev;
   return {
-    ...prev,
+    ...initializeCloudSyncOwnership(prev),
     user: null,
     children: [],
     activeChildId: null,

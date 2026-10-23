@@ -14,7 +14,8 @@ import { buildNeurosparkBackupFile, parseNeurosparkBackupFile } from "../../util
 import { trainFromLogs } from "../../lib/ml/adaptiveEngine";
 import { clearPersistedRemoteSession, consumeCreditBalance, getViewAfterSessionSync, syncPersistedSessionUser } from "../logic/sessionSync";
 import { canAccessBlueprint } from "../../utils/adminAccess";
-import { captureCloudSyncOperation, pushStateDebounced } from "../../lib/sync/cloudSync";
+import { captureCloudSyncOperation, getOwnedCloudSyncJwt, isCloudSyncEnabled, isCloudSyncOperationCurrent, pushStateDebounced, setCloudSyncEnabled } from "../../lib/sync/cloudSync";
+import { getCloudSyncSnapshotOwner, initializeCloudSyncOwnership, withCloudSyncAccount } from "../../lib/sync/cloudSyncOwnership";
 export type { OutcomeChecklistMonth } from "../data/outcomeChecklist";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -310,6 +311,9 @@ const LS_KEY = "neurospark_v2";
 /** Serializable app state (localStorage + backup files). */
 export interface AppPersistedState {
   user: User | null;
+  /** Independent provenance; never replace this merely because a different user signs in. */
+  cloudSyncOwnerId?: string | null;
+  cloudSyncQuarantined?: boolean;
   children: ChildProfile[];
   activeChildId: string | null;
   activityLogs: ActivityLog[];
@@ -392,13 +396,13 @@ function load(): Persisted {
           .map((child) => (typeof child?.id === "string" ? child.id : null))
           .filter((id): id is string => id !== null)
       : [];
-    return {
+    return initializeCloudSyncOwnership({
       ...DEFAULTS,
       ...parsed,
       lastPackGeneratedOn: typeof parsed.lastPackGeneratedOn === "string" ? parsed.lastPackGeneratedOn : null,
       outcomeChecklists: parsed.outcomeChecklists ?? {},
       milestoneChecks: loadLegacyMilestoneChecks(childIds, parsed.milestoneChecks ?? {}),
-    };
+    });
   } catch {
     return DEFAULTS;
   }
@@ -482,6 +486,10 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   const [viewingActivity, setViewingActivity] = useState<Activity | null>(null);
   const [authMode, setAuthMode] = useState<"login"|"signup">("signup");
   const [generatorIntent, setGeneratorIntent] = useState<GeneratorIntent | null>(null);
+  // A completed sign-out must not erase a newer login or its local work.
+  const sessionGeneration = useRef(0);
+  const pendingLogoutGeneration = useRef<number | null>(null);
+  useEffect(() => () => { sessionGeneration.current += 1; }, []);
   const userRef = useRef(p.user);
   useEffect(() => {
     userRef.current = p.user;
@@ -498,7 +506,11 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   // transport layer owns the debounce so back-to-back local updates coalesce
   // into a single round-trip.
   useEffect(() => {
-    if (!p.user) return;
+    const snapshotOwnerId = getCloudSyncSnapshotOwner(p);
+    if (!snapshotOwnerId) {
+      if (isCloudSyncEnabled()) setCloudSyncEnabled(false);
+      return;
+    }
     const syncOperation = captureCloudSyncOperation();
     if (!syncOperation) return;
     const client = getSupabaseBrowserClient();
@@ -507,9 +519,12 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     void (async () => {
       try {
         const { data } = await client.auth.getSession();
-        if (cancelled) return;
-        const jwt = data.session?.access_token ?? null;
-        if (!jwt) return;
+        if (cancelled || !isCloudSyncOperationCurrent(syncOperation)) return;
+        const jwt = getOwnedCloudSyncJwt(snapshotOwnerId, data.session);
+        if (!jwt) {
+          setCloudSyncEnabled(false);
+          return;
+        }
         pushStateDebounced(JSON.parse(buildNeurosparkBackupFile(p)) as unknown, jwt, syncOperation);
       } catch {
         /* ignore — local-first stays correct */
@@ -524,6 +539,7 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client) return;
+    let sessionOwnerId = userRef.current?.supabaseUid ?? null;
 
     const syncFromSession = (session: Session | null) => {
       // setView was previously called INSIDE the setP updater which fires twice in
@@ -538,9 +554,26 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     };
 
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      // Consent belongs to this snapshot owner, not whichever account signs in
+      // next. Revoke before state updates so queued/suspended work cannot escape.
+      const nextSessionOwnerId = session?.user?.id ?? null;
+      const pendingLogout = pendingLogoutGeneration.current;
+      const ownLogoutEvent = event === "SIGNED_OUT" && pendingLogout !== null;
+      if (event === "SIGNED_OUT" || nextSessionOwnerId !== sessionOwnerId
+        || nextSessionOwnerId !== (userRef.current?.supabaseUid ?? null)
+        || (event === "SIGNED_IN" && pendingLogout !== null)) {
+        // The explicit logout's own event is not a newer login. In particular,
+        // its completion still needs to clear a local-only account.
+        if (!ownLogoutEvent) sessionGeneration.current += 1;
+        setCloudSyncEnabled(false);
+      }
+      sessionOwnerId = nextSessionOwnerId;
       if (event === "TOKEN_REFRESHED") return;
 
       if (event === "SIGNED_OUT") {
+        // A delayed event from an older logout must not delete a newer family.
+        // Consent is already off; a fresh matching session is required to sync.
+        if (ownLogoutEvent && pendingLogout !== sessionGeneration.current) return;
         setP((prev) => clearPersistedRemoteSession(prev));
         setView("landing");
         setHist([]);
@@ -590,7 +623,9 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
   }, []);
 
   const loginUser = (email: string, name: string, options?: { supabaseUid?: string }) => {
+    sessionGeneration.current += 1;
     const uid = options?.supabaseUid;
+    if ((userRef.current?.supabaseUid ?? null) !== (uid ?? null)) setCloudSyncEnabled(false);
     const user: User = {
       id: uid ?? Math.random().toString(36).slice(2),
       email,
@@ -603,17 +638,23 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     // user update — putting setView inside the setP updater made it fire twice in
     // StrictMode and could race with other batched state updates.
     const hasChildren = pRef.current.children.length > 0;
-    setP((prev) => ({ ...prev, user }));
+    setP((prev) => ({ ...withCloudSyncAccount(prev, uid ?? null), user }));
     setView(hasChildren ? "home" : "onboard_welcome");
   };
 
   const logoutUser = () => {
+    // Stop pending and newly captured work before the asynchronous sign-out.
+    setCloudSyncEnabled(false);
+    const logoutGeneration = ++sessionGeneration.current;
+    pendingLogoutGeneration.current = logoutGeneration;
     void (async () => {
       try {
         await signOutSupabase();
       } catch (e) {
         console.warn("[NeuroSpark] Supabase signOut failed", e);
       }
+      if (pendingLogoutGeneration.current === logoutGeneration) pendingLogoutGeneration.current = null;
+      if (logoutGeneration !== sessionGeneration.current) return;
       upd({ user: null, children: [], activeChildId: null, activityLogs: [], outcomeChecklists: {}, kycData: {}, milestoneChecks: {}, lastPackGeneratedOn: null });
       setView("landing");
       setHist([]);
@@ -797,6 +838,8 @@ export function AppProvider({ children: ch }: { children: ReactNode }) {
     const parsed = parseNeurosparkBackupFile(json);
     if (!parsed.ok) return parsed;
     const next = parsed.payload;
+    sessionGeneration.current += 1;
+    setCloudSyncEnabled(false);
     setP(next);
     setHist([]);
     setGeneratedPack(null);

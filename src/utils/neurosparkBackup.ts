@@ -6,6 +6,7 @@ import type {
   User,
 } from "../app/context/AppContext";
 import type { OutcomeChecklistMonth } from "../app/data/outcomeChecklist";
+import { initializeCloudSyncOwnership } from "../lib/sync/cloudSyncOwnership";
 
 export const NEUROSPARK_BACKUP_FORMAT = "neurospark_backup" as const;
 export const NEUROSPARK_BACKUP_VERSION = 1 as const;
@@ -154,6 +155,8 @@ function normalizePersisted(
 
   return {
     user: p.user,
+    cloudSyncOwnerId: p.cloudSyncOwnerId,
+    cloudSyncQuarantined: p.cloudSyncQuarantined,
     children: p.children,
     activeChildId,
     activityLogs: p.activityLogs,
@@ -217,5 +220,7 @@ export function parseNeurosparkBackupFile(
     };
   }
 
-  return { ok: true, payload: normalizePersisted(candidate) };
+  // An imported user/owner field is not proof that all retained data belongs
+  // to the currently signed-in account. Preserve locally and fail closed.
+  return { ok: true, payload: { ...initializeCloudSyncOwnership(normalizePersisted(candidate)), cloudSyncQuarantined: true } };
 }
