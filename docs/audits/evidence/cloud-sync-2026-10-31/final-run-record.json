@@ -1,0 +1,45 @@
+{
+  "date_utc": "2026-10-31",
+  "runtime": "Node v24.22.1",
+  "source_head": "cf91d8153253f26eb2be86045e58cf46822cd83e",
+  "reviewed_candidate_tree": "bde25254ab7dfa318e58f3040acf58c0616cd627",
+  "reviewed_patch_sha256": "ae2325665eb54cd7feb15855d681b4ce6765fc2e0ac6d38b3aaef1b8ec15c02a",
+  "preflight": "All 31 source hashes, reviewed patch and base head verified before first invocation; rereview-freeze.sha256 verified before each invocation",
+  "execution_order": "Revised freeze independently accepted first; the two admitted invocations then ran separately and serially, one attempt each",
+  "environment": {
+    "PROFILE_SOURCE_FILE": "unset for both; candidate source selected",
+    "network": "Task-local net.Socket.connect/net.connect/net.createConnection/tls.connect denial preload",
+    "heap_mib": 256,
+    "timeout_seconds": 60,
+    "kill_after_seconds": 5,
+    "test_isolation": "none",
+    "test_concurrency": 1
+  },
+  "runs": [
+    {
+      "command": "timeout --foreground --kill-after=5s 60s node --max-old-space-size=256 --require ./docs/audits/evidence/cloud-sync-2026-10-31/no-network.cjs --test --test-isolation=none --test-concurrency=1 scripts/qualification/cloud-sync-helper-invariants.test.mjs",
+      "attempts": 1,
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "raw_log": "final-helper-invariants.log",
+      "raw_log_sha256": "8b8db17835b1561c9f1324be51944fa4da539a505827eca5a5a335c2ae6bea9b"
+    },
+    {
+      "command": "timeout --foreground --kill-after=5s 60s node --max-old-space-size=256 --require ./docs/audits/evidence/cloud-sync-2026-10-31/no-network.cjs --test --test-isolation=none --test-concurrency=1 scripts/qualification/profile-signout-copy.test.mjs",
+      "attempts": 1,
+      "exit_code": 0,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "raw_log": "final-signout-copy.log",
+      "raw_log_sha256": "d9e7278aa059f8a108cc90adb17875cc333695d10128e9c184b217be8f416e80"
+    }
+  ],
+  "canonical_69": "UNRUN",
+  "typecheck_lint_vitest_voice_compile_build_verify_verify_full": "UNRUN; official locked dependency tarball denied with HTTP403",
+  "publication": "No commit/push/merge/deployment at this record; evidence-only publication delta awaits review"
+}

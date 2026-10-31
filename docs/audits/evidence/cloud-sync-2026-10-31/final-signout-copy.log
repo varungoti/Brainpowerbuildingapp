@@ -1,0 +1,12 @@
+✔ sign-out heading does not imply device-only scope for global auth sign-out (0.94824ms)
+✔ sign-out confirmation does not promise to delete all local data (0.234774ms)
+✔ sign-out confirmation explains local retention and the cloud deletion boundary (0.208514ms)
+✔ the existing confirm and cancel actions remain connected (0.10577ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.139941

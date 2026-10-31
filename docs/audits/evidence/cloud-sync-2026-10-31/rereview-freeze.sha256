@@ -1,0 +1,6 @@
+e428e5f16552075bbac6f64084f98e7f8b978c1f970c8259879e34a213b0fafe  src/app/screens/ProfileScreen.tsx
+5fa4b5b9a87313f84b1436190ec583c8e39c87473522a471a98518571f7df8c0  scripts/qualification/cloud-sync-helper-invariants.test.mjs
+20b68ae6fed605c9c77d1b7754e373d0b7bd8cb3f64b42a04b3d02b6d587d049  scripts/qualification/profile-signout-copy.test.mjs
+9e30415b9a4197fb2abb6b1a9ed9cc4dc2536eae2d51be4fc7f5c98528f59f5c  docs/audits/evidence/cloud-sync-2026-10-31/no-network.cjs
+66907a7e448f32e8e14b74fea2fb54724b16f514974d5a1f4acb83d9190df037  package.json
+c62730df1037f20474df0511fd1db8c98c97e1282145a2a7d6b0905f74c00dfa  pnpm-lock.yaml

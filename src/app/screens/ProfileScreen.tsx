@@ -426,7 +426,11 @@ export function ProfileScreen() {
           </button>
         ) : (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in">
-            <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p>
+            <p className="text-red-700 text-sm font-semibold mb-2 text-center">Sign out?</p>
+            <p className="text-red-700 text-xs leading-relaxed mb-3">
+              Cloud sync will stop. Local child profiles and activity logs will be cleared.
+              Some saved data, including reports, stays on this device. Earlier cloud uploads are not deleted.
+            </p>
             <div className="flex gap-2">
               <button onClick={() => setConfirmLogout(false)}
                 className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button>

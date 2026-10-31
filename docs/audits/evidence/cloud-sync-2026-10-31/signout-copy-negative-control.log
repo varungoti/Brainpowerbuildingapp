@@ -1,0 +1,53 @@
+✖ sign-out confirmation does not promise to delete all local data (1.298469ms)
+✖ sign-out confirmation explains local retention and the cloud deletion boundary (0.289587ms)
+✔ the existing confirm and cancel actions remain connected (0.299692ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.035078
+
+✖ failing tests:
+
+test at scripts/qualification/profile-signout-copy.test.mjs:19:1
+✖ sign-out confirmation does not promise to delete all local data (1.298469ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /clear all local data/i. Input:
+
+  ' {!confirmLogout ? ( <button onClick={() => setConfirmLogout(true)} className="w-full py-3.5 rounded-2xl text-red-500 font-semibold border border-red-100 bg-white"> Sign Out </button> ) : ( <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in"> <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p> <div className="flex gap-2"> <button onClick={() => setConfirmLogout(false)} className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button> <button onClick={logoutUser} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm">'
+
+      at TestContext.<anonymous> (file:///tmp/nurospark-consent-20261031/repo/scripts/qualification/profile-signout-copy.test.mjs:20:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ' {!confirmLogout ? ( <button onClick={() => setConfirmLogout(true)} className="w-full py-3.5 rounded-2xl text-red-500 font-semibold border border-red-100 bg-white"> Sign Out </button> ) : ( <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in"> <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p> <div className="flex gap-2"> <button onClick={() => setConfirmLogout(false)} className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button> <button onClick={logoutUser} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm">',
+    expected: /clear all local data/i,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at scripts/qualification/profile-signout-copy.test.mjs:22:1
+✖ sign-out confirmation explains local retention and the cloud deletion boundary (0.289587ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Cloud sync will stop\./. Input:
+
+  ' {!confirmLogout ? ( <button onClick={() => setConfirmLogout(true)} className="w-full py-3.5 rounded-2xl text-red-500 font-semibold border border-red-100 bg-white"> Sign Out </button> ) : ( <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in"> <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p> <div className="flex gap-2"> <button onClick={() => setConfirmLogout(false)} className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button> <button onClick={logoutUser} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm">'
+
+      at TestContext.<anonymous> (file:///tmp/nurospark-consent-20261031/repo/scripts/qualification/profile-signout-copy.test.mjs:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ' {!confirmLogout ? ( <button onClick={() => setConfirmLogout(true)} className="w-full py-3.5 rounded-2xl text-red-500 font-semibold border border-red-100 bg-white"> Sign Out </button> ) : ( <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-pop-in"> <p className="text-red-700 text-sm font-semibold mb-3 text-center">Sign out and clear all local data?</p> <div className="flex gap-2"> <button onClick={() => setConfirmLogout(false)} className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-sm">Cancel</button> <button onClick={logoutUser} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm">',
+    expected: /Cloud sync will stop\./,
+    operator: 'match',
+    diff: 'simple'
+  }
