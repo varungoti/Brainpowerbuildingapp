@@ -1,5 +1,17 @@
 # NuroSpark cloud sync consent and account-boundary audit
 
+## 31 October 2026 qualification and sign-out copy correction
+
+Continued the same draft PR from `cf91d8153253f26eb2be86045e58cf46822cd83e`. The official frozen dependency install now reaches a concrete blocker: HTTP 403 for locked `node-releases@2.0.36`. No retry or mirror bypass followed. Canonical typecheck/lint/Vitest/build, voice-plugin compile and the 69 authored cases remain unrun; no release-ready claim is made.
+
+Independent exact-source helper execution passed 10 synthetic Node checks. This initial run preceded the independent-review freeze and is not retroactively described as admitted or independently reviewed. The retained helper source, hashes, bounded command and result are documented in [the dated qualification evidence](evidence/cloud-sync-2026-10-31/qualification.md). These checks are not React/Vitest or semantic typechecking.
+
+A caller audit found that the existing Profile confirmation incorrectly promised to clear all local data even though logout deliberately retains saved reports and other derived data. This update changes only that confirmation copy and adds a source-copy regression: starting source 2 failures/1 pass, corrected source 3 passes. TypeScript 5.8.2 TSX syntax parsing reports zero diagnostics; full semantic typecheck/build/browser layout remain unverified. Existing confirm/cancel handlers, local deletion, cloud retention, ownership quarantine and recovery semantics are unchanged. All 32 locale files and other open-PR paths were checked; this existing English-only surface has no matching localization key and no overlap with payment PR #2.
+
+Independent rereview identified a heading-scope mismatch with Supabase's default global sign-out. The frozen correction uses “Sign out?” and adds a source-copy assertion against device-only scope wording, without changing authentication behavior. The supplemental helper explicitly requires verified Node 24.22.1 native TypeScript stripping/registerHooks, not the repository's Node 20 CI runtime. Old results remain historical. After acceptance of the revised freeze, two separately admitted, bounded serial Node 24.22.1 invocations passed: exact-source helper10 and revised source-copy4, each exit 0 with no failed/skipped/cancelled tests. All pins matched before execution; production/runner bytes remain frozen. These are not canonical Vitest/React/typecheck/build results. Raw logs, exact commands and outcomes are retained in the dated evidence; final publication-diff review is pending.
+
+The prior entries below remain dated historical evidence; the current dependency denial supersedes their statement that no install was attempted. Main remains unmerged and deployment was not performed.
+
 ## 23 October 2026 update: source-reviewed draft, acceptance incomplete
 
 This update supersedes the current-scope and current-acceptance statements in the historical 7 October record below. It extends the existing consent PR #1; payment PR #2 is unchanged. Starting PR head: `8fde2bd7f151f10eb09c5e3c234ac286853e496f`. Main remains `836da44bcb96faab395ce2bf15df7d312b4eea63` at this checkpoint. A complete repository checkout was used for this update.

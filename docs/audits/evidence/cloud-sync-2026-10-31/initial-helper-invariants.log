@@ -1,0 +1,21 @@
+EXACT_SOURCE src/lib/sync/cloudSyncOwnership.ts 8fad68a215de9e7810cdbb4b3d81cd887d212d01831239adba118e6291b9288f
+EXACT_SOURCE src/app/logic/sessionSync.ts a70ace94121ffdb6ca64d5855c0871f9be146ae9b8bc0b86b3cf43d20b27a91d
+EXACT_SOURCE src/utils/neurosparkBackup.ts 592b30321ac7d1c727e0f40ea05d81a1e796fde0f213949d37f466a99e4f6604
+✔ genuinely empty state binds once, then round-trips its matching provenance (2.992931ms)
+✔ unmarked derived collections are quarantined without deletion (0.613054ms)
+✔ legacy signed-in label is not ownership proof (0.185219ms)
+✔ A logout/B login retains provenance and denies re-labeling (0.174262ms)
+✔ same owner returns after logout when no mixed-owner transition occurred (0.211819ms)
+✔ quarantine is monotonic through account transitions, serialize/reload and metadata refresh (0.334154ms)
+✔ backup import always quarantines even a valid matching-owner backup (0.416638ms)
+✔ malformed owner and quarantine metadata cannot establish cloud eligibility (0.37796ms)
+✔ an ownership marker alone cannot authorize a missing or mismatched signed-in user (0.306131ms)
+✔ local-only account is preserved and not silently assigned remote family ownership (0.39152ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.969769
