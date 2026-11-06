@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-06T19:23:10.717Z",
+  "repository": "varungoti/Brainpowerbuildingapp",
+  "parentPr": {
+    "number": 4,
+    "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/4",
+    "state": "open",
+    "draft": true,
+    "head": "dot/nurospark-printable-fidelity-20261106",
+    "head_sha": "6ce15458a3bc56b22920af86f1efcbd67e1d228a"
+  },
+  "allPrNumbers": [
+    4,
+    3,
+    2,
+    1
+  ],
+  "printableBranches": [
+    {
+      "branch": "dot/nurospark-printable-fidelity-20261106"
+    }
+  ],
+  "printableBranchesFinalPage": {
+    "branches": [],
+    "cursor": null
+  },
+  "vercelRepositoryFilter": {
+    "projects": [],
+    "pagination": {
+      "count": 0
+    }
+  },
+  "workflowReview": "Source deployment workflows are main/master gated; no workflow/hosting setting changed. Planned stacked PR base is the existing printable-fidelity branch; CI workflow pull_request branches only main/master, so no canonical CI run is implied.",
+  "publication": "Preflight only; source/tree/branch/PR publication will be verified separately."
+}

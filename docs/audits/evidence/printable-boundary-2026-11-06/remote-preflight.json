@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-06T19:15:59.647Z",
+  "repository": "varungoti/Brainpowerbuildingapp",
+  "pr": {
+    "number": 4,
+    "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/4",
+    "state": "open",
+    "draft": true,
+    "head": "dot/nurospark-printable-fidelity-20261106",
+    "head_sha": "6ce15458a3bc56b22920af86f1efcbd67e1d228a"
+  },
+  "allPrNumbers": [
+    4,
+    3,
+    2,
+    1
+  ],
+  "printableBranches": [
+    {
+      "branch": "dot/nurospark-printable-fidelity-20261106"
+    }
+  ],
+  "printableBranchesNext": {
+    "branches": [],
+    "cursor": null
+  },
+  "workflowRuns": [
+    {
+      "id": 42269363117,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "startup_failure",
+      "run_number": 17,
+      "jobs_url": "https://api.github.com/repos/varungoti/Brainpowerbuildingapp/actions/runs/42269363117/jobs",
+      "logs_url": "https://api.github.com/repos/varungoti/Brainpowerbuildingapp/actions/runs/42269363117/logs",
+      "workflow_id": 250033467
+    }
+  ],
+  "publication": "Not attempted; independent review pending. Recheck before any write."
+}

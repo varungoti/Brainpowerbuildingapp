@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: valid matching cache entries round trip without network
+ok 1 - valid matching cache entries round trip without network
+  ---
+  duration_ms: 3.046322
+  type: 'test'
+  ...
+# Subtest: legacy unwrapped cached guides are ignored
+ok 2 - legacy unwrapped cached guides are ignored
+  ---
+  duration_ms: 0.489137
+  type: 'test'
+  ...
+# Subtest: primitive, array and malformed cache values are rejected
+ok 3 - primitive, array and malformed cache values are rejected
+  ---
+  duration_ms: 0.341538
+  type: 'test'
+  ...
+# Subtest: identical requests cannot read another account/child scope
+ok 4 - identical requests cannot read another account/child scope
+  ---
+  duration_ms: 0.55801
+  type: 'test'
+  ...
+# Subtest: cache invalidates when child age changes
+ok 5 - cache invalidates when child age changes
+  ---
+  duration_ms: 0.621724
+  type: 'test'
+  ...
+# Subtest: cache invalidates when mood changes
+ok 6 - cache invalidates when mood changes
+  ---
+  duration_ms: 0.364903
+  type: 'test'
+  ...
+# Subtest: cache invalidates when image preference changes
+ok 7 - cache invalidates when image preference changes
+  ---
+  duration_ms: 0.238545
+  type: 'test'
+  ...
+# Subtest: cache invalidates when instructions changes
+ok 8 - cache invalidates when instructions changes
+  ---
+  duration_ms: 1.329888
+  type: 'test'
+  ...
+# Subtest: cache invalidates when warnings changes
+ok 9 - cache invalidates when warnings changes
+  ---
+  duration_ms: 0.284493
+  type: 'test'
+  ...
+# Subtest: cache invalidates when materials changes
+ok 10 - cache invalidates when materials changes
+  ---
+  duration_ms: 0.319785
+  type: 'test'
+  ...
+# Subtest: cache invalidates when parent tip changes
+ok 11 - cache invalidates when parent tip changes
+  ---
+  duration_ms: 0.327527
+  type: 'test'
+  ...
+# Subtest: cache invalidates when illustration icon changes
+ok 12 - cache invalidates when illustration icon changes
+  ---
+  duration_ms: 0.332465
+  type: 'test'
+  ...
+# Subtest: non-Latin names cannot reuse each other's guide
+ok 13 - non-Latin names cannot reuse each other's guide
+  ---
+  duration_ms: 0.237023
+  type: 'test'
+  ...
+# Subtest: forceRefresh is not part of cache identity; missing includeImages means true
+ok 14 - forceRefresh is not part of cache identity; missing includeImages means true
+  ---
+  duration_ms: 0.41018
+  type: 'test'
+  ...
+# Subtest: cache reads and writes fail quietly if storage is unavailable
+ok 15 - cache reads and writes fail quietly if storage is unavailable
+  ---
+  duration_ms: 0.388728
+  type: 'test'
+  ...
+# Subtest: invalid guides are not written to cache
+ok 16 - invalid guides are not written to cache
+  ---
+  duration_ms: 0.257253
+  type: 'test'
+  ...
+# Subtest: valid responses keep enrichment but retain authored steps and warnings
+ok 17 - valid responses keep enrichment but retain authored steps and warnings
+  ---
+  duration_ms: 4.03371
+  type: 'test'
+  ...
+# Subtest: unsuccessful and malformed response envelopes fall back
+ok 18 - unsuccessful and malformed response envelopes fall back
+  ---
+  duration_ms: 1.819587
+  type: 'test'
+  ...
+# Subtest: mismatched guide identity or activity membership falls back
+ok 19 - mismatched guide identity or activity membership falls back
+  ---
+  duration_ms: 2.719405
+  type: 'test'
+  ...
+# Subtest: malformed nested display fields fall back without rendering crashes
+ok 20 - malformed nested display fields fall back without rendering crashes
+  ---
+  duration_ms: 2.606267
+  type: 'test'
+  ...
+# Subtest: network errors, HTTP errors and invalid JSON use the complete fallback
+ok 21 - network errors, HTTP errors and invalid JSON use the complete fallback
+  ---
+  duration_ms: 0.828813
+  type: 'test'
+  ...
+# Subtest: forced refresh bypasses cache and sends no local cache control
+ok 22 - forced refresh bypasses cache and sends no local cache control
+  ---
+  duration_ms: 0.626752
+  type: 'test'
+  ...
+# Subtest: caller mutation during fetch cannot retarget the cache write
+ok 23 - caller mutation during fetch cannot retarget the cache write
+  ---
+  duration_ms: 0.481506
+  type: 'test'
+  ...
+# Subtest: images disabled means no returned image URL, even if the server supplies one
+ok 24 - images disabled means no returned image URL, even if the server supplies one
+  ---
+  duration_ms: 0.438823
+  type: 'test'
+  ...
+# Subtest: unsupported image URLs retain the icon without invalidating valid text
+ok 25 - unsupported image URLs retain the icon without invalidating valid text
+  ---
+  duration_ms: 1.474113
+  type: 'test'
+  ...
+# Subtest: supported raster data and HTTPS images remain available when requested
+ok 26 - supported raster data and HTTPS images remain available when requested
+  ---
+  duration_ms: 0.838978
+  type: 'test'
+  ...
+# Subtest: mutating a cached result cannot corrupt later cache reads
+ok 27 - mutating a cached result cannot corrupt later cache reads
+  ---
+  duration_ms: 0.263812
+  type: 'test'
+  ...
+# Subtest: returned cached arrays do not alias the caller's authored content
+ok 28 - returned cached arrays do not alias the caller's authored content
+  ---
+  duration_ms: 0.447426
+  type: 'test'
+  ...
+# Subtest: no printable identity or guide is read or written to browser storage
+ok 29 - no printable identity or guide is read or written to browser storage
+  ---
+  duration_ms: 0.384883
+  type: 'test'
+  ...
+# Subtest: unscoped callers cannot persist or reuse child context
+ok 30 - unscoped callers cannot persist or reuse child context
+  ---
+  duration_ms: 0.407706
+  type: 'test'
+  ...
+# Subtest: cache expires after five minutes without sliding on reads
+ok 31 - cache expires after five minutes without sliding on reads
+  ---
+  duration_ms: 0.381458
+  type: 'test'
+  ...
+# Subtest: cache expiration also discards idle entries via its timer
+ok 32 - cache expiration also discards idle entries via its timer
+  ---
+  duration_ms: 0.475878
+  type: 'test'
+  ...
+# Subtest: cache retains at most one request per scope
+ok 33 - cache retains at most one request per scope
+  ---
+  duration_ms: 0.360837
+  type: 'test'
+  ...
+# Subtest: newer overlapping refresh wins when older success completes last
+ok 34 - newer overlapping refresh wins when older success completes last
+  ---
+  duration_ms: 0.781473
+  type: 'test'
+  ...
+# Subtest: older failures cannot overwrite newer success
+ok 35 - older failures cannot overwrite newer success
+  ---
+  duration_ms: 0.566863
+  type: 'test'
+  ...
+# Subtest: newer failure is not overwritten by an older success
+ok 36 - newer failure is not overwritten by an older success
+  ---
+  duration_ms: 1.516847
+  type: 'test'
+  ...
+# Subtest: last-started request wins across changed identities in one scope
+ok 37 - last-started request wins across changed identities in one scope
+  ---
+  duration_ms: 0.548666
+  type: 'test'
+  ...
+# Subtest: clearing scope discards cached context and prevents pending refill
+ok 38 - clearing scope discards cached context and prevents pending refill
+  ---
+  duration_ms: 0.526173
+  type: 'test'
+  ...
+# Subtest: cache scope stays local and is not added to provider payload
+ok 39 - cache scope stays local and is not added to provider payload
+  ---
+  duration_ms: 0.359555
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.929974

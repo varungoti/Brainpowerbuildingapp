@@ -1,0 +1,3132 @@
+TAP version 13
+# Subtest: valid matching cache entries round trip without network
+ok 1 - valid matching cache entries round trip without network
+  ---
+  duration_ms: 2.38068
+  type: 'test'
+  ...
+# Subtest: legacy unwrapped cached guides are ignored
+not ok 2 - legacy unwrapped cached guides are ignored
+  ---
+  duration_ms: 2.05116
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:85:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.296Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.296Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:88:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: primitive, array and malformed cache values are rejected
+not ok 3 - primitive, array and malformed cache values are rejected
+  ---
+  duration_ms: 0.517409
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unexpected'
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: 'unexpected'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:94:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: identical requests cannot read another account/child scope
+not ok 4 - identical requests cannot read another account/child scope
+  ---
+  duration_ms: 0.915021
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:97:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.299Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.299Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:99:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when child age changes
+not ok 5 - cache invalidates when child age changes
+  ---
+  duration_ms: 1.933235
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.301Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.301Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when mood changes
+not ok 6 - cache invalidates when mood changes
+  ---
+  duration_ms: 0.568665
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.302Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.302Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when image preference changes
+not ok 7 - cache invalidates when image preference changes
+  ---
+  duration_ms: 0.486193
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.302Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.302Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when instructions changes
+not ok 8 - cache invalidates when instructions changes
+  ---
+  duration_ms: 0.41026
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.303Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.303Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when warnings changes
+not ok 9 - cache invalidates when warnings changes
+  ---
+  duration_ms: 0.529157
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.303Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.303Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when materials changes
+not ok 10 - cache invalidates when materials changes
+  ---
+  duration_ms: 0.505161
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.304Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.304Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when parent tip changes
+not ok 11 - cache invalidates when parent tip changes
+  ---
+  duration_ms: 0.507424
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.304Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.304Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache invalidates when illustration icon changes
+not ok 12 - cache invalidates when illustration icon changes
+  ---
+  duration_ms: 0.445993
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:112:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.305Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.305Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:116:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: non-Latin names cannot reuse each other's guide
+not ok 13 - non-Latin names cannot reuse each other's guide
+  ---
+  duration_ms: 0.617989
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:118:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'आरव',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.306Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "आरव's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "आरव's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'आरव'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.306Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:122:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: forceRefresh is not part of cache identity; missing includeImages means true
+ok 14 - forceRefresh is not part of cache identity; missing includeImages means true
+  ---
+  duration_ms: 0.277823
+  type: 'test'
+  ...
+# Subtest: cache reads and writes fail quietly if storage is unavailable
+ok 15 - cache reads and writes fail quietly if storage is unavailable
+  ---
+  duration_ms: 0.348959
+  type: 'test'
+  ...
+# Subtest: invalid guides are not written to cache
+not ok 16 - invalid guides are not written to cache
+  ---
+  duration_ms: 0.196642
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:136:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:139:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: valid responses keep enrichment but retain authored steps and warnings
+not ok 17 - valid responses keep enrichment but retain authored steps and warnings
+  ---
+  duration_ms: 3.375269
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:141:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'Incomplete generated steps.'
+    -   'Authored step 1.',
+    -   'Authored step 2.',
+    -   'Authored step 3.',
+    -   'Authored step 4.',
+    -   'Authored step 5.',
+    -   'Authored step 6.',
+    -   'Authored step 7.',
+    -   'Authored step 8.',
+    -   'Authored step 9.',
+    -   'Authored step 10.'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+    7: 'Authored step 8.'
+    8: 'Authored step 9.'
+    9: 'Authored step 10.'
+  actual:
+    0: 'Incomplete generated steps.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:153:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: unsuccessful and malformed response envelopes fall back
+not ok 18 - unsuccessful and malformed response envelopes fall back
+  ---
+  duration_ms: 1.508413
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:159:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'synthetic-provider'
+    - 'fallback'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'fallback'
+  actual: 'synthetic-provider'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:163:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: mismatched guide identity or activity membership falls back
+not ok 19 - mismatched guide identity or activity membership falls back
+  ---
+  duration_ms: 0.607323
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:166:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'synthetic-provider'
+    - 'fallback'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'fallback'
+  actual: 'synthetic-provider'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:176:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: malformed nested display fields fall back without rendering crashes
+not ok 20 - malformed nested display fields fall back without rendering crashes
+  ---
+  duration_ms: 0.55784
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:179:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'synthetic-provider'
+    - 'fallback'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'fallback'
+  actual: 'synthetic-provider'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:190:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: network errors, HTTP errors and invalid JSON use the complete fallback
+ok 21 - network errors, HTTP errors and invalid JSON use the complete fallback
+  ---
+  duration_ms: 1.303058
+  type: 'test'
+  ...
+# Subtest: forced refresh bypasses cache and sends no local cache control
+not ok 22 - forced refresh bypasses cache and sends no local cache control
+  ---
+  duration_ms: 0.528175
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:204:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fallback'
+    - 'synthetic-provider'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'synthetic-provider'
+  actual: 'fallback'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:213:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: caller mutation during fetch cannot retarget the cache write
+not ok 23 - caller mutation during fetch cannot retarget the cache write
+  ---
+  duration_ms: 0.908811
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:216:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.315Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.315Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:227:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: images disabled means no returned image URL, even if the server supplies one
+not ok 24 - images disabled means no returned image URL, even if the server supplies one
+  ---
+  duration_ms: 0.633061
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:230:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'https://synthetic.invalid/image.png'
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 'https://synthetic.invalid/image.png'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:234:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: unsupported image URLs retain the icon without invalidating valid text
+not ok 25 - unsupported image URLs retain the icon without invalidating valid text
+  ---
+  duration_ms: 0.462448
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:236:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'javascript:alert(1)'
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 'javascript:alert(1)'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:242:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: supported raster data and HTTPS images remain available when requested
+ok 26 - supported raster data and HTTPS images remain available when requested
+  ---
+  duration_ms: 0.451992
+  type: 'test'
+  ...
+# Subtest: mutating a cached result cannot corrupt later cache reads
+ok 27 - mutating a cached result cannot corrupt later cache reads
+  ---
+  duration_ms: 0.230633
+  type: 'test'
+  ...
+# Subtest: returned cached arrays do not alias the caller's authored content
+ok 28 - returned cached arrays do not alias the caller's authored content
+  ---
+  duration_ms: 0.438832
+  type: 'test'
+  ...
+# Subtest: no printable identity or guide is read or written to browser storage
+not ok 29 - no printable identity or guide is read or written to browser storage
+  ---
+  duration_ms: 0.598881
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:275:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'provider')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:281:44)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: unscoped callers cannot persist or reuse child context
+not ok 30 - unscoped callers cannot persist or reuse child context
+  ---
+  duration_ms: 0.481516
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:284:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.319Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.319Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:287:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache expires after five minutes without sliding on reads
+not ok 31 - cache expires after five minutes without sliding on reads
+  ---
+  duration_ms: 0.898977
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:293:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.320Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.320Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:299:20)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache expiration also discards idle entries via its timer
+not ok 32 - cache expiration also discards idle entries via its timer
+  ---
+  duration_ms: 0.401698
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:302:1'
+  failureType: 'testCodeFailure'
+  error: 'expire is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:309:5)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache retains at most one request per scope
+not ok 33 - cache retains at most one request per scope
+  ---
+  duration_ms: 0.822954
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:314:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.321Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.321Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:317:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: newer overlapping refresh wins when older success completes last
+not ok 34 - newer overlapping refresh wins when older success completes last
+  ---
+  duration_ms: 0.986427
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:320:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'OLDER RESPONSE'
+    - 'NEWER RESPONSE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'NEWER RESPONSE'
+  actual: 'OLDER RESPONSE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:329:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: older failures cannot overwrite newer success
+not ok 35 - older failures cannot overwrite newer success
+  ---
+  duration_ms: 0.637668
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:331:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'fallback'
+    - 'synthetic-provider'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'synthetic-provider'
+  actual: 'fallback'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:337:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: newer failure is not overwritten by an older success
+not ok 36 - newer failure is not overwritten by an older success
+  ---
+  duration_ms: 0.586362
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:339:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'synthetic-provider'
+    - 'fallback'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'fallback'
+  actual: 'synthetic-provider'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:345:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: last-started request wins across changed identities in one scope
+not ok 37 - last-started request wins across changed identities in one scope
+  ---
+  duration_ms: 0.609967
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:347:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.325Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.325Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:353:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: clearing scope discards cached context and prevents pending refill
+not ok 38 - clearing scope discards cached context and prevents pending refill
+  ---
+  duration_ms: 0.576957
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:356:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   activities: [
+    +     {
+    +       activityId: 'synthetic-a',
+    +       adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.',
+    +       adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.',
+    +       duration: 12,
+    +       illustration: {
+    +         alt: 'Parent guiding child through Synthetic paper activity',
+    +         fallbackIcon: '🔷',
+    +         prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+    +       },
+    +       intelligences: [
+    +         'Spatial-Visual'
+    +       ],
+    +       materials: [
+    +         'Paper'
+    +       ],
+    +       reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?',
+    +       region: 'Global',
+    +       safetyNote: 'Keep the play space clear. Stop when tired.',
+    +       sayThis: [
+    +         "Let's try Synthetic paper activity together.",
+    +         "Show me your idea first, then I'll help if you want.",
+    +         'What changed when we tried it this way?'
+    +       ],
+    +       steps: [
+    +         'Authored step 1.',
+    +         'Authored step 2.',
+    +         'Authored step 3.',
+    +         'Authored step 4.',
+    +         'Authored step 5.',
+    +         'Authored step 6.',
+    +         'Authored step 7.',
+    +         'Authored step 8.',
+    +         'Authored step 9.',
+    +         'Authored step 10.'
+    +       ],
+    +       title: 'Synthetic paper activity',
+    +       watchFor: [
+    +         'Engagement with spatial-visual practice',
+    +         'Whether your child needs more movement, fewer steps, or a calmer pace',
+    +         'Moments of persistence, curiosity, or self-correction'
+    +       ],
+    +       whyThisMatters: 'Synthetic enrichment.'
+    +     }
+    +   ],
+    +   ageTier: 3,
+    +   childAge: 4,
+    +   childName: 'Synthetic',
+    +   footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.',
+    +   generatedAt: '2026-11-06T19:17:51.326Z',
+    +   id: 'printable-90wv67',
+    +   materials: [
+    +     'Paper'
+    +   ],
+    +   model: 'synthetic-model',
+    +   packHash: '90wv67',
+    +   prepChecklist: [
+    +     'Pick a calm, safe space where you can supervise closely.',
+    +     'Gather materials before inviting your child in.',
+    +     'Read the parent script once, then keep the activity playful.',
+    +     'Stop early if your child is tired, overwhelmed, or unsafe.'
+    +   ],
+    +   provider: 'synthetic-provider',
+    +   routine: {
+    +     calmClose: 'Close with one specific praise: name the effort you noticed.',
+    +     mainPlay: "Run the activities in order, but follow your child's attention and energy.",
+    +     parentReflection: 'Write one sentence: what helped my child stay engaged today?',
+    +     warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+    +   },
+    +   subtitle: '1 parent-led activities · 12 minutes · Tier 3',
+    +   title: "Synthetic's Daily Brain-Building Guide",
+    +   totalMinutes: 12
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'printable-90wv67'
+    title: "Synthetic's Daily Brain-Building Guide"
+    subtitle: '1 parent-led activities · 12 minutes · Tier 3'
+    childName: 'Synthetic'
+    childAge: 4
+    ageTier: 3
+    totalMinutes: 12
+    materials:
+      0: 'Paper'
+    prepChecklist:
+      0: 'Pick a calm, safe space where you can supervise closely.'
+      1: 'Gather materials before inviting your child in.'
+      2: 'Read the parent script once, then keep the activity playful.'
+      3: 'Stop early if your child is tired, overwhelmed, or unsafe.'
+    activities:
+      0:
+        activityId: 'synthetic-a'
+        title: 'Synthetic paper activity'
+        duration: 12
+        region: 'Global'
+        intelligences:
+          0: 'Spatial-Visual'
+        materials:
+          0: 'Paper'
+        whyThisMatters: 'Synthetic enrichment.'
+        steps:
+          0: 'Authored step 1.'
+          1: 'Authored step 2.'
+          2: 'Authored step 3.'
+          3: 'Authored step 4.'
+          4: 'Authored step 5.'
+          5: 'Authored step 6.'
+          6: 'Authored step 7.'
+          7: 'Authored step 8.'
+          8: 'Authored step 9.'
+          9: 'Authored step 10.'
+        sayThis:
+          0: "Let's try Synthetic paper activity together."
+          1: "Show me your idea first, then I'll help if you want."
+          2: 'What changed when we tried it this way?'
+        watchFor:
+          0: 'Engagement with spatial-visual practice'
+          1: 'Whether your child needs more movement, fewer steps, or a calmer pace'
+          2: 'Moments of persistence, curiosity, or self-correction'
+        adaptIfTooEasy: 'Add one extra rule, longer sequence, or a child-led variation.'
+        adaptIfTooHard: 'Reduce to the first two steps, model once, and celebrate any attempt.'
+        safetyNote: 'Keep the play space clear. Stop when tired.'
+        reflectionPrompt: 'What felt easiest, what felt tricky, and what should we try next time?'
+        illustration:
+          prompt: 'Bright, uncluttered parent-child illustration for "Synthetic paper activity". Show supervised household play using: Paper. Warm NeuroSpark style, no text in image, safe setup, no medical imagery.'
+          alt: 'Parent guiding child through Synthetic paper activity'
+          fallbackIcon: '🔷'
+    routine:
+      warmUp: 'Start with one minute of connection: eye contact, a smile, and a simple invitation.'
+      mainPlay: "Run the activities in order, but follow your child's attention and energy."
+      calmClose: 'Close with one specific praise: name the effort you noticed.'
+      parentReflection: 'Write one sentence: what helped my child stay engaged today?'
+    footer: 'NeuroSpark guidance is educational support, not diagnosis or medical advice. Supervise children and adapt every activity to your home context.'
+    generatedAt: '2026-11-06T19:17:51.326Z'
+    provider: 'synthetic-provider'
+    model: 'synthetic-model'
+    packHash: '90wv67'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-boundary-20261106/scripts/qualification/printable-boundary.test.mjs:360:29)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: cache scope stays local and is not added to provider payload
+ok 39 - cache scope stays local and is not added to provider payload
+  ---
+  duration_ms: 0.397852
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 8
+# fail 31
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.367481

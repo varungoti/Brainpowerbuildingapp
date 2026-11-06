@@ -9,7 +9,7 @@ import { CompetencyBadges } from "@/components/competency/CompetencyBadges";
 import { PrintableActions } from "@/components/printables/PrintableActions";
 import { PrintableGuidePreview } from "@/components/printables/PrintableGuidePreview";
 import { buildPrintableGuideFallback } from "@/lib/printables/guideFallback";
-import { createPrintableGuide } from "@/lib/printables/guideClient";
+import { clearPrintableGuideCache, createPrintableGuide, createPrintableGuideCacheScope } from "@/lib/printables/guideClient";
 import type { PrintableGuide } from "@/lib/printables/guideTypes";
 import { fetchRemoteAppFlags } from "@/utils/remoteAppConfig";
 
@@ -40,6 +40,7 @@ const GEN_PREFS_KEY = "neurospark_generator_prefs";
 
 export function GeneratorScreen() {
   const {
+    user,
     activeChild,
     materialInventory,
     activityLogs,
@@ -56,6 +57,11 @@ export function GeneratorScreen() {
     generatorIntent,
     clearGeneratorIntent,
   } = useApp();
+
+  // Cache only within this mounted screen and the current account/child. These
+  // local scope identifiers are never added to the printable provider payload.
+  const printableCacheScope = useMemo(() => createPrintableGuideCacheScope(), [user?.id, user?.supabaseUid, activeChild?.id]);
+  useEffect(() => () => clearPrintableGuideCache(printableCacheScope), [printableCacheScope]);
 
   const personalization: AGEPersonalization | null = useMemo(() => {
     if (!activeChild) return null;
@@ -229,7 +235,7 @@ export function GeneratorScreen() {
         activities: pack,
         includeImages: opts?.includeImages ?? true,
         forceRefresh: opts?.forceRefresh,
-      });
+      }, printableCacheScope);
       setPrintableGuide(guide);
       setPrintableStatus(guide.provider === "fallback" ? "Using simple offline guide." : "Guide ready.");
     } catch {
