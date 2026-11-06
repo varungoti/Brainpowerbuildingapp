@@ -1,0 +1,792 @@
+
+ RUN  v4.1.12 /workspace/scratch/01b5e2aee9f5/nurospark-printable-ui-baseline-20261107
+
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > renders the current successful guide and actions 138ms
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-id, with identical other data 42ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-uid, with identical other data 30ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-id, with identical other data 43ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-name, with identical other data 46ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-age, with identical other data 31ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on logout, with identical other data 20ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late success 20ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late failure 20ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > pending icon choice is enabled and survives the late remote response 27ms
+   → expected true to be false // Object.is equality
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > standalone icon choice never requests a provider 23ms
+ × src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old successful guide 113ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old failed guide 62ms
+   → expected <div data-testid="guide"></div> to be null
+ × src/app/screens/GeneratorScreen.printables.test.tsx > old completion cannot clear a new pack request's loading 104ms
+   → Unable to find an accessible element with the role "button" and name "Create guide"
+
+Here are the accessible roles:
+
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-gray-600 text-xs leading-relaxed mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Creating...":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-2xl text-white font-bold text-xs disabled:opacity-50"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mstyle[39m=[32m"background: linear-gradient(135deg,#4361EE,#7209B7);"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Icons only":
+  [36m<button[39m
+    [33mclass[39m=[32m"px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "□ #1 □ Synthetic ⏱ 10m ▼ Synthetic Paper Tap to expand, or open the full detail view below Synthetic":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full text-left p-4"[39m
+  [36m/>[39m
+
+  Name "🔀 Generate New Pack":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full py-3.5 rounded-2xl font-bold border-2 border-purple-200 text-purple-600 text-sm"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"h-full overflow-y-auto"[39m
+      [33mstyle[39m=[32m"background: rgb(240, 239, 255);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative overflow-hidden rounded-b-3xl mb-4"[39m
+        [33mstyle[39m=[32m"background: linear-gradient(135deg,#F72585,#7209B7);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"absolute right-0 top-0 w-24 h-24 rounded-full opacity-20"[39m
+          [33mstyle[39m=[32m"background: rgba(255, 255, 255, 0.3); transform: translate(30%,-30%);"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"relative px-4 pt-3 pb-5"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-white/70 text-xs mb-1"[39m
+          [36m>[39m
+            [0mToday's Pack for [0m
+            [0mSynthetic Child[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-white font-black text-xl mb-2"[39m
+          [36m>[39m
+            [0m1[0m
+            [0m Activities · [0m
+            [0m10[0m
+            [0m min[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-1.5 flex-wrap"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-xs glass rounded-full px-2 py-0.5 text-white"[39m
+            [36m>[39m
+              [0mSynthetic[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"px-4 pb-6 space-y-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-2xl p-3 bg-gray-900 animate-slide-up"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-gray-400 font-bold tracking-widest mb-1.5"[39m
+            [33mstyle[39m=[32m"font-size: 10px;"[39m
+          [36m>[39m
+            [0m⚙️ AGE TRACE[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-0.5 font-mono"[39m
+            [33mstyle[39m=[32m"font-size: 10px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-blue-400"[39m
+            [36m>[39m
+              [0m▸ Tier [0m
+              [0m3[0m
+              [0m · [0m
+              [0mSynthetic[0m
+              [0m · Mood: [0m
+              [0mfocus[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-green-400"[39m
+            [36m>[39m
+              [0m▸ [0m
+              [0m1[0m
+              [0m activities selected · [0m
+              [0m10[0m
+              [0mmin budget used[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-yellow-400"[39m
+            [36m>[39m
+              [0m▸ [0m
+              [0m1[0m
+              [0m intelligence types covered[0m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-3xl p-4 bg-white shadow-sm border border-violet-100"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start gap-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"[39m
+              [33mstyle[39m=[32m"background: linear-gradient(135deg,#F5F3FF,#FFE4F1);"[39m
+            [36m>[39m
+              [0m🖨️[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-gray-900 font-black text-sm"[39m
+              [36m>[39m
+                [0mCreate parent printable guide[0m
+              [36m</div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 text-xs leading-relaxed mt-1"[39m
+              [36m>[39m
+                [0mTurn today's pack into a colourful parent sheet with prep, steps, scripts, adaptations, and illustrations.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-2 mt-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 py-3 rounded-2xl text-white font-bold text-xs disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mstyle[39m=[32m"background: linear-gradient(135deg,#4361EE,#7209B7);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreating...[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mIcons only[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-3xl overflow-hidden bg-white shadow-sm animate-slide-up stagger-1 relative"[39m
+          [33mstyle[39m=[32m"border: 1px solid rgb(229, 231, 235); opacity: 1;"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full text-left p-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start gap-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 relative"[39m
+                [33mstyle[39m=[32m"background: rgb(245, 240, 255);"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"absolute inset-0 flex items-center justify-center text-2xl"[39m
+                  [33mstyle[39m=[32m"background: transparent;"[39m
+                [36m>[39m
+                  [0m□[0m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-1.5 mb-1"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m#[0m
+                    [0m1[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m□[0m
+                    [0m [0m
+                    [0mSynthetic[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m⏱ [0m
+                    [0m10[0m
+                    [0mm[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"ml-auto text-gray-300 text-xs"[39m
+                  [36m>[39m
+                    [0m▼[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-gray-900 font-bold text-sm"[39m
+                  [33mstyle[39m=[32m"text-decoration: none;"[39m
+                [36m>[39m
+                  [0mSynthetic Paper[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-violet-600 text-xs font-semibold mt-1"[39m
+                [36m>[39m
+                  [0mTap to expand, or open the full detail view below[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex gap-1 mt-1.5 flex-wrap"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-xs px-1.5 py-0.5 rounded-full"[39m
+                    [33mstyle[39m=[32m"color: rgb(136, 136, 136);"[39m
+                  [36m>[39m
+                    [0mSynthetic[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"w-full py-3.5 rounded-2xl font-bold border-2 border-purple-200 text-purple-600 text-sm"[39m
+        [36m>[39m
+          [0m🔀 Generate New Pack[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ × src/app/screens/GeneratorScreen.printables.test.tsx > old client rejection after account change cannot publish a catch fallback 21ms
+   → expected <div data-testid="guide"></div> to be null
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > unmount and remount isolate a pending old guide 40ms
+ × src/app/screens/GeneratorScreen.printables.test.tsx > regeneration preserves its matching guide and action-bar icons supersede it 34ms
+   → expected true to be false // Object.is equality
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-id, with identical other data
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-uid, with identical other data
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-id, with identical other data
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-name, with identical other data
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-age, with identical other data
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on logout, with identical other data
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  OLD
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:74:57
+     72|   if (change === "child-age") h.app.activeChild = { ...h.app.activeChi…
+     73|   if (change === "logout") h.app.user = null;
+     74|   view.refresh(); expect(screen.queryByTestId("guide")).toBeNull(); ex…
+       |                                                         ^
+     75|   expect(pending).toHaveLength(1);
+     76| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late success
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  OLD
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:79:74
+     77| for (const failure of [false, true]) it(`ignores old account's late ${…
+     78|   const view = await mount(); click("Create guide"); h.app.user = { id…
+     79|   await settle(0, "OLD", failure); expect(screen.queryByTestId("guide"…
+       |                                                                          ^
+     80|   expect(screen.queryByText("Guide ready.")).toBeNull(); expect(screen…
+     81|   expect((screen.getByRole("button", { name: "Create guide" }) as HTML…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late failure
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  deterministic
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:79:74
+     77| for (const failure of [false, true]) it(`ignores old account's late ${…
+     78|   const view = await mount(); click("Create guide"); h.app.user = { id…
+     79|   await settle(0, "OLD", failure); expect(screen.queryByTestId("guide"…
+       |                                                                          ^
+     80|   expect(screen.queryByText("Guide ready.")).toBeNull(); expect(screen…
+     81|   expect((screen.getByRole("button", { name: "Create guide" }) as HTML…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > pending icon choice is enabled and survives the late remote response
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:84:132
+     82| });
+     83| it("pending icon choice is enabled and survives the late remote respon…
+     84|   await mount(); click("Create guide"); expect((screen.getByRole("butt…
+       |                                                                                                                                    ^
+     85|   click("Icons only"); expect(screen.getByTestId("guide").textContent)…
+     86|   expect(screen.getByTestId("guide").textContent).toContain("determini…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old successful guide
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  OLD
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:93:41
+     91| for (const failure of [false, true]) it(`new pack rejects old ${failur…
+     92|   vi.useFakeTimers(); await mount(); click("Create guide"); await newP…
+     93|   expect(screen.queryByTestId("guide")).toBeNull(); expect(screen.quer…
+       |                                         ^
+     94|   click("Create guide"); await settle(1, "NEW"); expect(screen.getByTe…
+     95| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old failed guide
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  deterministic
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:93:41
+     91| for (const failure of [false, true]) it(`new pack rejects old ${failur…
+     92|   vi.useFakeTimers(); await mount(); click("Create guide"); await newP…
+     93|   expect(screen.queryByTestId("guide")).toBeNull(); expect(screen.quer…
+       |                                         ^
+     94|   click("Create guide"); await settle(1, "NEW"); expect(screen.getByTe…
+     95| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > old completion cannot clear a new pack request's loading
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Create guide"
+
+Here are the accessible roles:
+
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-gray-600 text-xs leading-relaxed mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Creating...":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-2xl text-white font-bold text-xs disabled:opacity-50"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mstyle[39m=[32m"background: linear-gradient(135deg,#4361EE,#7209B7);"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Icons only":
+  [36m<button[39m
+    [33mclass[39m=[32m"px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "□ #1 □ Synthetic ⏱ 10m ▼ Synthetic Paper Tap to expand, or open the full detail view below Synthetic":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full text-left p-4"[39m
+  [36m/>[39m
+
+  Name "🔀 Generate New Pack":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full py-3.5 rounded-2xl font-bold border-2 border-purple-200 text-purple-600 text-sm"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"h-full overflow-y-auto"[39m
+      [33mstyle[39m=[32m"background: rgb(240, 239, 255);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative overflow-hidden rounded-b-3xl mb-4"[39m
+        [33mstyle[39m=[32m"background: linear-gradient(135deg,#F72585,#7209B7);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"absolute right-0 top-0 w-24 h-24 rounded-full opacity-20"[39m
+          [33mstyle[39m=[32m"background: rgba(255, 255, 255, 0.3); transform: translate(30%,-30%);"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"relative px-4 pt-3 pb-5"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-white/70 text-xs mb-1"[39m
+          [36m>[39m
+            [0mToday's Pack for [0m
+            [0mSynthetic Child[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-white font-black text-xl mb-2"[39m
+          [36m>[39m
+            [0m1[0m
+            [0m Activities · [0m
+            [0m10[0m
+            [0m min[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-1.5 flex-wrap"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-xs glass rounded-full px-2 py-0.5 text-white"[39m
+            [36m>[39m
+              [0mSynthetic[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"px-4 pb-6 space-y-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-2xl p-3 bg-gray-900 animate-slide-up"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"text-gray-400 font-bold tracking-widest mb-1.5"[39m
+            [33mstyle[39m=[32m"font-size: 10px;"[39m
+          [36m>[39m
+            [0m⚙️ AGE TRACE[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-0.5 font-mono"[39m
+            [33mstyle[39m=[32m"font-size: 10px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-blue-400"[39m
+            [36m>[39m
+              [0m▸ Tier [0m
+              [0m3[0m
+              [0m · [0m
+              [0mSynthetic[0m
+              [0m · Mood: [0m
+              [0mfocus[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-green-400"[39m
+            [36m>[39m
+              [0m▸ [0m
+              [0m1[0m
+              [0m activities selected · [0m
+              [0m10[0m
+              [0mmin budget used[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-yellow-400"[39m
+            [36m>[39m
+              [0m▸ [0m
+              [0m1[0m
+              [0m intelligence types covered[0m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-3xl p-4 bg-white shadow-sm border border-violet-100"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start gap-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"[39m
+              [33mstyle[39m=[32m"background: linear-gradient(135deg,#F5F3FF,#FFE4F1);"[39m
+            [36m>[39m
+              [0m🖨️[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-gray-900 font-black text-sm"[39m
+              [36m>[39m
+                [0mCreate parent printable guide[0m
+              [36m</div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 text-xs leading-relaxed mt-1"[39m
+              [36m>[39m
+                [0mTurn today's pack into a colourful parent sheet with prep, steps, scripts, adaptations, and illustrations.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex gap-2 mt-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex-1 py-3 rounded-2xl text-white font-bold text-xs disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mstyle[39m=[32m"background: linear-gradient(135deg,#4361EE,#7209B7);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreating...[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mIcons only[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-3xl overflow-hidden bg-white shadow-sm animate-slide-up stagger-1 relative"[39m
+          [33mstyle[39m=[32m"border: 1px solid rgb(229, 231, 235); opacity: 1;"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"w-full text-left p-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start gap-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 relative"[39m
+                [33mstyle[39m=[32m"background: rgb(245, 240, 255);"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"absolute inset-0 flex items-center justify-center text-2xl"[39m
+                  [33mstyle[39m=[32m"background: transparent;"[39m
+                [36m>[39m
+                  [0m□[0m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-1.5 mb-1"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m#[0m
+                    [0m1[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m□[0m
+                    [0m [0m
+                    [0mSynthetic[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-gray-400"[39m
+                    [33mstyle[39m=[32m"font-size: 11px;"[39m
+                  [36m>[39m
+                    [0m⏱ [0m
+                    [0m10[0m
+                    [0mm[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"ml-auto text-gray-300 text-xs"[39m
+                  [36m>[39m
+                    [0m▼[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-gray-900 font-bold text-sm"[39m
+                  [33mstyle[39m=[32m"text-decoration: none;"[39m
+                [36m>[39m
+                  [0mSynthetic Paper[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"text-violet-600 text-xs font-semibold mt-1"[39m
+                [36m>[39m
+                  [0mTap to expand, or open the full detail view below[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex gap-1 mt-1.5 flex-wrap"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-xs px-1.5 py-0.5 rounded-full"[39m
+                    [33mstyle[39m=[32m"color: rgb(136, 136, 136);"[39m
+                  [36m>[39m
+                    [0mSynthetic[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"w-full py-3.5 rounded-2xl font-bold border-2 border-purple-200 text-purple-600 text-sm"[39m
+        [36m>[39m
+          [0m🔀 Generate New Pack[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../nexstudy-backlog-20261101/toolchain/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../nexstudy-backlog-20261101/toolchain/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../nexstudy-backlog-20261101/toolchain/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../nexstudy-backlog-20261101/toolchain/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ click src/app/screens/GeneratorScreen.printables.test.tsx:50:64
+     48|   return { ...view, refresh: () => view.rerender(<StrictMode><Generato…
+     49| }
+     50| function click(name: string | RegExp) { fireEvent.click(screen.getByRo…
+       |                                                                ^
+     51| async function settle(index: number, model = "REMOTE", fail = false) {
+     52|   await act(async () => {
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:97:78
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > old client rejection after account change cannot publish a catch fallback
+AssertionError: expected <div data-testid="guide"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  data-testid="guide"
+>
+  Synthetic Child
+  |
+  deterministic
+  |
+  ORIGINAL STEP
+</div>
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:104:111
+    102|   let reject!: (error: Error) => void; vi.spyOn(client, "createPrintab…
+    103|   const view = await mount(); click("Create guide"); h.app.user = { id…
+    104|   await act(async () => reject(new Error("Synthetic client failure")))…
+       |                                                                                                               ^
+    105| });
+    106| it("unmount and remount isolate a pending old guide", async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  src/app/screens/GeneratorScreen.printables.test.tsx > regeneration preserves its matching guide and action-bar icons supersede it
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/app/screens/GeneratorScreen.printables.test.tsx:116:107
+    114|   click("Regenerate illustrations");
+    115|   expect(screen.getByTestId("guide").textContent).toContain("CURRENT");
+    116|   expect((screen.getByRole("button", { name: "Use simple icon version"…
+       |                                                                                                           ^
+    117|   click("Use simple icon version");
+    118|   await settle(1, "LATE");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed | 3 passed (17)
+   Start at  02:34:10
+   Duration  1.49s (transform 162ms, setup 21ms, import 229ms, tests 815ms, environment 272ms)

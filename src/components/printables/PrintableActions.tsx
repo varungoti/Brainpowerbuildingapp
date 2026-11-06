@@ -30,7 +30,7 @@ export function PrintableActions({
       <ActionButton label="Print" onClick={print} color="#4361EE" />
       <ActionButton label="Download" onClick={download} color="#7209B7" />
       <ActionButton label={loading ? "Regenerating..." : "Regenerate illustrations"} onClick={onRegenerate} color="#F72585" disabled={loading} />
-      <ActionButton label="Use simple icon version" onClick={onUseIcons} color="#047857" disabled={loading} />
+      <ActionButton label="Use simple icon version" onClick={onUseIcons} color="#047857" />
     </div>
   );
 }

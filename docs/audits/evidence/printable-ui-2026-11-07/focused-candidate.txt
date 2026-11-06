@@ -1,0 +1,103 @@
+
+ RUN  v4.1.12 /workspace/scratch/01b5e2aee9f5/nurospark-printable-ui-20261107
+
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > publishes current success and reuses scoped cache without fetching 23ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > current fetch failure uses offline fallback and clears loading 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > unexpected rejected client uses captured local fallback 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > last-started wins: old failure=false, old completes first=false 5ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > last-started wins: old failure=false, old completes first=true 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > last-started wins: old failure=true, old completes first=false 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > last-started wins: old failure=true, old completes first=true 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after account 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after child 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after name 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after age 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after mood 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after instructions 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after warnings 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after close 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after empty 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears old display and rejects pending completion after missing 5ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > clears a displayed guide on context change without replacement work 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > close/reopen never revives earlier work with identical input 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > ABA owner change cannot revive the first A operation 4ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > icons supersede pending success and cache writes 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > icons supersede pending failure and cache writes 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > standalone icons perform no provider request 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > stale client rejection cannot clear newer loading or show fallback 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > unmount invalidates success; remount is independent 3ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > unmount invalidates failure; remount is independent 6ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > same-value rerenders preserve pending work and send no scope/token fields 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > captured stale handlers cannot initiate provider requests 1ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > in-flight snapshots resist later input mutation 1ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > disabled, empty and missing requests cannot initiate work 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > never exposes old guide/status/loading during the first changed render 2ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > latest failure keeps its fallback over older success: old first=false 1ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > latest failure keeps its fallback over older success: old first=true 1ms
+ ✓ src/lib/printables/usePrintableGuide.test.tsx > queued old status/loading cannot replace a newer request begun before React commits 2ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > renders the current successful guide and actions 164ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-id, with identical other data 40ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on owner-uid, with identical other data 47ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-id, with identical other data 46ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-name, with identical other data 45ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on child-age, with identical other data 35ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > clears displayed guide/status on logout, with identical other data 23ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late success 27ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > ignores old account's late failure 25ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > pending icon choice is enabled and survives the late remote response 32ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > standalone icon choice never requests a provider 18ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old successful guide 106ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > new pack rejects old failed guide 56ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > old completion cannot clear a new pack request's loading 68ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > old client rejection after account change cannot publish a catch fallback 17ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > unmount and remount isolate a pending old guide 35ms
+ ✓ src/app/screens/GeneratorScreen.printables.test.tsx > regeneration preserves its matching guide and action-bar icons supersede it 39ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > returns a valid matching cache entry without fetching 4ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > rejects legacy, malformed and primitive cached values 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > isolates identical requests between owner/child scopes 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when age changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when mood changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when images changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when steps changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when warnings changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when materials changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when parent guidance changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > misses cache when icon changes 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > keeps non-Latin names separate and excludes forceRefresh from identity 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > does not cache invalid guides or throw for unavailable storage 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > retains authored steps, warnings, materials and disclaimer alongside enrichment 4ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > rejects unsuccessful responses and mismatched guide identity 4ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > rejects malformed nested render fields 2ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > keeps the complete fallback for offline, HTTP and JSON failures 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > forces refresh without sending the local refresh flag 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > keeps pending response and cache write tied to the captured request 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > uses icon fallback for images-disabled or unsupported URLs 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > copies cached output so consumers cannot corrupt later reads 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > does not read or write localStorage or sessionStorage 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > does not cache requests without an explicit local scope 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > expires after five minutes without extending retention on reads 2ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > checks the expiry deadline even if the timer has not run 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > retains at most one request in each scope 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > prevents older success from overwriting newer cached enrichment 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > prevents older failure from overwriting newer success 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > prevents older success from replacing newer fallback 0ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > prevents older identities from replacing a newer request in the same scope 1ms
+ ✓ src/lib/printables/guideClient.test.ts > printable guide client boundary > scope cleanup clears cached context and prevents pending refill 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > creates a complete deterministic guide from activities 3ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > hashes the same pack consistently 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > preserves all authored instructions beyond seven steps 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > retains every safety warning in order 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > does not lose later warnings when the first entry is blank 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > keeps generic supervision for missing, empty or blank warnings 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > trims blanks and exact duplicate warnings without reordering 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > preserves non-Latin warning text 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > preserves valid warnings around malformed JSON entries 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > uses generic supervision when warning collections have the wrong shape 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > uses generic supervision when every warning entry is malformed 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > keeps separate activities' steps and safety notes separate 0ms
+ ✓ src/lib/printables/guideFallback.test.ts > printable guide fallback > does not mutate authored instructions or warning strings 0ms
+
+ Test Files  4 passed (4)
+      Tests  95 passed (95)
+   Start at  02:34:07
+   Duration  3.24s (transform 244ms, setup 44ms, import 420ms, tests 985ms, environment 1.16s)

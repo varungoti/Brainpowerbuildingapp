@@ -8,9 +8,8 @@ import { captureProductEvent } from "@/utils/productAnalytics";
 import { CompetencyBadges } from "@/components/competency/CompetencyBadges";
 import { PrintableActions } from "@/components/printables/PrintableActions";
 import { PrintableGuidePreview } from "@/components/printables/PrintableGuidePreview";
-import { buildPrintableGuideFallback } from "@/lib/printables/guideFallback";
-import { clearPrintableGuideCache, createPrintableGuide, createPrintableGuideCacheScope } from "@/lib/printables/guideClient";
-import type { PrintableGuide } from "@/lib/printables/guideTypes";
+import { createPrintableGuideCacheScope } from "@/lib/printables/guideClient";
+import { usePrintableGuide } from "@/lib/printables/usePrintableGuide";
 import { fetchRemoteAppFlags } from "@/utils/remoteAppConfig";
 
 // ─── Activity image map by primary intelligence ───────────────────────────────
@@ -61,7 +60,6 @@ export function GeneratorScreen() {
   // Cache only within this mounted screen and the current account/child. These
   // local scope identifiers are never added to the printable provider payload.
   const printableCacheScope = useMemo(() => createPrintableGuideCacheScope(), [user?.id, user?.supabaseUid, activeChild?.id]);
-  useEffect(() => () => clearPrintableGuideCache(printableCacheScope), [printableCacheScope]);
 
   const personalization: AGEPersonalization | null = useMemo(() => {
     if (!activeChild) return null;
@@ -108,9 +106,6 @@ export function GeneratorScreen() {
   const [boostAILiteracy, setBoostAILiteracy] = useState(false);
   const [boostDualTask, setBoostDualTask] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
-  const [printableGuide, setPrintableGuide] = useState<PrintableGuide | null>(null);
-  const [printableLoading, setPrintableLoading] = useState(false);
-  const [printableStatus, setPrintableStatus] = useState<string | null>(null);
   const [printablesPaused, setPrintablesPaused] = useState(false);
 
   useEffect(() => {
@@ -184,8 +179,6 @@ export function GeneratorScreen() {
       setGeneratedPack(result);
       setCompletedIds(new Set());
       setEarnedBP({});
-      setPrintableGuide(null);
-      setPrintableStatus(null);
       captureProductEvent("pack_generate", {
         age_tier: tier,
         mood,
@@ -222,50 +215,20 @@ export function GeneratorScreen() {
   const coveredIntel = [...new Set(pack.flatMap(a => a.intelligences))];
   const allDone   = pack.length > 0 && pack.every(a => completedIds.has(a.id));
 
-  const createGuide = async (opts?: { includeImages?: boolean; forceRefresh?: boolean }) => {
-    if (!activeChild || pack.length === 0) return;
-    setPrintableLoading(true);
-    setPrintableStatus("Creating parent guide: text, steps, and illustrations...");
-    try {
-      const guide = await createPrintableGuide({
-        childName: activeChild.name,
-        childAge: activeChild.ageTier,
-        ageTier: tier,
-        mood,
-        activities: pack,
-        includeImages: opts?.includeImages ?? true,
-        forceRefresh: opts?.forceRefresh,
-      }, printableCacheScope);
-      setPrintableGuide(guide);
-      setPrintableStatus(guide.provider === "fallback" ? "Using simple offline guide." : "Guide ready.");
-    } catch {
-      const guide = buildPrintableGuideFallback({
-        childName: activeChild.name,
-        childAge: activeChild.ageTier,
-        ageTier: tier,
-        mood,
-        activities: pack,
-      });
-      setPrintableGuide(guide);
-      setPrintableStatus("Using simple offline guide.");
-    } finally {
-      setPrintableLoading(false);
-    }
-  };
-
-  const useIconGuide = () => {
-    if (!activeChild) return;
-    const guide = buildPrintableGuideFallback({
-      childName: activeChild.name,
-      childAge: activeChild.ageTier,
-      ageTier: tier,
-      mood,
-      activities: pack,
-      includeImages: false,
-    });
-    setPrintableGuide(guide);
-    setPrintableStatus("Simple icon version ready.");
-  };
+  const {
+    guide: printableGuide,
+    loading: printableLoading,
+    status: printableStatus,
+    createGuide,
+    useIconGuide,
+  } = usePrintableGuide(activeChild && pack.length > 0 ? {
+    childName: activeChild.name,
+    childAge: activeChild.ageTier,
+    ageTier: tier,
+    mood,
+    activities: pack,
+    includeImages: true,
+  } : null, printableCacheScope, step === "result" && !printablesPaused);
 
   if (step === "config") return (
     <ConfigScreen
@@ -364,7 +327,6 @@ export function GeneratorScreen() {
             </button>
             <button
               type="button"
-              disabled={printableLoading}
               onClick={useIconGuide}
               className="px-4 py-3 rounded-2xl border border-violet-200 text-violet-700 font-bold text-xs disabled:opacity-50"
             >
