@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: valid matching cache entries round trip without network
+ok 1 - valid matching cache entries round trip without network
+  ---
+  duration_ms: 5.447544
+  type: 'test'
+  ...
+# Subtest: legacy unwrapped cached guides are ignored
+ok 2 - legacy unwrapped cached guides are ignored
+  ---
+  duration_ms: 0.527505
+  type: 'test'
+  ...
+# Subtest: primitive, array and malformed cache values are rejected
+ok 3 - primitive, array and malformed cache values are rejected
+  ---
+  duration_ms: 0.528456
+  type: 'test'
+  ...
+# Subtest: full cache identity rejects a foreign envelope in the same hash bucket
+ok 4 - full cache identity rejects a foreign envelope in the same hash bucket
+  ---
+  duration_ms: 0.414246
+  type: 'test'
+  ...
+# Subtest: cache invalidates when child age changes
+ok 5 - cache invalidates when child age changes
+  ---
+  duration_ms: 0.687262
+  type: 'test'
+  ...
+# Subtest: cache invalidates when mood changes
+ok 6 - cache invalidates when mood changes
+  ---
+  duration_ms: 0.546613
+  type: 'test'
+  ...
+# Subtest: cache invalidates when image preference changes
+ok 7 - cache invalidates when image preference changes
+  ---
+  duration_ms: 0.3431
+  type: 'test'
+  ...
+# Subtest: cache invalidates when instructions changes
+ok 8 - cache invalidates when instructions changes
+  ---
+  duration_ms: 0.391592
+  type: 'test'
+  ...
+# Subtest: cache invalidates when warnings changes
+ok 9 - cache invalidates when warnings changes
+  ---
+  duration_ms: 0.390371
+  type: 'test'
+  ...
+# Subtest: cache invalidates when materials changes
+ok 10 - cache invalidates when materials changes
+  ---
+  duration_ms: 0.278925
+  type: 'test'
+  ...
+# Subtest: cache invalidates when parent tip changes
+ok 11 - cache invalidates when parent tip changes
+  ---
+  duration_ms: 1.838565
+  type: 'test'
+  ...
+# Subtest: cache invalidates when illustration icon changes
+ok 12 - cache invalidates when illustration icon changes
+  ---
+  duration_ms: 0.171195
+  type: 'test'
+  ...
+# Subtest: non-Latin names cannot reuse each other's guide
+ok 13 - non-Latin names cannot reuse each other's guide
+  ---
+  duration_ms: 0.224674
+  type: 'test'
+  ...
+# Subtest: forceRefresh is not part of cache identity; missing includeImages means true
+ok 14 - forceRefresh is not part of cache identity; missing includeImages means true
+  ---
+  duration_ms: 0.131205
+  type: 'test'
+  ...
+# Subtest: cache reads and writes fail quietly if storage is unavailable
+ok 15 - cache reads and writes fail quietly if storage is unavailable
+  ---
+  duration_ms: 0.489459
+  type: 'test'
+  ...
+# Subtest: invalid guides are not written to cache
+ok 16 - invalid guides are not written to cache
+  ---
+  duration_ms: 0.198515
+  type: 'test'
+  ...
+# Subtest: valid responses keep enrichment but retain authored steps and warnings
+ok 17 - valid responses keep enrichment but retain authored steps and warnings
+  ---
+  duration_ms: 5.639509
+  type: 'test'
+  ...
+# Subtest: unsuccessful and malformed response envelopes fall back
+ok 18 - unsuccessful and malformed response envelopes fall back
+  ---
+  duration_ms: 3.349193
+  type: 'test'
+  ...
+# Subtest: mismatched guide identity or activity membership falls back
+ok 19 - mismatched guide identity or activity membership falls back
+  ---
+  duration_ms: 3.661206
+  type: 'test'
+  ...
+# Subtest: malformed nested display fields fall back without rendering crashes
+ok 20 - malformed nested display fields fall back without rendering crashes
+  ---
+  duration_ms: 2.207153
+  type: 'test'
+  ...
+# Subtest: network errors, HTTP errors and invalid JSON use the complete fallback
+ok 21 - network errors, HTTP errors and invalid JSON use the complete fallback
+  ---
+  duration_ms: 1.091313
+  type: 'test'
+  ...
+# Subtest: forced refresh bypasses cache and sends no local cache control
+ok 22 - forced refresh bypasses cache and sends no local cache control
+  ---
+  duration_ms: 0.856605
+  type: 'test'
+  ...
+# Subtest: caller mutation during fetch cannot retarget the cache write
+ok 23 - caller mutation during fetch cannot retarget the cache write
+  ---
+  duration_ms: 0.924615
+  type: 'test'
+  ...
+# Subtest: images disabled means no returned image URL, even if the server supplies one
+ok 24 - images disabled means no returned image URL, even if the server supplies one
+  ---
+  duration_ms: 0.597809
+  type: 'test'
+  ...
+# Subtest: unsupported image URLs retain the icon without invalidating valid text
+ok 25 - unsupported image URLs retain the icon without invalidating valid text
+  ---
+  duration_ms: 2.314473
+  type: 'test'
+  ...
+# Subtest: supported raster data and HTTPS images remain available when requested
+ok 26 - supported raster data and HTTPS images remain available when requested
+  ---
+  duration_ms: 0.593493
+  type: 'test'
+  ...
+# Subtest: cache corruption is revalidated on every read
+ok 27 - cache corruption is revalidated on every read
+  ---
+  duration_ms: 0.214179
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 223.10508

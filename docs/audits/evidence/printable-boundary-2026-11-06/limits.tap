@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: known limitation: foreign and loopback HTTP(S) image destinations are still accepted
+ok 1 - known limitation: foreign and loopback HTTP(S) image destinations are still accepted
+  ---
+  duration_ms: 2.796279
+  type: 'test'
+  ...
+# Subtest: known limitation: response timestamp validity does not establish generation freshness
+ok 2 - known limitation: response timestamp validity does not establish generation freshness
+  ---
+  duration_ms: 0.421256
+  type: 'test'
+  ...
+# Subtest: known limitation: authored-revision rebinding does not reject stale enrichment
+ok 3 - known limitation: authored-revision rebinding does not reject stale enrichment
+  ---
+  duration_ms: 1.148849
+  type: 'test'
+  ...
+# Subtest: known limitation: adaptation may contradict authored safety despite shape validation
+ok 4 - known limitation: adaptation may contradict authored safety despite shape validation
+  ---
+  duration_ms: 0.795122
+  type: 'test'
+  ...
+# Subtest: known limitation: includeImages=false still makes the existing text-provider request
+ok 5 - known limitation: includeImages=false still makes the existing text-provider request
+  ---
+  duration_ms: 3.842554
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 152.029659

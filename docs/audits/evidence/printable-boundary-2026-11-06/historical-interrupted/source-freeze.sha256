@@ -1,0 +1,4 @@
+872c74958307892da3036811a63675a7221dcaf36a5a8fb529449eeb7bc01fdf  src/lib/printables/guideClient.ts
+54e67a871849d6e19f7eff87d7cac82065da1d83f001ad89ebb8174475962c14  src/lib/printables/guideValidation.ts
+c3a4139f88de86e65e6b6c79498365634a07ad5e8c8a92baec3a7cdd1cd6fb21  src/lib/printables/guideClient.test.ts
+fdc84660fa7cf7c418a8a3bdb50356f3f70744518340a96a03cbca4f7b83e442  scripts/qualification/printable-boundary.test.mjs
