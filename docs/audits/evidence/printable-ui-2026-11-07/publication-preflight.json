@@ -1,0 +1,67 @@
+{
+  "observed_at": "2026-11-06T21:07:08Z",
+  "time_source": "authoring shell date -u; test logs retain their own runtime timestamps",
+  "parent_pr": {
+    "number": 5,
+    "branch": "dot/nurospark-printable-boundary-20261106",
+    "head_sha": "cb05f2559e9b447c29ec71bfd419b1e51cd5a0eb",
+    "draft": true
+  },
+  "prs": [
+    {
+      "number": 5,
+      "title": "fix(printables): validate guides and bound scoped cache",
+      "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/5"
+    },
+    {
+      "number": 4,
+      "title": "fix(printables): preserve fallback steps and safety warnings",
+      "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/4"
+    },
+    {
+      "number": 3,
+      "title": "fix(reports): keep weekly activity summaries on the local calendar",
+      "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/3"
+    },
+    {
+      "number": 2,
+      "title": "Preserve reviewed Razorpay boundary with blocked-release evidence",
+      "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/2"
+    },
+    {
+      "number": 1,
+      "title": "fix(sync): preserve consent and family ownership across account races",
+      "url": "https://github.com/varungoti/Brainpowerbuildingapp/pull/1"
+    }
+  ],
+  "printable_branches": {
+    "branches": [
+      {
+        "branch": "dot/nurospark-printable-boundary-20261106"
+      },
+      {
+        "branch": "dot/nurospark-printable-fidelity-20261106"
+      }
+    ],
+    "cursor": "Mg"
+  },
+  "printable_branch_final_page": {
+    "branches": [],
+    "cursor": null
+  },
+  "vercel_repository_filtered_inventory": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"result\": {\n    \"projects\": [],\n    \"pagination\": {\n      \"count\": 0\n    }\n  }\n}"
+      }
+    ],
+    "structuredContent": null,
+    "isError": false
+  },
+  "safeguards": [
+    "Existing workflows' deployment steps do not match this proposed feature branch/path; no workflow dispatched.",
+    "No provider requests, real child data, security change, merge or deployment.",
+    "Frozen source reviewed independently before publication; final manifest checked."
+  ]
+}
