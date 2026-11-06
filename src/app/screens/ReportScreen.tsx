@@ -167,7 +167,7 @@ export function ReportScreen() {
 
           <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
             <p className="text-[10px] text-gray-400 mb-2">
-              Level {report.level} · {report.brainPoints} Brain Points · {report.streakDays}-day streak
+              Level {report.level} · {report.brainPoints} Brain Points · {report.streakDays} active days this week
             </p>
           </div>
         </div>

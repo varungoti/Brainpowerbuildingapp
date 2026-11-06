@@ -1,4 +1,5 @@
 import type { ActivityLog, ChildProfile } from "../../app/context/AppContext";
+import { getLocalWeekBounds, localDateKey, parseReportLogDate } from "./reportCalendar";
 import {
   AI_AGE_COMPETENCIES,
   type AIAgeCompetencyId,
@@ -37,6 +38,7 @@ export interface WeeklyReportData {
   coveredRegions: number;
   totalRegions: number;
   topIntelligences: string[];
+  /** Distinct active local days in this week; legacy name, not a consecutive streak. */
   streakDays: number;
   brainPoints: number;
   level: number;
@@ -53,19 +55,6 @@ export interface WeeklyReportData {
 
 const ALL_REGIONS = ["Frontal", "Temporal", "Parietal", "Occipital", "Limbic", "Cerebellum", "Prefrontal", "Brain Stem", "Corpus Callosum", "Hippocampus", "Amygdala", "Thalamus", "Hypothalamus", "Basal Ganglia", "Wernicke"];
 
-function getWeekBounds(date: Date): { start: Date; end: Date } {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const start = new Date(d);
-  start.setDate(diff);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  end.setHours(23, 59, 59, 999);
-  return { start, end };
-}
-
 function childAgeInYears(dob: string): number {
   const birth = new Date(dob);
   const now = new Date();
@@ -81,13 +70,15 @@ export function buildWeeklyReport(
   allLogs: ActivityLog[],
   referenceDate: Date = new Date(),
 ): WeeklyReportData {
-  const { start, end } = getWeekBounds(referenceDate);
-  const weekLogs = allLogs.filter(l =>
-    l.childId === child.id &&
-    l.completed &&
-    new Date(l.date) >= start &&
-    new Date(l.date) <= end,
-  );
+  const { start, end } = getLocalWeekBounds(referenceDate);
+  const uniqueDays = new Set<string>();
+  const weekLogs = allLogs.filter(l => {
+    if (l.childId !== child.id || !l.completed) return false;
+    const date = parseReportLogDate(l.date);
+    if (!date || date < start || date > end) return false;
+    uniqueDays.add(localDateKey(date));
+    return true;
+  });
 
   const byRegion = new Map<string, ActivityLog[]>();
   for (const log of weekLogs) {
@@ -127,9 +118,8 @@ export function buildWeeklyReport(
 
   const coveredRegions = regionCoverage.filter(r => r.activitiesCount > 0).length;
 
-  const uniqueDays = new Set(weekLogs.map(l => l.date.slice(0, 10)));
   const highlights: string[] = [];
-  if (weekLogs.length >= 7) highlights.push("Completed an activity every day this week!");
+  if (uniqueDays.size === 7) highlights.push("Completed an activity every day this week!");
   if (coveredRegions >= 5) highlights.push(`Explored ${coveredRegions} brain regions — well-rounded week!`);
   const highEng = weekLogs.filter(l => l.engagementRating >= 4);
   if (highEng.length > 0) highlights.push(`${highEng.length} high-engagement activities`);
@@ -177,8 +167,8 @@ export function buildWeeklyReport(
   return {
     childName: child.name,
     childAge: childAgeInYears(child.dob),
-    weekStart: start.toISOString().slice(0, 10),
-    weekEnd: end.toISOString().slice(0, 10),
+    weekStart: localDateKey(start),
+    weekEnd: localDateKey(end),
     totalActivities: weekLogs.length,
     totalMinutes,
     avgEngagement: Math.round(avgEngagement * 10) / 10,

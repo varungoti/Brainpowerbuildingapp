@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: report labels are local Monday and Sunday
+ok 1 - report labels are local Monday and Sunday
+  ---
+  duration_ms: 1.470397
+  type: 'test'
+  ...
+# Subtest: scheduler and report agree at both ends of the local day
+ok 2 - scheduler and report agree at both ends of the local day
+  ---
+  duration_ms: 0.458422
+  type: 'test'
+  ...
+# Subtest: inclusive local week boundaries exclude adjacent instants
+ok 3 - inclusive local week boundaries exclude adjacent instants
+  ---
+  duration_ms: 0.681433
+  type: 'test'
+  ...
+# Subtest: same local day is counted once even across UTC midnight
+ok 4 - same local day is counted once even across UTC midnight
+  ---
+  duration_ms: 0.230784
+  type: 'test'
+  ...
+# Subtest: adjacent local days are separate even within one UTC day
+ok 5 - adjacent local days are separate even within one UTC day
+  ---
+  duration_ms: 0.198635
+  type: 'test'
+  ...
+# Subtest: seven logs on one day do not claim everyday participation
+ok 6 - seven logs on one day do not claim everyday participation
+  ---
+  duration_ms: 0.343521
+  type: 'test'
+  ...
+# Subtest: seven separate local days earn the daily highlight
+ok 7 - seven separate local days earn the daily highlight
+  ---
+  duration_ms: 0.285785
+  type: 'test'
+  ...
+# Subtest: date-only historical logs use local calendar dates
+ok 8 - date-only historical logs use local calendar dates
+  ---
+  duration_ms: 0.288319
+  type: 'test'
+  ...
+# Subtest: invalid timestamps and impossible date-only strings are ignored
+ok 9 - invalid timestamps and impossible date-only strings are ignored
+  ---
+  duration_ms: 0.20191
+  type: 'test'
+  ...
+# Subtest: leap day date-only logs remain usable
+ok 10 - leap day date-only logs remain usable
+  ---
+  duration_ms: 0.3494
+  type: 'test'
+  ...
+# Subtest: invalid reference dates fail before counting logs
+ok 11 - invalid reference dates fail before counting logs
+  ---
+  duration_ms: 0.55105
+  type: 'test'
+  ...
+# Subtest: other children and incomplete activities never count
+ok 12 - other children and incomplete activities never count
+  ---
+  duration_ms: 1.591227
+  type: 'test'
+  ...
+# Subtest: spring and fall DST weeks retain all seven calendar days
+ok 13 - spring and fall DST weeks retain all seven calendar days
+  ---
+  duration_ms: 0.30241
+  type: 'test'
+  ...
+# Subtest: Sunday prompt recognizes a report with the same local week key
+ok 14 - Sunday prompt recognizes a report with the same local week key
+  ---
+  duration_ms: 0.255651
+  type: 'test'
+  ...
+# Subtest: report footer calls the count active days, not a consecutive streak (source check)
+ok 15 - report footer calls the count active days, not a consecutive streak (source check)
+  ---
+  duration_ms: 0.376289
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.756407

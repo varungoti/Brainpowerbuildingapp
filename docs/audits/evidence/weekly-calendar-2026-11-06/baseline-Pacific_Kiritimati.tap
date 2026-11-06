@@ -1,0 +1,641 @@
+TAP version 13
+# Subtest: report labels are local Monday and Sunday
+not ok 1 - report labels are local Monday and Sunday
+  ---
+  duration_ms: 3.794905
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '2026-03-29'
+    - '2026-03-30'
+               ^
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2026-03-30'
+  actual: '2026-03-29'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:60:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: scheduler and report agree at both ends of the local day
+not ok 2 - scheduler and report agree at both ends of the local day
+  ---
+  duration_ms: 0.576868
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '2026-04-04'
+    - '2026-04-05'
+                ^
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2026-04-05'
+  actual: '2026-04-04'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:69:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: inclusive local week boundaries exclude adjacent instants
+ok 3 - inclusive local week boundaries exclude adjacent instants
+  ---
+  duration_ms: 0.528576
+  type: 'test'
+  ...
+# Subtest: same local day is counted once even across UTC midnight
+not ok 4 - same local day is counted once even across UTC midnight
+  ---
+  duration_ms: 0.604038
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    2 !== 1
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:84:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: adjacent local days are separate even within one UTC day
+not ok 5 - adjacent local days are separate even within one UTC day
+  ---
+  duration_ms: 0.316511
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    1 !== 2
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:88:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: seven logs on one day do not claim everyday participation
+not ok 6 - seven logs on one day do not claim everyday participation
+  ---
+  duration_ms: 5.556195
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok(!report.highlights.includes(everyday))
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:94:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: seven separate local days earn the daily highlight
+ok 7 - seven separate local days earn the daily highlight
+  ---
+  duration_ms: 0.297803
+  type: 'test'
+  ...
+# Subtest: date-only historical logs use local calendar dates
+ok 8 - date-only historical logs use local calendar dates
+  ---
+  duration_ms: 0.179707
+  type: 'test'
+  ...
+# Subtest: invalid timestamps and impossible date-only strings are ignored
+not ok 9 - invalid timestamps and impossible date-only strings are ignored
+  ---
+  duration_ms: 0.345504
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:107:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    1 !== 0
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:110:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: leap day date-only logs remain usable
+ok 10 - leap day date-only logs remain usable
+  ---
+  duration_ms: 0.244994
+  type: 'test'
+  ...
+# Subtest: invalid reference dates fail before counting logs
+ok 11 - invalid reference dates fail before counting logs
+  ---
+  duration_ms: 0.679731
+  type: 'test'
+  ...
+# Subtest: other children and incomplete activities never count
+ok 12 - other children and incomplete activities never count
+  ---
+  duration_ms: 0.175301
+  type: 'test'
+  ...
+# Subtest: spring and fall DST weeks retain all seven calendar days
+not ok 13 - spring and fall DST weeks retain all seven calendar days
+  ---
+  duration_ms: 0.350952
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:129:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '2026-03-02'
+    - '2026-03-01'
+                ^
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2026-03-01'
+  actual: '2026-03-02'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:137:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Sunday prompt recognizes a report with the same local week key
+ok 14 - Sunday prompt recognizes a report with the same local week key
+  ---
+  duration_ms: 0.354998
+  type: 'test'
+  ...
+# Subtest: report footer calls the count active days, not a consecutive streak (source check)
+not ok 15 - report footer calls the count active days, not a consecutive streak (source check)
+  ---
+  duration_ms: 2.051201
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:155:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /\{report\.streakDays\} active days this week/. Input:
+
+    'import React, { useState, useMemo } from "react";\n' +
+      'import { useApp } from "../context/AppContext";\n' +
+      'import { buildWeeklyReport, type WeeklyReportData } from "../../lib/reports/weeklyReportData";\n' +
+      '\n' +
+      'export function ReportScreen() {\n' +
+      '  const { activeChild, activityLogs, addReportHistoryEntry } = useApp();\n' +
+      '  const [generated, setGenerated] = useState(false);\n' +
+      '\n' +
+      '  const report: WeeklyReportData | null = useMemo(() => {\n' +
+      '    if (!activeChild) return null;\n' +
+      '    return buildWeeklyReport(activeChild, activityLogs);\n' +
+      '  }, [activeChild, activityLogs]);\n' +
+      '\n' +
+      '  if (!activeChild || !report) {\n' +
+      '    return (\n' +
+      '      <div className="h-full flex items-center justify-center p-6 text-gray-500">\n' +
+      '        Select a child to generate their weekly report.\n' +
+      '      </div>\n' +
+      '    );\n' +
+      '  }\n' +
+      '\n' +
+      '  const handleGenerate = () => {\n' +
+      '    addReportHistoryEntry({ weekStart: report.weekStart, weekEnd: report.weekEnd });\n' +
+      '    setGenerated(true);\n' +
+      '  };\n' +
+      '\n' +
+      '  const coveragePercent = Math.round((report.coveredRegions / report.totalRegions) * 100);\n' +
+      '\n' +
+      '  return (\n' +
+      '    <div className="h-full overflow-y-auto p-4 space-y-4">\n' +
+      '      <div className="text-center space-y-1">\n' +
+      '        <h2 className="text-lg font-bold text-gray-900">Weekly Intelligence Report</h2>\n' +
+      '        <p className="text-xs text-gray-500">\n' +
+      '          {report.weekStart} — {report.weekEnd} for {report.childName}\n' +
+      '        </p>\n' +
+      '      </div>\n' +
+      '\n' +
+      '      {!generated ? (\n' +
+      '        <div className="text-center space-y-4">\n' +
+      '          <div className="bg-white rounded-2xl p-6 shadow-sm">\n' +
+      '            <div className="text-4xl mb-3">📊</div>\n' +
+      '            <p className="text-sm text-gray-600 mb-4">\n' +
+      '              Generate a comprehensive report covering {report.totalRegions} brain regions,\n' +
+      '              intelligence scores, and personalized recommendations.\n' +
+      '            </p>\n' +
+      '            <button\n' +
+      '              onClick={handleGenerate}\n' +
+      '              className="px-6 py-2.5 rounded-xl text-white font-semibold text-sm"\n' +
+      '              style={{ background: "linear-gradient(135deg, #4361EE, #7209B7)" }}\n' +
+      '            >\n' +
+      '              Generate Report\n' +
+      '            </button>\n' +
+      '          </div>\n' +
+      '        </div>\n' +
+      '      ) : (\n' +
+      '        <div className="space-y-3">\n' +
+      '          <div className="grid grid-cols-3 gap-2">\n' +
+      '            <StatCard label="Activities" value={report.totalActivities} emoji="🎯" />\n' +
+      '            <StatCard label="Minutes" value={report.totalMinutes} emoji="⏱️" />\n' +
+      '            <StatCard label="Avg Rating" value={report.avgEngagement} emoji="⭐" />\n' +
+      '          </div>\n' +
+      '\n' +
+      '          <div className="bg-white rounded-2xl p-4 shadow-sm">\n' +
+      '            <h3 className="text-sm font-bold text-gray-900 mb-2">Brain Region Coverage</h3>\n' +
+      '            <div className="flex items-center gap-3 mb-3">\n' +
+      '              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">\n' +
+      '                <div\n' +
+      '                  className="h-full rounded-full transition-all"\n' +
+      '                  style={{\n' +
+      '                    width: `${coveragePercent}%`,\n' +
+      '                    background: coveragePercent >= 70\n' +
+      '                      ? "linear-gradient(90deg, #06D6A0, #4361EE)"\n' +
+      '                      : coveragePercent >= 40\n' +
+      '                        ? "linear-gradient(90deg, #FBBF24, #F59E0B)"\n' +
+      '                        : "linear-gradient(90deg, #F87171, #EF4444)",\n' +
+      '                  }}\n' +
+      '                />\n' +
+      '              </div>\n' +
+      '              <span className="text-xs font-bold text-gray-600">\n' +
+      '                {report.coveredRegions}/{report.totalRegions}\n' +
+      '              </span>\n' +
+      '            </div>\n' +
+      '            <div className="grid grid-cols-3 gap-1">\n' +
+      '              {report.regionCoverage.map(rc => (\n' +
+      '                <div\n' +
+      '                  key={rc.region}\n' +
+      '                  className="text-center p-1.5 rounded-lg"\n' +
+      '                  style={{\n' +
+      '                    background: rc.activitiesCount > 0 ? "rgba(67,97,238,0.08)" : "rgba(0,0,0,0.02)",\n' +
+      '                  }}\n' +
+      '                >\n' +
+      '                  <div className="text-[10px] font-medium text-gray-700 truncate">{rc.region}</div>\n' +
+      '                  <div className="text-[10px] text-gray-400">{rc.activitiesCount} act</div>\n' +
+      '                </div>\n' +
+      '              ))}\n' +
+      '            </div>\n' +
+      '          </div>\n' +
+      '\n' +
+      '          {report.topIntelligences.length > 0 && (\n' +
+      '            <div className="bg-white rounded-2xl p-4 shadow-sm">\n' +
+      '              <h3 className="text-sm font-bold text-gray-900 mb-2">Top Intelligences</h3>\n' +
+      '              <div className="flex flex-wrap gap-1.5">\n' +
+      '                {report.topIntelligences.map(i => (\n' +
+      '                  <span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-purple-50 text-purple-700">\n' +
+      '                    {i}\n' +
+      '                  </span>\n' +
+      '                ))}\n' +
+      '              </div>\n' +
+      '            </div>\n' +
+      '          )}\n' +
+      '\n' +
+      '          {report.competencyCoverage.length > 0 && (\n' +
+      '            <div className="bg-white rounded-2xl p-4 shadow-sm">\n' +
+      '              <h3 className="text-sm font-bold text-gray-900 mb-1">AI-Age Readiness · 12 Dimensions</h3>\n' +
+      '              <p className="text-[10px] text-gray-500 mb-3">\n' +
+      '                Sorted weakest-first. Tap the AI-Age tab in Brain Map for full definitions.\n' +
+      '              </p>\n' +
+      '              <div className="space-y-1.5">\n' +
+      '                {report.competencyCoverage.map((c) => (\n' +
+      '                  <div key={c.id} className="flex items-center gap-2">\n' +
+      '                    <span className="text-base w-5 text-center">{c.emoji}</span>\n' +
+      '                    <span className="text-[11px] text-gray-700 flex-1 truncate">{c.label}</span>\n' +
+      '                    <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">\n' +
+      '                      <div className="h-full rounded-full" style={{ width: `${c.percent}%`, background: "#4361EE" }} />\n' +
+      '                    </div>\n' +
+      '                    <span className="text-[10px] font-bold text-slate-600 w-9 text-right">{Math.round(c.percent)}%</span>\n' +
+      '                    <span\n' +
+      '                      className="text-[9px] font-bold rounded-full px-1.5 py-0.5"\n' +
+      '                      style={{\n' +
+      '                        background: c.trend === "up" ? "rgba(6,214,160,0.15)" : c.trend === "down" ? "rgba(220,38,38,0.12)" : "rgba(148,163,184,0.18)",\n' +
+      '                        color: c.trend === "up" ? "#059669" : c.trend === "down" ? "#DC2626" : "#64748B",\n' +
+      '                      }}\n' +
+      '                    >\n' +
+      '                      {c.trend === "up" ? "▲" : c.trend === "down" ? "▼" : "—"}\n' +
+      '                    </span>\n' +
+      '                  </div>\n' +
+      '                ))}\n' +
+      '              </div>\n' +
+      '              {report.competencyFocus.length > 0 && (\n' +
+      '                <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 p-2.5">\n' +
+      `                  <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Next week's focus</div>\n` +
+      '                  <div className="text-[11px] text-amber-900 mt-0.5">\n' +
+      '                    {report.competencyFocus.map((c) => `${c.emoji} ${c.label}`).join(" · ")}\n' +
+      '                  </div>\n' +
+      '                </div>\n' +
+      '              )}\n' +
+      '            </div>\n' +
+      '          )}\n' +
+      '\n' +
+      '          {report.highlights.length > 0 && (\n' +
+      '            <div className="bg-white rounded-2xl p-4 shadow-sm">\n' +
+      '              <h3 className="text-sm font-bold text-gray-900 mb-2">Highlights</h3>\n' +
+      '              {report.highlights.map((h, i) => (\n' +
+      '                <p key={i} className="text-xs text-gray-600 mb-1">✨ {h}</p>\n' +
+      '              ))}\n' +
+      '            </div>\n' +
+      '          )}\n' +
+      '\n' +
+      '          {report.recommendations.length > 0 && (\n' +
+      '            <div className="bg-white rounded-2xl p-4 shadow-sm">\n' +
+      '              <h3 className="text-sm font-bold text-gray-900 mb-2">Recommendations</h3>\n' +
+      '              {report.recommendations.map((r, i) => (\n' +
+      '                <p key={i} className="text-xs text-gray-600 mb-1">💡 {r}</p>\n' +
+      '              ))}\n' +
+      '            </div>\n' +
+      '          )}\n' +
+      '\n' +
+      '          <div className="bg-white rounded-2xl p-4 shadow-sm text-center">\n' +
+      '            <p className="text-[10px] text-gray-400 mb-2">\n' +
+      '              Level {report.level} · {report.brainPoints} Brain Points · {report.streakDays}-day streak\n' +
+      '            </p>\n' +
+      '          </div>\n' +
+      '        </div>\n' +
+      '      )}\n' +
+      '    </div>\n' +
+      '  );\n' +
+      '}\n' +
+      '\n' +
+      'function StatCard({ label, value, emoji }: { label: string; value: number; emoji: string }) {\n' +
+      '  return (\n' +
+      '    <div className="bg-white rounded-xl p-3 shadow-sm text-center">\n' +
+      '      <div className="text-lg">{emoji}</div>\n' +
+      '      <div className="text-sm font-bold text-gray-900">{value}</div>\n' +
+      '      <div className="text-[10px] text-gray-500">{label}</div>\n' +
+      '    </div>\n' +
+      '  );\n' +
+      '}\n'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import React, { useState, useMemo } from "react";
+    import { useApp } from "../context/AppContext";
+    import { buildWeeklyReport, type WeeklyReportData } from "../../lib/reports/weeklyReportData";
+
+    export function ReportScreen() {
+      const { activeChild, activityLogs, addReportHistoryEntry } = useApp();
+      const [generated, setGenerated] = useState(false);
+
+      const report: WeeklyReportData | null = useMemo(() => {
+        if (!activeChild) return null;
+        return buildWeeklyReport(activeChild, activityLogs);
+      }, [activeChild, activityLogs]);
+
+      if (!activeChild || !report) {
+        return (
+          <div className="h-full flex items-center justify-center p-6 text-gray-500">
+            Select a child to generate their weekly report.
+          </div>
+        );
+      }
+
+      const handleGenerate = () => {
+        addReportHistoryEntry({ weekStart: report.weekStart, weekEnd: report.weekEnd });
+        setGenerated(true);
+      };
+
+      const coveragePercent = Math.round((report.coveredRegions / report.totalRegions) * 100);
+
+      return (
+        <div className="h-full overflow-y-auto p-4 space-y-4">
+          <div className="text-center space-y-1">
+            <h2 className="text-lg font-bold text-gray-900">Weekly Intelligence Report</h2>
+            <p className="text-xs text-gray-500">
+              {report.weekStart} — {report.weekEnd} for {report.childName}
+            </p>
+          </div>
+
+          {!generated ? (
+            <div className="text-center space-y-4">
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="text-4xl mb-3">📊</div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Generate a comprehensive report covering {report.totalRegions} brain regions,
+                  intelligence scores, and personalized recommendations.
+                </p>
+                <button
+                  onClick={handleGenerate}
+                  className="px-6 py-2.5 rounded-xl text-white font-semibold text-sm"
+                  style={{ background: "linear-gradient(135deg, #4361EE, #7209B7)" }}
+                >
+                  Generate Report
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                <StatCard label="Activities" value={report.totalActivities} emoji="🎯" />
+                <StatCard label="Minutes" value={report.totalMinutes} emoji="⏱️" />
+                <StatCard label="Avg Rating" value={report.avgEngagement} emoji="⭐" />
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 mb-2">Brain Region Coverage</h3>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${coveragePercent}%`,
+                        background: coveragePercent >= 70
+                          ? "linear-gradient(90deg, #06D6A0, #4361EE)"
+                          : coveragePercent >= 40
+                            ? "linear-gradient(90deg, #FBBF24, #F59E0B)"
+                            : "linear-gradient(90deg, #F87171, #EF4444)",
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-gray-600">
+                    {report.coveredRegions}/{report.totalRegions}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  {report.regionCoverage.map(rc => (
+                    <div
+                      key={rc.region}
+                      className="text-center p-1.5 rounded-lg"
+                      style={{
+                        background: rc.activitiesCount > 0 ? "rgba(67,97,238,0.08)" : "rgba(0,0,0,0.02)",
+                      }}
+                    >
+                      <div className="text-[10px] font-medium text-gray-700 truncate">{rc.region}</div>
+                      <div className="text-[10px] text-gray-400">{rc.activitiesCount} act</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {report.topIntelligences.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">Top Intelligences</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {report.topIntelligences.map(i => (
+                      <span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-purple-50 text-purple-700">
+                        {i}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {report.competencyCoverage.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">AI-Age Readiness · 12 Dimensions</h3>
+                  <p className="text-[10px] text-gray-500 mb-3">
+                    Sorted weakest-first. Tap the AI-Age tab in Brain Map for full definitions.
+                  </p>
+                  <div className="space-y-1.5">
+                    {report.competencyCoverage.map((c) => (
+                      <div key={c.id} className="flex items-center gap-2">
+                        <span className="text-base w-5 text-center">{c.emoji}</span>
+                        <span className="text-[11px] text-gray-700 flex-1 truncate">{c.label}</span>
+                        <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${c.percent}%`, background: "#4361EE" }} />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-600 w-9 text-right">{Math.round(c.percent)}%</span>
+                        <span
+                          className="text-[9px] font-bold rounded-full px-1.5 py-0.5"
+                          style={{
+                            background: c.trend === "up" ? "rgba(6,214,160,0.15)" : c.trend === "down" ? "rgba(220,38,38,0.12)" : "rgba(148,163,184,0.18)",
+                            color: c.trend === "up" ? "#059669" : c.trend === "down" ? "#DC2626" : "#64748B",
+                          }}
+                        >
+                          {c.trend === "up" ? "▲" : c.trend === "down" ? "▼" : "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {report.competencyFocus.length > 0 && (
+                    <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 p-2.5">
+                      <div className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Next week's focus</div>
+                      <div className="text-[11px] text-amber-900 mt-0.5">
+                        {report.competencyFocus.map((c) => `${c.emoji} ${c.label}`).join(" · ")}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {report.highlights.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">Highlights</h3>
+                  {report.highlights.map((h, i) => (
+                    <p key={i} className="text-xs text-gray-600 mb-1">✨ {h}</p>
+                  ))}
+                </div>
+              )}
+
+              {report.recommendations.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">Recommendations</h3>
+                  {report.recommendations.map((r, i) => (
+                    <p key={i} className="text-xs text-gray-600 mb-1">💡 {r}</p>
+                  ))}
+                </div>
+              )}
+
+              <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
+                <p className="text-[10px] text-gray-400 mb-2">
+                  Level {report.level} · {report.brainPoints} Brain Points · {report.streakDays}-day streak
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function StatCard({ label, value, emoji }: { label: string; value: number; emoji: string }) {
+      return (
+        <div className="bg-white rounded-xl p-3 shadow-sm text-center">
+          <div className="text-lg">{emoji}</div>
+          <div className="text-sm font-bold text-gray-900">{value}</div>
+          <div className="text-[10px] text-gray-500">{label}</div>
+        </div>
+      );
+    }
+
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-weekly-20261106/scripts/qualification/weekly-calendar.test.mjs:157:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 7
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.385391

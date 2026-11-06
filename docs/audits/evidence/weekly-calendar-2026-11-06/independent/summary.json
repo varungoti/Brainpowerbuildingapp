@@ -1,0 +1,93 @@
+[
+  {
+    "stage": "candidate",
+    "tz": "UTC",
+    "exitCode": 0,
+    "count": 42,
+    "passed": 42
+  },
+  {
+    "stage": "candidate",
+    "tz": "America/Los_Angeles",
+    "exitCode": 0,
+    "count": 42,
+    "passed": 42
+  },
+  {
+    "stage": "candidate",
+    "tz": "Asia/Kolkata",
+    "exitCode": 0,
+    "count": 42,
+    "passed": 42
+  },
+  {
+    "stage": "candidate",
+    "tz": "Pacific/Kiritimati",
+    "exitCode": 0,
+    "count": 42,
+    "passed": 42
+  },
+  {
+    "stage": "candidate",
+    "tz": "Australia/Lord_Howe",
+    "exitCode": 0,
+    "count": 42,
+    "passed": 42
+  },
+  {
+    "stage": "baseline",
+    "tz": "UTC",
+    "exitCode": 1,
+    "count": 42,
+    "passed": 39
+  },
+  {
+    "stage": "baseline",
+    "tz": "America/Los_Angeles",
+    "exitCode": 1,
+    "count": 42,
+    "passed": 23
+  },
+  {
+    "stage": "baseline",
+    "tz": "Asia/Kolkata",
+    "exitCode": 1,
+    "count": 42,
+    "passed": 27
+  },
+  {
+    "stage": "baseline",
+    "tz": "Pacific/Kiritimati",
+    "exitCode": 1,
+    "count": 42,
+    "passed": 22
+  },
+  {
+    "stage": "baseline",
+    "tz": "Australia/Lord_Howe",
+    "exitCode": 1,
+    "count": 42,
+    "passed": 27
+  },
+  {
+    "stage": "extended-candidate",
+    "tz": "Australia/Lord_Howe",
+    "exitCode": 0,
+    "count": 49,
+    "passed": 49
+  },
+  {
+    "stage": "extended-candidate",
+    "tz": "America/Havana",
+    "exitCode": 0,
+    "count": 49,
+    "passed": 49
+  },
+  {
+    "stage": "extended-candidate",
+    "tz": "Asia/Beirut",
+    "exitCode": 0,
+    "count": 49,
+    "passed": 49
+  }
+]
