@@ -45,6 +45,9 @@ function hashActivities(activities: PrintableActivity[]): string {
 function fallbackActivity(activity: PrintableActivity) {
   const materials = activity.materials?.length ? activity.materials : ["No special materials"];
   const intelligence = activity.intelligences?.[0] ?? "whole-child development";
+  const warnings = Array.isArray(activity.contraindications)
+    ? activity.contraindications.filter((warning): warning is string => typeof warning === "string")
+    : [];
   return {
     activityId: activity.id,
     title: activity.name,
@@ -53,12 +56,13 @@ function fallbackActivity(activity: PrintableActivity) {
     intelligences: activity.intelligences ?? [],
     materials,
     whyThisMatters: activity.whyAIAge ?? activity.parentTip ?? activity.description ?? `This builds ${intelligence} through play.`,
-    steps: activity.instructions?.slice(0, 7) ?? ["Invite your child to try the activity.", "Model once, then let them lead."],
+    // Preserve authored setup, play and cleanup steps in the printed guide.
+    steps: activity.instructions?.slice() ?? ["Invite your child to try the activity.", "Model once, then let them lead."],
     sayThis: ["Let's try this together.", "What do you notice?", "I like how you kept trying."],
     watchFor: ["Curiosity", "Persistence", "Need for a simpler next step"],
     adaptIfTooEasy: activity.extensionIdeas?.[0] ?? "Add one extra rule or longer sequence.",
     adaptIfTooHard: "Use fewer steps, model once, and keep the tone playful.",
-    safetyNote: activity.contraindications?.[0] ?? "Supervise closely and use safe household materials.",
+    safetyNote: uniq(warnings).join(" ") || "Supervise closely and use safe household materials.",
     reflectionPrompt: "What helped your child stay engaged today?",
     illustration: {
       prompt: `Child-safe illustration of a parent and child doing ${activity.name} with ${materials.join(", ")}. Bright, warm, no text, supervised household play.`,

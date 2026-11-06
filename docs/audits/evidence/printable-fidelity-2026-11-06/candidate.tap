@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: client: preserves every authored step in order, including step ten
+ok 1 - client: preserves every authored step in order, including step ten
+  ---
+  duration_ms: 2.875241
+  type: 'test'
+  ...
+# Subtest: client: step output is a copy rather than mutable source alias
+ok 2 - client: step output is a copy rather than mutable source alias
+  ---
+  duration_ms: 0.331463
+  type: 'test'
+  ...
+# Subtest: client: retains all warnings in their authored order
+ok 3 - client: retains all warnings in their authored order
+  ---
+  duration_ms: 0.240408
+  type: 'test'
+  ...
+# Subtest: client: a blank first warning cannot hide a later warning
+ok 4 - client: a blank first warning cannot hide a later warning
+  ---
+  duration_ms: 0.290863
+  type: 'test'
+  ...
+# Subtest: client: absent, empty and whitespace-only warnings keep generic supervision
+ok 5 - client: absent, empty and whitespace-only warnings keep generic supervision
+  ---
+  duration_ms: 0.444291
+  type: 'test'
+  ...
+# Subtest: client: trims blank entries and deduplicates exact repeated warnings
+ok 6 - client: trims blank entries and deduplicates exact repeated warnings
+  ---
+  duration_ms: 0.175952
+  type: 'test'
+  ...
+# Subtest: client: preserves non-Latin warning text and punctuation
+ok 7 - client: preserves non-Latin warning text and punctuation
+  ---
+  duration_ms: 0.202742
+  type: 'test'
+  ...
+# Subtest: client: preserves valid warnings around malformed JSON entries
+ok 8 - client: preserves valid warnings around malformed JSON entries
+  ---
+  duration_ms: 0.199487
+  type: 'test'
+  ...
+# Subtest: client: rejects non-array warning collections without throwing
+ok 9 - client: rejects non-array warning collections without throwing
+  ---
+  duration_ms: 0.386355
+  type: 'test'
+  ...
+# Subtest: client: all malformed warning entries fall back to supervision
+ok 10 - client: all malformed warning entries fall back to supervision
+  ---
+  duration_ms: 0.241219
+  type: 'test'
+  ...
+# Subtest: client: multiple activities retain their own steps and warnings
+ok 11 - client: multiple activities retain their own steps and warnings
+  ---
+  duration_ms: 0.3023
+  type: 'test'
+  ...
+# Subtest: client: does not mutate source arrays or warning text
+ok 12 - client: does not mutate source arrays or warning text
+  ---
+  duration_ms: 0.332906
+  type: 'test'
+  ...
+# Subtest: client: keeps empty packs and ordinary guide metadata compatible
+ok 13 - client: keeps empty packs and ordinary guide metadata compatible
+  ---
+  duration_ms: 0.193748
+  type: 'test'
+  ...
+# Subtest: server: preserves every authored step in order, including step ten
+ok 14 - server: preserves every authored step in order, including step ten
+  ---
+  duration_ms: 0.528026
+  type: 'test'
+  ...
+# Subtest: server: step output is a copy rather than mutable source alias
+ok 15 - server: step output is a copy rather than mutable source alias
+  ---
+  duration_ms: 0.210333
+  type: 'test'
+  ...
+# Subtest: server: retains all warnings in their authored order
+ok 16 - server: retains all warnings in their authored order
+  ---
+  duration_ms: 0.14744
+  type: 'test'
+  ...
+# Subtest: server: a blank first warning cannot hide a later warning
+ok 17 - server: a blank first warning cannot hide a later warning
+  ---
+  duration_ms: 0.16833
+  type: 'test'
+  ...
+# Subtest: server: absent, empty and whitespace-only warnings keep generic supervision
+ok 18 - server: absent, empty and whitespace-only warnings keep generic supervision
+  ---
+  duration_ms: 0.138045
+  type: 'test'
+  ...
+# Subtest: server: trims blank entries and deduplicates exact repeated warnings
+ok 19 - server: trims blank entries and deduplicates exact repeated warnings
+  ---
+  duration_ms: 0.191014
+  type: 'test'
+  ...
+# Subtest: server: preserves non-Latin warning text and punctuation
+ok 20 - server: preserves non-Latin warning text and punctuation
+  ---
+  duration_ms: 0.125146
+  type: 'test'
+  ...
+# Subtest: server: preserves valid warnings around malformed JSON entries
+ok 21 - server: preserves valid warnings around malformed JSON entries
+  ---
+  duration_ms: 0.164836
+  type: 'test'
+  ...
+# Subtest: server: rejects non-array warning collections without throwing
+ok 22 - server: rejects non-array warning collections without throwing
+  ---
+  duration_ms: 0.306497
+  type: 'test'
+  ...
+# Subtest: server: all malformed warning entries fall back to supervision
+ok 23 - server: all malformed warning entries fall back to supervision
+  ---
+  duration_ms: 1.488596
+  type: 'test'
+  ...
+# Subtest: server: multiple activities retain their own steps and warnings
+ok 24 - server: multiple activities retain their own steps and warnings
+  ---
+  duration_ms: 0.126228
+  type: 'test'
+  ...
+# Subtest: server: does not mutate source arrays or warning text
+ok 25 - server: does not mutate source arrays or warning text
+  ---
+  duration_ms: 0.116944
+  type: 'test'
+  ...
+# Subtest: server: keeps empty packs and ordinary guide metadata compatible
+ok 26 - server: keeps empty packs and ordinary guide metadata compatible
+  ---
+  duration_ms: 0.068953
+  type: 'test'
+  ...
+# Subtest: server: optional instruction defaults stay available
+ok 27 - server: optional instruction defaults stay available
+  ---
+  duration_ms: 0.097656
+  type: 'test'
+  ...
+# Subtest: server: provider-null generation with images disabled uses the complete fallback
+ok 28 - server: provider-null generation with images disabled uses the complete fallback
+  ---
+  duration_ms: 0.291865
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 194.204595

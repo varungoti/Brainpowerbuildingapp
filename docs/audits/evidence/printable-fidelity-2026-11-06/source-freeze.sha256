@@ -1,0 +1,4 @@
+604fde8fce3e40c65e2f514c2509961ad73b0268d8267f1adbaf96d703950c9e  src/lib/printables/guideFallback.ts
+ccf4a1ced2c79d3714ad544ea16e49a7eceb4623c0149aac65c1fcaf094216e9  src/lib/printables/guideFallback.test.ts
+82c26d712d5adfc9a10d678047504efc3edb0f97b073f1924aa47dfc47579f29  supabase/functions/server/printable_guide.ts
+ed89513c833fba43115bcf5f4092e669d51bdcb64f3560d54b10982dc095f8a1  scripts/qualification/printable-fidelity.test.mjs
