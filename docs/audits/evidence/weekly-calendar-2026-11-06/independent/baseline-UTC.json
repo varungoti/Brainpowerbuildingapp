@@ -1,0 +1,21 @@
+{
+  "stage": "baseline",
+  "exitCode": 1,
+  "tz": "UTC",
+  "count": 42,
+  "passed": 39,
+  "failures": [
+    {
+      "name": "seven logs on one day not daily",
+      "error": "The expression evaluated to a falsy value:\n\n  assert.ok(!buildWeeklyReport(child,Array.from({length:7},()=>mk(new Date(2026,3,1,12).toISOString())),ref).highlights.includes('Completed an activity every day this week!'))\n"
+    },
+    {
+      "name": "invalid date-only excluded",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    },
+    {
+      "name": "invalid nonleap day excluded",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    }
+  ]
+}
