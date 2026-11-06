@@ -1,0 +1,695 @@
+TAP version 13
+# Subtest: client: preserves every authored step in order, including step ten
+not ok 1 - client: preserves every authored step in order, including step ten
+  ---
+  duration_ms: 3.148696
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:52:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        'Authored step 1.',
+        'Authored step 2.',
+        'Authored step 3.',
+        'Authored step 4.',
+    ...
+        'Authored step 7.',
+    -   'Authored step 8.',
+    -   'Authored step 9.',
+    -   'Authored step 10.'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+    7: 'Authored step 8.'
+    8: 'Authored step 9.'
+    9: 'Authored step 10.'
+  actual:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:53:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: client: step output is a copy rather than mutable source alias
+ok 2 - client: step output is a copy rather than mutable source alias
+  ---
+  duration_ms: 0.316411
+  type: 'test'
+  ...
+# Subtest: client: retains all warnings in their authored order
+not ok 3 - client: retains all warnings in their authored order
+  ---
+  duration_ms: 0.322269
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:61:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'Keep the play space clear.'
+    - 'Keep the play space clear. Stop when tired. Put materials away afterward.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Keep the play space clear. Stop when tired. Put materials away afterward.'
+  actual: 'Keep the play space clear.'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:62:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: a blank first warning cannot hide a later warning
+not ok 4 - client: a blank first warning cannot hide a later warning
+  ---
+  duration_ms: 0.236071
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:64:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '  '
+    - 'Keep away from heat.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Keep away from heat.'
+  actual: '  '
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:65:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: absent, empty and whitespace-only warnings keep generic supervision
+not ok 5 - client: absent, empty and whitespace-only warnings keep generic supervision
+  ---
+  duration_ms: 0.352214
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:68:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Supervise closely/. Input:
+
+    ' '
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: ' '
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:70:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: trims blank entries and deduplicates exact repeated warnings
+not ok 6 - client: trims blank entries and deduplicates exact repeated warnings
+  ---
+  duration_ms: 0.403901
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:73:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '  Stop when tired. '
+    - 'Stop when tired. Keep space clear.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Stop when tired. Keep space clear.'
+  actual: '  Stop when tired. '
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:75:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: preserves non-Latin warning text and punctuation
+ok 7 - client: preserves non-Latin warning text and punctuation
+  ---
+  duration_ms: 0.179878
+  type: 'test'
+  ...
+# Subtest: client: preserves valid warnings around malformed JSON entries
+not ok 8 - client: preserves valid warnings around malformed JSON entries
+  ---
+  duration_ms: 0.206297
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:81:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'First caution.'
+    - 'First caution. Last caution.'
+                     ^
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'First caution. Last caution.'
+  actual: 'First caution.'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:83:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: rejects non-array warning collections without throwing
+not ok 9 - client: rejects non-array warning collections without throwing
+  ---
+  duration_ms: 0.345954
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:86:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Supervise closely/. Input:
+
+    'N'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'N'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:88:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: all malformed warning entries fall back to supervision
+ok 10 - client: all malformed warning entries fall back to supervision
+  ---
+  duration_ms: 0.264324
+  type: 'test'
+  ...
+# Subtest: client: multiple activities retain their own steps and warnings
+not ok 11 - client: multiple activities retain their own steps and warnings
+  ---
+  duration_ms: 0.552592
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:95:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        [
+          'Authored step 1.',
+          'Authored step 2.',
+          'Authored step 3.',
+    ...
+          'Authored step 7.',
+    -     'Authored step 8.',
+    -     'Authored step 9.',
+    -     'Authored step 10.'
+        ],
+        [
+          'Second activity only.'
+        ]
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      0: 'Authored step 1.'
+      1: 'Authored step 2.'
+      2: 'Authored step 3.'
+      3: 'Authored step 4.'
+      4: 'Authored step 5.'
+      5: 'Authored step 6.'
+      6: 'Authored step 7.'
+      7: 'Authored step 8.'
+      8: 'Authored step 9.'
+      9: 'Authored step 10.'
+    1:
+      0: 'Second activity only.'
+  actual:
+    0:
+      0: 'Authored step 1.'
+      1: 'Authored step 2.'
+      2: 'Authored step 3.'
+      3: 'Authored step 4.'
+      4: 'Authored step 5.'
+      5: 'Authored step 6.'
+      6: 'Authored step 7.'
+    1:
+      0: 'Second activity only.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:99:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: client: does not mutate source arrays or warning text
+ok 12 - client: does not mutate source arrays or warning text
+  ---
+  duration_ms: 0.297483
+  type: 'test'
+  ...
+# Subtest: client: keeps empty packs and ordinary guide metadata compatible
+ok 13 - client: keeps empty packs and ordinary guide metadata compatible
+  ---
+  duration_ms: 0.231054
+  type: 'test'
+  ...
+# Subtest: server: preserves every authored step in order, including step ten
+not ok 14 - server: preserves every authored step in order, including step ten
+  ---
+  duration_ms: 0.495918
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:52:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        'Authored step 1.',
+        'Authored step 2.',
+        'Authored step 3.',
+        'Authored step 4.',
+    ...
+        'Authored step 7.',
+    -   'Authored step 8.',
+    -   'Authored step 9.',
+    -   'Authored step 10.'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+    7: 'Authored step 8.'
+    8: 'Authored step 9.'
+    9: 'Authored step 10.'
+  actual:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:53:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: step output is a copy rather than mutable source alias
+ok 15 - server: step output is a copy rather than mutable source alias
+  ---
+  duration_ms: 0.202291
+  type: 'test'
+  ...
+# Subtest: server: retains all warnings in their authored order
+not ok 16 - server: retains all warnings in their authored order
+  ---
+  duration_ms: 0.200858
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:61:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'Keep the play space clear.'
+    - 'Keep the play space clear. Stop when tired. Put materials away afterward.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Keep the play space clear. Stop when tired. Put materials away afterward.'
+  actual: 'Keep the play space clear.'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:62:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: a blank first warning cannot hide a later warning
+not ok 17 - server: a blank first warning cannot hide a later warning
+  ---
+  duration_ms: 0.202471
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:64:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '  '
+    - 'Keep away from heat.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Keep away from heat.'
+  actual: '  '
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:65:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: absent, empty and whitespace-only warnings keep generic supervision
+not ok 18 - server: absent, empty and whitespace-only warnings keep generic supervision
+  ---
+  duration_ms: 0.22195
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:68:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Supervise closely/. Input:
+
+    ' '
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: ' '
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:70:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: trims blank entries and deduplicates exact repeated warnings
+not ok 19 - server: trims blank entries and deduplicates exact repeated warnings
+  ---
+  duration_ms: 0.131075
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:73:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + '  Stop when tired. '
+    - 'Stop when tired. Keep space clear.'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Stop when tired. Keep space clear.'
+  actual: '  Stop when tired. '
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:75:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: preserves non-Latin warning text and punctuation
+ok 20 - server: preserves non-Latin warning text and punctuation
+  ---
+  duration_ms: 0.169412
+  type: 'test'
+  ...
+# Subtest: server: preserves valid warnings around malformed JSON entries
+not ok 21 - server: preserves valid warnings around malformed JSON entries
+  ---
+  duration_ms: 0.216933
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:81:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'First caution.'
+    - 'First caution. Last caution.'
+                     ^
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'First caution. Last caution.'
+  actual: 'First caution.'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:83:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: rejects non-array warning collections without throwing
+not ok 22 - server: rejects non-array warning collections without throwing
+  ---
+  duration_ms: 0.129042
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:86:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Supervise closely/. Input:
+
+    'N'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'N'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:88:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: all malformed warning entries fall back to supervision
+ok 23 - server: all malformed warning entries fall back to supervision
+  ---
+  duration_ms: 0.142262
+  type: 'test'
+  ...
+# Subtest: server: multiple activities retain their own steps and warnings
+not ok 24 - server: multiple activities retain their own steps and warnings
+  ---
+  duration_ms: 0.246136
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:95:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        [
+          'Authored step 1.',
+          'Authored step 2.',
+          'Authored step 3.',
+    ...
+          'Authored step 7.',
+    -     'Authored step 8.',
+    -     'Authored step 9.',
+    -     'Authored step 10.'
+        ],
+        [
+          'Second activity only.'
+        ]
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      0: 'Authored step 1.'
+      1: 'Authored step 2.'
+      2: 'Authored step 3.'
+      3: 'Authored step 4.'
+      4: 'Authored step 5.'
+      5: 'Authored step 6.'
+      6: 'Authored step 7.'
+      7: 'Authored step 8.'
+      8: 'Authored step 9.'
+      9: 'Authored step 10.'
+    1:
+      0: 'Second activity only.'
+  actual:
+    0:
+      0: 'Authored step 1.'
+      1: 'Authored step 2.'
+      2: 'Authored step 3.'
+      3: 'Authored step 4.'
+      4: 'Authored step 5.'
+      5: 'Authored step 6.'
+      6: 'Authored step 7.'
+    1:
+      0: 'Second activity only.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:99:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: server: does not mutate source arrays or warning text
+ok 25 - server: does not mutate source arrays or warning text
+  ---
+  duration_ms: 0.168761
+  type: 'test'
+  ...
+# Subtest: server: keeps empty packs and ordinary guide metadata compatible
+ok 26 - server: keeps empty packs and ordinary guide metadata compatible
+  ---
+  duration_ms: 0.154209
+  type: 'test'
+  ...
+# Subtest: server: optional instruction defaults stay available
+ok 27 - server: optional instruction defaults stay available
+  ---
+  duration_ms: 0.15431
+  type: 'test'
+  ...
+# Subtest: server: provider-null generation with images disabled uses the complete fallback
+not ok 28 - server: provider-null generation with images disabled uses the complete fallback
+  ---
+  duration_ms: 0.388298
+  type: 'test'
+  location: '/workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:126:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+
+      [
+        'Authored step 1.',
+        'Authored step 2.',
+        'Authored step 3.',
+        'Authored step 4.',
+    ...
+        'Authored step 7.',
+    -   'Authored step 8.',
+    -   'Authored step 9.',
+    -   'Authored step 10.'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+    7: 'Authored step 8.'
+    8: 'Authored step 9.'
+    9: 'Authored step 10.'
+  actual:
+    0: 'Authored step 1.'
+    1: 'Authored step 2.'
+    2: 'Authored step 3.'
+    3: 'Authored step 4.'
+    4: 'Authored step 5.'
+    5: 'Authored step 6.'
+    6: 'Authored step 7.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/01b5e2aee9f5/nurospark-printable-20261106/scripts/qualification/printable-fidelity.test.mjs:128:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 11
+# fail 17
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.658544

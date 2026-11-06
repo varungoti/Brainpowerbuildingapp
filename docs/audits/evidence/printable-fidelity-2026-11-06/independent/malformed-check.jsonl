@@ -1,0 +1,48 @@
+{"label":"baseline","side":"client","kind":"valid pair","result":"First caution."}
+{"label":"baseline","side":"client","kind":"valid-null-valid","result":"First caution."}
+{"label":"baseline","side":"client","kind":"valid-number-valid","result":"First caution."}
+{"label":"baseline","side":"client","kind":"valid-object-valid","result":"First caution."}
+{"label":"baseline","side":"client","kind":"all null","result":"Supervise closely and use only safe household materials."}
+{"label":"baseline","side":"client","kind":"wrong collection string","result":"F"}
+{"label":"baseline","side":"client","kind":"wrong collection object","result":"First caution."}
+{"label":"baseline","side":"client","kind":"explicit null","result":"Supervise closely and use only safe household materials."}
+{"label":"baseline","side":"client","kind":"empty","result":"Supervise closely and use only safe household materials."}
+{"label":"baseline","side":"client","instructions":"empty","result":[]}
+{"label":"baseline","side":"client","instructions":"missing","error":"Cannot read properties of undefined (reading 'slice')"}
+{"label":"baseline","side":"client","instructions":"null","error":"Cannot read properties of null (reading 'slice')"}
+{"label":"baseline","side":"server","kind":"valid pair","result":"First caution."}
+{"label":"baseline","side":"server","kind":"valid-null-valid","result":"First caution."}
+{"label":"baseline","side":"server","kind":"valid-number-valid","result":"First caution."}
+{"label":"baseline","side":"server","kind":"valid-object-valid","result":"First caution."}
+{"label":"baseline","side":"server","kind":"all null","result":"Supervise closely and use safe household materials."}
+{"label":"baseline","side":"server","kind":"wrong collection string","result":"F"}
+{"label":"baseline","side":"server","kind":"wrong collection object","result":"First caution."}
+{"label":"baseline","side":"server","kind":"explicit null","result":"Supervise closely and use safe household materials."}
+{"label":"baseline","side":"server","kind":"empty","result":"Supervise closely and use safe household materials."}
+{"label":"baseline","side":"server","instructions":"empty","result":[]}
+{"label":"baseline","side":"server","instructions":"missing","result":["Invite your child to try the activity.","Model once, then let them lead."]}
+{"label":"baseline","side":"server","instructions":"null","result":["Invite your child to try the activity.","Model once, then let them lead."]}
+{"label":"candidate","side":"client","kind":"valid pair","result":"First caution. Last caution."}
+{"label":"candidate","side":"client","kind":"valid-null-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"client","kind":"valid-number-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"client","kind":"valid-object-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"client","kind":"all null","result":"Supervise closely and use only safe household materials."}
+{"label":"candidate","side":"client","kind":"wrong collection string","result":"Supervise closely and use only safe household materials."}
+{"label":"candidate","side":"client","kind":"wrong collection object","result":"Supervise closely and use only safe household materials."}
+{"label":"candidate","side":"client","kind":"explicit null","result":"Supervise closely and use only safe household materials."}
+{"label":"candidate","side":"client","kind":"empty","result":"Supervise closely and use only safe household materials."}
+{"label":"candidate","side":"client","instructions":"empty","result":[]}
+{"label":"candidate","side":"client","instructions":"missing","error":"Cannot read properties of undefined (reading 'slice')"}
+{"label":"candidate","side":"client","instructions":"null","error":"Cannot read properties of null (reading 'slice')"}
+{"label":"candidate","side":"server","kind":"valid pair","result":"First caution. Last caution."}
+{"label":"candidate","side":"server","kind":"valid-null-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"server","kind":"valid-number-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"server","kind":"valid-object-valid","result":"First caution. Last caution."}
+{"label":"candidate","side":"server","kind":"all null","result":"Supervise closely and use safe household materials."}
+{"label":"candidate","side":"server","kind":"wrong collection string","result":"Supervise closely and use safe household materials."}
+{"label":"candidate","side":"server","kind":"wrong collection object","result":"Supervise closely and use safe household materials."}
+{"label":"candidate","side":"server","kind":"explicit null","result":"Supervise closely and use safe household materials."}
+{"label":"candidate","side":"server","kind":"empty","result":"Supervise closely and use safe household materials."}
+{"label":"candidate","side":"server","instructions":"empty","result":[]}
+{"label":"candidate","side":"server","instructions":"missing","result":["Invite your child to try the activity.","Model once, then let them lead."]}
+{"label":"candidate","side":"server","instructions":"null","result":["Invite your child to try the activity.","Model once, then let them lead."]}

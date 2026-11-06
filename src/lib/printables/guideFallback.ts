@@ -28,6 +28,9 @@ function firstIntelligence(activity: Activity): string {
 export function buildPrintableActivityFallback(activity: Activity): PrintableGuideActivity {
   const core = firstIntelligence(activity);
   const materials = activity.materials.length ? activity.materials : ["No special materials"];
+  const warnings = Array.isArray(activity.contraindications)
+    ? activity.contraindications.filter((warning): warning is string => typeof warning === "string")
+    : [];
   return {
     activityId: activity.id,
     title: activity.name,
@@ -39,7 +42,8 @@ export function buildPrintableActivityFallback(activity: Activity): PrintableGui
       activity.whyAIAge ?? activity.parentTip ?? activity.description,
       `This activity builds ${core} through parent-guided play.`,
     ),
-    steps: activity.instructions.slice(0, 7),
+    // Preserve authored setup, play and cleanup steps in the printed guide.
+    steps: activity.instructions.slice(),
     sayThis: [
       `Let's try ${activity.name} together.`,
       "Show me your idea first, then I'll help if you want.",
@@ -52,7 +56,7 @@ export function buildPrintableActivityFallback(activity: Activity): PrintableGui
     ],
     adaptIfTooEasy: activity.extensionIdeas?.[0] ?? "Add one extra rule, longer sequence, or a child-led variation.",
     adaptIfTooHard: "Reduce to the first two steps, model once, and celebrate any attempt.",
-    safetyNote: activity.contraindications?.[0] ?? "Supervise closely and use only safe household materials.",
+    safetyNote: uniq(warnings).join(" ") || "Supervise closely and use only safe household materials.",
     reflectionPrompt: "What felt easiest, what felt tricky, and what should we try next time?",
     illustration: {
       prompt: [
